@@ -2,6 +2,7 @@ import express from 'express';
 import bodyparser from 'body-parser';
 import rawMaterialRoutes from './routes/rawMaterial.route.js';
 import userRoutes from './routes/user.route.js';
+import productRoutes from './routes/product.route.js';
 import morgan from 'morgan';
 import cors from 'cors';
 
@@ -20,3 +21,4 @@ app.listen(4000, ()=> {
 // Routes
 app.use('/rawMaterials', rawMaterialRoutes);
 app.use('/user', userRoutes);
+app.use('/product', productRoutes);
