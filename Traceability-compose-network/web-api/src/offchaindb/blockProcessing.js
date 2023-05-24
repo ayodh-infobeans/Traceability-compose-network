@@ -104,10 +104,11 @@ export default async function processBlockEvent(channelname, block, use_mongodb,
 
                         // send the object to a log file
                         fs.appendFileSync(channelname + '_' + chaincodeID + '.log', JSON.stringify(writeObject) + "\n");
-
+                        
                         // if mongodb is configured, then write to mongodb
                         if (use_mongodb) {
                             try {
+                                console.log("Hello in write function ");
                                 await writeValuesToMongoDBP(mongodb_address, channelname, writeObject);
                             } catch (error) {
                                  
@@ -134,7 +135,7 @@ async function writeValuesToMongoDBP(mongodb_address, channelname, writeObject) 
         try {
 
             // define the database for saving block events by key - this emulates world state
-            const dbname = channelname + '_' + writeObject.chaincodeid;
+            const dbname = channelname + '_' + writeObject.chaincodeid +'s';
             console.log("cecwecwcewc"+ dbname);
             // define the database for saving all block events - this emulates history
             const historydbname = channelname + '_' + writeObject.chaincodeid + '_history';

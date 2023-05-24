@@ -5,7 +5,20 @@ import fs from 'fs';
 import path from 'path';
 import buildCCP from '../../config/buildCCP.js';
 import ConnectGateway from '../utils/gateway.util.js';
+import mongoose from 'mongoose';
+import RawModel from '../../models/model.js'
 
+async function connectToMongoDB() {
+    try {
+      const connectionString = "mongodb://localhost:27017/test";
+      await mongoose.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true });
+      console.log('Connected to MongoDB abcd');
+      // Start your application or perform further operations
+    } catch (error) {
+      console.error('Error connecting to MongoDB:', error);
+      // Handle the error appropriately
+    }
+  }
 const GetAllRawMaterial = async(req, res) =>{
     try{
         let OrgMSP = req.body.org;
@@ -19,7 +32,6 @@ const GetAllRawMaterial = async(req, res) =>{
         const contract = network.getContract(req.body.chaincodeName);
         let result = await contract.evaluateTransaction("RawMaterialTransfer:GetAllRawMaterials");
         await gateway.disconnect();
-
         res.send(result);
     }
     catch (error){
@@ -42,6 +54,22 @@ const CreateRawMaterial = async(req, res) =>{
         //  query chaincode....
         let result = await contract.submitTransaction("RawMaterialTransfer:CreateRawMaterial", data.rawID, data.rawMaterialName, data.rawMaterialCategory, data.rawMaterialLocation, data.rawMaterialQuantity, data.rawMaterialPrice, data.rawMaterialDescription, data.rawMaterialProductionDate, data.rawMaterialExpiryDate, data.rawMaterialSpecifications, data.rawMaterialCultivationMethod, data.rawMaterialFertilizers, data.rawMaterialStatus, data.rawMaterialImage);
         await gateway.disconnect();
+        connectToMongoDB();
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        const obj = await RawModel.findOne({rawID:data.rawID});
+        console.log(obj);
+        if (obj) {
+            obj.org= req.body.org;
+            obj.userName= req.body.userName;
+            obj.userType= req.body.userType;
+            obj.channelName= req.body.channelName;
+            obj.chaincodeName= req.body.chaincodeName;
+            // Save the modified document back to the database
+            await obj.save();
+            console.log('Document updated successfully.');
+          } else {
+            console.log('Document not found.');
+          }
         res.send(result);
     }
     catch (error){

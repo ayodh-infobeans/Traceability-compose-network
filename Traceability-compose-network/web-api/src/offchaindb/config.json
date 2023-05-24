@@ -3,5 +3,12 @@
     "channelid": "mychannel",
     "use_mongodb":true,
     "create_history_log":true,
-    "mongodb_address": "mongodb://admin:password@localhost:27017"
+    "mongodb_address": "mongodb://localhost:27017"
 }
+
+
+
+
+
+
+

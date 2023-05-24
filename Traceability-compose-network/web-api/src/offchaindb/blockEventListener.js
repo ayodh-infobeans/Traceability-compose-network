@@ -44,18 +44,32 @@ import { Wallets, Gateway } from 'fabric-network';
 import fs from 'fs';
 import path from 'path';
 import processBlockEvent from './blockProcessing.js';
-import * as config from './config.json' assert { type: 'json' };
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const channelid = config.channelid;
+
+const configPathi = path.resolve(__dirname, 'config.json');
+const configData = fs.readFileSync(configPathi, 'utf-8');
+const config = JSON.parse(configData);
+
+   
 const peer_name = config.peer_name;
-// const use_couchdb = config.use_couchdb;
+const channelid = config.channelid;
 const use_mongodb = config.use_mongodb;
+const createHistoryLog = config.create_history_log;
 const mongodb_address = config.mongodb_address;
+console.log("single value",use_mongodb);
+
+
+// const channelid = config.channelid;
+// const peer_name = config.peer_name;
+// // const use_couchdb = config.use_couchdb;
+// const use_mongodb = config.use_mongodb;
+// const mongodb_address = config.mongodb_address;
 
 const configPath = path.resolve(__dirname, 'nextblock.txt');
-
+console.log(config.use_mongodb);
 
 class BlockMap {
     constructor() {
@@ -160,7 +174,7 @@ async function processPendingBlocks(ProcessingMap) {
             }
 
             // if successful, remove the block from the ProcessingMap
-            console.log("Testing 111");
+            
             ProcessingMap.remove(nextBlockNumber);
             console.log("Testing 222");
             // increment the next block number to the next block
