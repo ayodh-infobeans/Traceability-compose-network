@@ -15,9 +15,6 @@ const adminUserPasswd = 'adminpw';
  * @param {*} ccp
  */
 const buildCAClient = (FabricCAServices, ccp, caHostName) => {	
-	// Create a new CA client for interacting with the CA.
-	console.log("==========================",typeof FabricCAServices);
-	console.log("==========================", caHostName);
 	const caInfo = ccp.certificateAuthorities[caHostName]; //lookup CA details from config
 	const caTLSCACerts = caInfo.tlsCACerts.pem;
 	const caClient = new FabricCAServices(caInfo.url, { trustedRoots: caTLSCACerts, verify: false }, caInfo.caName);
@@ -28,8 +25,6 @@ const buildCAClient = (FabricCAServices, ccp, caHostName) => {
 
 const enrollAdmin = async (caClient, wallet, orgMspId) => {
 	try {
-		// Check to see if we've already enrolled the admin user.
-		console.log("caclient----------------- "+ caClient.toString());
 		const identity = await wallet.get(adminUserId);
 		if (identity) {
 			console.log('An identity for the admin user already exists in the wallet');
@@ -85,6 +80,7 @@ const registerAndEnrollUser = async (caClient, wallet, orgMspId, userId, affilia
 			enrollmentID: userId,
 			role: 'client'
 		}, adminUser);
+
 		const enrollment = await caClient.enroll({
 			enrollmentID: userId,
 			enrollmentSecret: secret
@@ -96,9 +92,11 @@ const registerAndEnrollUser = async (caClient, wallet, orgMspId, userId, affilia
 			},
 			mspId: orgMspId,
 			type: 'X.509',
+
 		};
+		console.log(x509Identity);
 		await wallet.put(userId, x509Identity);
-		console.log(`Successfully registered and enrolled user ${userId} and imported it into the wallet`);
+		return wallet;
 	} catch (error) {
 		console.error(`Failed to register user : ${error}`);
 	}
@@ -108,7 +106,7 @@ const userExist=async(wallet,userId)=>{
 	console.log("userExist: wallet path",wallet)
 	const identity = await wallet.get(userId);
 	if (!identity) {
-		throw new Error("Identity not exist ")
+		return false;
 	}
 	return true;
 }

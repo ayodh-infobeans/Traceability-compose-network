@@ -5,7 +5,16 @@ import userRoutes from './routes/user.route.js';
 import morgan from 'morgan';
 import cors from 'cors';
 
-// console.log('#############', rawMaterialRoutes)
+// session.js
+let session = null;
+
+function getSession() {
+  return session;
+}
+
+function setSession(newSession) {
+  session = newSession;
+}// console.log('#############', rawMaterialRoutes)
 
 const app = express();
 app.use(morgan('combined'));
@@ -20,3 +29,8 @@ app.listen(4000, ()=> {
 // Routes
 app.use('/rawMaterials', rawMaterialRoutes);
 app.use('/user', userRoutes);
+
+export default{
+    getSession,
+    setSession
+}
