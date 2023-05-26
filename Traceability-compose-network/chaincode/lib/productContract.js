@@ -15,7 +15,7 @@ class ProductContract extends Contract {
     async InitProducts(ctx) {
 
         const mspid = ctx.clientIdentity.getMSPID();
-        if (mspid !== 'ManufacturerMSP') {
+        if (mspid !== 'Org2MSP') {
             throw new Error(`Caller with MSP ID ${mspid} is not authorized to initialize products`);
         }
 
@@ -24,8 +24,8 @@ class ProductContract extends Contract {
                 productId : "prod1",
                 manufacturerId: "Man1",
                 productBatchNo: 2,
-                // productBatchManufacturingDate: "2023-04-25",
-                // productBatchExpiryDate: "2023-07-28",
+                productBatchManufacturingDate: "2023-04-25",
+                productBatchExpiryDate: "2023-07-28",
                 rawMaterialId: ["raw1", "raw2"],
                 productName: "chips",
                 productDescription: "chips",
@@ -54,7 +54,7 @@ class ProductContract extends Contract {
     async CreateProduct(ctx, productId, productBatchNo,productBatchManufacturingDate, productBatchExpiryDate,rawMaterialId, productName, productDescription, productCategory, productManufacturingLocation, productQuantity, productManufacturingPrice, productManufacturingDate, productExpiryDate, productIngredients, productSKU, productGTIN, productImage) {
         // Only Manufacturer Organization can create new product
         const mspid = ctx.clientIdentity.getMSPID();
-        if (mspid !== 'ManufacturerMSP') {
+        if (mspid !== 'Org2MSP') {
             throw new Error(`Caller with MSP ID ${mspid} is not authorized to create product`);
         }
         // check for already existing products
@@ -84,6 +84,7 @@ class ProductContract extends Contract {
             productGTIN: productGTIN,
             productImage: productImage
         };
+        
         // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
         await ctx.stub.putState(productId, Buffer.from(stringify(sortKeysRecursive(product))));
         return JSON.stringify(product);
@@ -92,7 +93,7 @@ class ProductContract extends Contract {
     async UpdateProduct(ctx, productId, productBatchNo, productBatchManufacturingDate,productBatchExpiryDate,rawMaterialId, productName, productDescription, productCategory, productManufacturingLocation, productQuantity, productManufacturingPrice, productManufacturingDate,productExpiryDate, productIngredients, productSKU, productGTIN,productImage){
         // Only Manufacturer Organization can update product
         const mspid = ctx.clientIdentity.getMSPID();
-        if (mspid !== 'ManufacturerMSP') {
+        if (mspid !== 'Org2MSP') {
             throw new Error(`Caller with MSP ID ${mspid} is not authorized to update product`);
         }
 
@@ -139,7 +140,7 @@ class ProductContract extends Contract {
     async DeleteProduct(ctx, productId) {
         
         const mspid = ctx.clientIdentity.getMSPID();
-        if (mspid !== 'ManufacturerMSP') {
+        if (mspid !== 'Org2MSP') {
             throw new Error(`Caller with MSP ID ${mspid} is not authorized to delete product`);
         }
         

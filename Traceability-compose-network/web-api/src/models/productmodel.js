@@ -32,7 +32,6 @@ const ProductSchema = new mongoose.Schema({
   // ...
 });
 
-const ProductModel = mongoose.model('mychannel_basic_', ProductSchema);
-
+const ProductModel = mongoose.model('mychannel_basic_products', ProductSchema);
 
 export default ProductModel;

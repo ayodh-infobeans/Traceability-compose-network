@@ -3,13 +3,12 @@ import productController from '../controllers/product.controller.js';
 
 const router = express.Router();
 
-router.route('/init').post(productController.InitProducts);
 router.get('/',productController.GetAllProducts);
 router.route('/create').post(productController.CreateProduct);
 router.route('/update').post(productController.UpdateProduct);
-router.route('/viewproduct').get(productController.GetProductById);
+router.route('/viewProduct').get(productController.GetProductById);
 router.route('/remove').post(productController.DeleteProduct);
-router.route('/checkAvailability').get(productController.checkProductAvailability);
+router.route('/checkAvailability').get(productController.CheckProductAvailability);
 
 router.get('/status', (req, res) => {
 	res.json({

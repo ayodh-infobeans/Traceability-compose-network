@@ -26,7 +26,7 @@ const RawSchema = new mongoose.Schema({
   
 });
 
-const RawModel = mongoose.model('mychannel_basic', RawSchema);
+const RawModel = mongoose.model('mychannel_basic_raws', RawSchema);
 
 
 // module.exports = RawModel;

@@ -1,246 +1,226 @@
-import httpStatus from 'http-status';
-import pkg from 'fabric-network';
-const { Gateway, Wallets } = pkg;
-import fs from 'fs';
-import path from 'path';
-import buildCCP from '../../config/buildCCP.js';
 import ConnectGateway from '../utils/gateway.util.js';
+import commonUtils from '../utils/common.util.js';
 import ProductModel from '../../models/productmodel.js';
-
 const GetAllProducts = async(req, res) =>{
     try{
-        let OrgMSP = req.body.org;
-        let userId = req.body.userName;
-        let substringToRemove = 'MSP';
-        let newOrg = OrgMSP.substring(0, OrgMSP.indexOf(substringToRemove));  
-        let org = newOrg.substr(0, 1).toLowerCase() + newOrg.substr(1); 
-        const ccp = buildCCP.getCCP(org);
-        const gateway = ConnectGateway.connectToGateway(ccp, userId);
-        const network = await gateway.getNetwork(req.channelName);
-        const contract = network.getContract(req.chaincodeName);
-
-        // Query chaincode...
-        let result = await contract.evaluateTransaction("GetAllProducts");
+        const {userName, orgMSP, userType,channelName, chaincodeName} = req.body;
+        let org = commonUtils.getOrgNameFromMSP(orgMSP);
+        let gateway = await ConnectGateway.connectToGateway(org, userName);
+        const network = await gateway.getNetwork(channelName);
+        const contract = network.getContract(chaincodeName);
+        let result = await contract.evaluateTransaction("ProductContract:GetAllProducts");
+        const response_payload = {
+            result: result.toString(),
+            error: null,
+            errorData: null
+        }
         await gateway.disconnect();
-        res.status(200).json({
-            result: result
-        });
+        res.send(response_payload);
+        
     }
     catch (error){
-        res.send(error);
-    }
-}
-
-const InitProducts = async(req, res) =>{
-    try{
-        let OrgMSP = req.body.org;
-        let userId = req.body.userName;
-        let substringToRemove = 'MSP';
-        let newOrg = OrgMSP.substring(0, OrgMSP.indexOf(substringToRemove));  
-        let org = newOrg.substr(0, 1).toLowerCase() + newOrg.substr(1); 
-        const ccp = buildCCP.getCCP(org);
-        const gateway = ConnectGateway.connectToGateway(ccp, userId);
-        const network = await gateway.getNetwork(req.channelName);
-        const contract = network.getContract(req.chaincodeName);
-
-        // Query chaincode...
-        let result = await contract.evaluateTransaction("InitProducts");
-        await gateway.disconnect();
-
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        const obj = await ProductModel.findOne({productId:data.productId});
-        console.log(obj);
-        if (obj) {
-            obj.org= req.body.org;
-            obj.userName= req.body.userName;
-            obj.userType= req.body.userType;
-            obj.channelName= req.body.channelName;
-            obj.chaincodeName= req.body.chaincodeName;
-
-            obj.productNotes=req.body.data.productNotes;
-            obj.productStatus=req.body.data.productStatus;
-            // Save the modified document back to the database
-            await obj.save();
-            console.log('Document updated successfully.');
-          } else {
-            console.log('Document not found.');
-          }
-
-        res.status(200).json({
-            result: result
-        });
-    }
-    catch (error){
-        res.send(error);
+        const response_payload = {
+            result: null,
+            error: error.name,
+            errorData: error.message
+        }
+        res.send(response_payload)
     }
 }
 
 const CreateProduct = async(req, res) =>{
     try{
-        let OrgMSP = req.body.org;
-        let userId = req.body.userName;
-        let substringToRemove = 'MSP';
-        let newOrg = OrgMSP.substring(0, OrgMSP.indexOf(substringToRemove));  
-        let org = newOrg.substr(0, 1).toLowerCase() + newOrg.substr(1); 
-        const ccp = buildCCP.getCCP(org);
-        const gateway = ConnectGateway.connectToGateway(ccp, userId);
-        const network = await gateway.getNetwork(req.channelName);
-        const contract = network.getContract(req.chaincodeName);
-        let data = req.body.data;
-        //  query chaincode....
-        let result = await contract.submitTransaction('CreateProduct', data.productId, data.productBatchNo, data.productBatchManufacturingDate, data.productBatchExpiryDate, data.rawMaterialId, data.productName, data.productDescription, data.productCategory, data.productManufacturingLocation, data.productQuantity, data.productManufacturingPrice, data.productManufacturingDate, data.productExpiryDate, data.productIngredients, data.type, data.productSKU, data.productGTIN, data.productImage);
-        await gateway.disconnect();
-
+        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
+        let org = commonUtils.getOrgNameFromMSP(orgMSP);
+        let gateway = await ConnectGateway.connectToGateway(org, userName);
+        const network = await gateway.getNetwork(channelName);
+        const contract = network.getContract(chaincodeName);
+        let result = await contract.submitTransaction('ProductContract:CreateProduct', data.productId, data.productBatchNo,data.productBatchManufacturingDate,data.productBatchExpiryDate, data.rawMaterialId, data.productName, data.productDescription, data.productCategory, data.productManufacturingLocation, data.productQuantity, data.productManufacturingPrice, data.productManufacturingDate, data.productExpiryDate, data.productIngredients, data.productSKU, data.productGTIN,  data.productImage);
+        
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await ProductModel.findOne({productId:data.productId});
         console.log(obj);
-        if (obj) {
-            obj.org= req.body.org;
-            obj.userName= req.body.userName;
-            obj.userType= req.body.userType;
-            obj.channelName= req.body.channelName;
-            obj.chaincodeName= req.body.chaincodeName;
+        if (obj.toString()) {
 
-            obj.productNotes=req.body.data.productNotes;
-            obj.productStatus=req.body.data.productStatus;
+            obj.orgMSP= orgMSP;
+            obj.userName= userName;
+            obj.userType= userType;
+            obj.channelName= channelName;
+            obj.chaincodeName= chaincodeName;
+
+            obj.productNotes=data.productNotes;
+            obj.productStatus=data.productStatus;
             // Save the modified document back to the database
             await obj.save();
             console.log('Document updated successfully.');
+
           } else {
             console.log('Document not found.');
-          }
-
-        res.status(200).json({
-            result: result
-        });
+        }
+        
+        const response_payload = {
+            result: result.toString(),
+            error: null,
+            errorData: null
+        }
+        await gateway.disconnect();
+        res.send(response_payload);
     }
     catch (error){
-        res.send(error);
+        const response_payload = {
+            result: null,
+            error: error.name,
+            errorData: error.message
+        }
+        res.send(response_payload)
     }
 }
 
 const UpdateProduct = async(req, res) =>{
     try{
-        let OrgMSP = req.body.org;
-        let userId = req.body.userName;
-        let substringToRemove = 'MSP';
-        let newOrg = OrgMSP.substring(0, OrgMSP.indexOf(substringToRemove));  
-        let org = newOrg.substr(0, 1).toLowerCase() + newOrg.substr(1); 
-        const ccp = buildCCP.getCCP(org);
-        const gateway = ConnectGateway.connectToGateway(ccp, userId);
-        const network = await gateway.getNetwork(req.channelName);
-        const contract = network.getContract(req.chaincodeName);
-        let data = req.data;
-        //  query chaincode....
-        let result = await contract.submitTransaction('UpdateProduct', data.productId, data.productBatchNo, data.productBatchManufacturingDate, data.productBatchExpiryDate, data.rawMaterialId, data.productName, data.productDescription, data.productCategory, data.productManufacturingLocation, data.productQuantity, data.productManufacturingPrice, data.productManufacturingDate, data.productExpiryDate, data.productIngredients, data.type, data.productSKU, data.productGTIN, data.productImage);
-        await gateway.disconnect();
-
+        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
+        let org = commonUtils.getOrgNameFromMSP(orgMSP);
+        let gateway = await ConnectGateway.connectToGateway(org, userName);
+        const network = await gateway.getNetwork(channelName);
+        const contract = network.getContract(chaincodeName);
+        let result = await contract.submitTransaction('ProductContract:UpdateProduct', data.productId, data.productBatchNo, data.productBatchManufacturingDate,data.productBatchExpiryDate, data.rawMaterialId, data.productName, data.productDescription, data.productCategory, data.productManufacturingLocation, data.productQuantity, data.productManufacturingPrice, data.productManufacturingDate, data.productExpiryDate, data.productIngredients, data.productSKU, data.productGTIN, data.productImage);
+        
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await ProductModel.findOne({productId:data.productId});
         console.log(obj);
-        if (obj) {
-            obj.org= req.body.org;
-            obj.userName= req.body.userName;
-            obj.userType= req.body.userType;
-            obj.channelName= req.body.channelName;
-            obj.chaincodeName= req.body.chaincodeName;
+        if (obj.toString()) {
+            
+            obj.orgMSP= orgMSP;
+            obj.userName= userName;
+            obj.userType= userType;
+            obj.channelName= channelName;
+            obj.chaincodeName= chaincodeName;
 
-            obj.productNotes=req.body.data.productNotes;
-            obj.productStatus=req.body.data.productStatus;
+            obj.productNotes=data.productNotes;
+            obj.productStatus=data.productStatus;
             // Save the modified document back to the database
             await obj.save();
             console.log('Document updated successfully.');
+
           } else {
             console.log('Document not found.');
-          }
-
-        res.status(200).json({
-            result: result
-        });
+        }
+        
+        
+        const response_payload = {
+            result: result.toString(),
+            error: null,
+            errorData: null
+        }
+        await gateway.disconnect();
+        res.send(response_payload);
     }
     catch (error){
-        res.send(error);
+        const response_payload = {
+            result: null,
+            error: error.name,
+            errorData: error.message
+        }
+        res.send(response_payload)
     }
 }
 
 const GetProductById = async(req, res) => {
     try{
-        let OrgMSP = req.body.org;
-        let userId = req.body.userName;
-        let substringToRemove = 'MSP';
-        let newOrg = OrgMSP.substring(0, OrgMSP.indexOf(substringToRemove));  
-        let org = newOrg.substr(0, 1).toLowerCase() + newOrg.substr(1); 
-        const ccp = buildCCP.getCCP(org);
-        const gateway = ConnectGateway.connectToGateway(ccp, userId);
-        const network = await gateway.getNetwork(req.channelName);
-        const contract = network.getContract(req.chaincodeName);
-        let data = req.data;
-        // Query chaincode...
-        let result = await contract.evaluateTransaction("GetProductById", data.productId);
+        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
+        let org = commonUtils.getOrgNameFromMSP(orgMSP);
+        let gateway = await ConnectGateway.connectToGateway(org, userName);
+        const network = await gateway.getNetwork(channelName);
+        const contract = network.getContract(chaincodeName);
+        let result = await contract.evaluateTransaction("ProductContract:GetProductById", data.productId);
+        const response_payload = {
+            result: result.toString(),
+            error: null,
+            errorData: null
+        }
         await gateway.disconnect();
-        res.status(200).json({
-            result: result
-        });
+        res.send(response_payload);
     }
     catch (error){
-        res.send(error);
+        const response_payload = {
+            result: null,
+            error: error.name,
+            errorData: error.message
+        }
+        res.send(response_payload)
     }
 }
 
 const DeleteProduct = async(req, res) =>{
     try{
-        let OrgMSP = req.body.org;
-        let userId = req.body.userName;
-        let substringToRemove = 'MSP';
-        let newOrg = OrgMSP.substring(0, OrgMSP.indexOf(substringToRemove));  
-        let org = newOrg.substr(0, 1).toLowerCase() + newOrg.substr(1); 
-        const ccp = buildCCP.getCCP(org);
-        const gateway = ConnectGateway.connectToGateway(ccp, userId);
-        const network = await gateway.getNetwork(req.channelName);
-        const contract = network.getContract(req.chaincodeName);
-        let data = req.data;
-        // Query chaincode...
-        let result = await contract.submitTransaction("DeleteRawMaterial", data.productId);
+        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
+        let org = commonUtils.getOrgNameFromMSP(orgMSP);
+        let gateway = await ConnectGateway.connectToGateway(org, userName);
+        const network = await gateway.getNetwork(channelName);
+        const contract = network.getContract(chaincodeName);
+        let result = await contract.submitTransaction("ProductContract:DeleteProduct", data.productId);
+        const response_payload = {
+            result: result.toString(),
+            error: null,
+            errorData: null
+        }
         await gateway.disconnect();
-        res.status(200).json({
-            result: result
-        });
+        res.send(response_payload);
     }
     catch (error){
-        res.send(error);
+        const response_payload = {
+            result: null,
+            error: error.name,
+            errorData: error.message
+        }
+        res.send(response_payload)
     }
 }
 
-const checkProductAvailability = async(req, res)=>{
+const CheckProductAvailability = async(req, res)=>{
     try{
-        let OrgMSP = req.body.org;
-        let userId = req.body.userName;
-        let substringToRemove = 'MSP';
-        let newOrg = OrgMSP.substring(0, OrgMSP.indexOf(substringToRemove));  
-        let org = newOrg.substr(0, 1).toLowerCase() + newOrg.substr(1); 
-        const ccp = buildCCP.getCCP(org);
-        const gateway = ConnectGateway.connectToGateway(ccp, userId);
-        const network = await gateway.getNetwork(req.channelName);
-        const contract = network.getContract(req.chaincodeName);
-        let data = req.body.data;
-        // Query chaincode...
-        let result = await contract.evaluateTransaction("checkProductAvailabilty", data.searchProduct, data.productQuantity);
-        await gateway.disconnect();
-        res.status(200).json({
-            result: result
-        });
+        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
+        
+        const productObj = await ProductModel.find({productName: data.productName});
+
+        if(productObj.toString()){
+            const obj=await ProductModel.find({ $and: [{productName: data.productName},{productQuantity: {$gte:data.productQuantity}}]});                
+            if(obj.toString()){
+                    // return "Raw material is available in required quantity : "+ JSON.stringify(result);
+                res.status(200).json({
+                    status: true,
+                    result: "This "+ JSON.stringify(productObj) + "product is available in required quantity"
+                });
+            }
+            else{
+                res.status(500).json({
+                    status: false,
+                    message: "Product is not available in required quantity"
+                })
+            }
+        }
+        else{
+            res.status(500).json({
+                status: false,
+                message: "Product is not available"
+            })
+        }
     }
     catch (error){
-        res.send(error);
+        const response_payload = {
+            result: null,
+            error: error.name,
+            errorData: error.message
+        }
+        res.send(response_payload)
     }
 }
 
 export default{
     GetAllProducts,
-    InitProducts,
     CreateProduct,
     UpdateProduct,
     DeleteProduct,
-    checkProductAvailability,
+    CheckProductAvailability,
     GetProductById
 }

@@ -16,7 +16,7 @@ class RawMaterialTransfer extends Contract {
     async InitLedger(ctx) {
 
         const mspid = ctx.clientIdentity.getMSPID();
-        if (mspid !== 'GrowerMSP') {
+        if (mspid !== 'Org1MSP') {
             throw new Error(`Caller with MSP ID ${mspid} is not authorized to initialize raw materials`);
         }
 
@@ -56,7 +56,7 @@ class RawMaterialTransfer extends Contract {
     async CreateRawMaterial(ctx, rawId, rawMaterialName, rawMaterialCategory, rawMaterialLocation, rawMaterialQuantity, rawMaterialPrice, rawMaterialDescription, rawMaterialProductionDate, rawMaterialExpiryDate, rawMaterialSpecifications, rawMaterialCultivationMethod, rawMaterialFertilizers, rawMaterialImage) {
         // Only Grower Organization can create new raw material
         const mspid = ctx.clientIdentity.getMSPID();
-        if (mspid !== 'GrowerMSP') {
+        if (mspid !== 'Org1MSP') {
             throw new Error(`Caller with MSP ID ${mspid} is not authorized to create raw materials`);
         }
         // check for already existing raw materials
@@ -100,7 +100,7 @@ class RawMaterialTransfer extends Contract {
     async UpdateRawMaterial(ctx, rawId, rawMaterialName, rawMaterialCategory, rawMaterialLocation, rawMaterialQuantity, rawMaterialPrice, rawMaterialDescription, rawMaterialProductionDate, rawMaterialExpiryDate, rawMaterialSpecifications, rawMaterialCultivationMethod, rawMaterialFertilizers, rawMaterialImage) {
         // Only Grower organizations are allowed to update raw materials
         const mspid = ctx.clientIdentity.getMSPID();
-        if (mspid !== 'GrowerMSP') {
+        if (mspid !== 'Org1MSP') {
         throw new Error(`Caller with MSP ID ${mspid} is not authorized to update raw materials`);
         }
         
@@ -135,7 +135,7 @@ class RawMaterialTransfer extends Contract {
     async DeleteRawMaterial(ctx, rawID) {
         
         const mspid = ctx.clientIdentity.getMSPID();
-        if (mspid !== 'GrowerMSP') {
+        if (mspid !== 'Org1MSP') {
             throw new Error(`Caller with MSP ID ${mspid} is not authorized to delete raw material`);
         }
         
@@ -180,7 +180,7 @@ module.exports = RawMaterialTransfer;
  // // ShipRawMaterial from Grower to Manufacturer 
     // async ShipRawMaterial(ctx, rawId) {
     //     const mspId = ctx.clientIdentity.getMSPID();
-    //     if (mspId !== 'GrowerMSP') {
+    //     if (mspId !== 'Org1MSP') {
     //         throw new Error('Unauthorized. Only users belonging to the Grower organization can ship raw materials.');
     //     }
 

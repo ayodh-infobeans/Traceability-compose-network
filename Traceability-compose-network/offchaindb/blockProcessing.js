@@ -136,15 +136,15 @@ async function writeValuesToMongoDBP(mongodb_address, channelname, writeObject) 
             const values = writeObject.values;
             
             const historydbname = HistoryModel;
-            
             try {
                 for (var sequence in values) {
                     let keyvalue =
                         values[
                         sequence
                         ];
-
-                    if(JSON.parse(keyvalue.value).type === "rawMaterial"){
+                    console.log("hello ==");
+                    // var check = keyvalue.key; // Extract the value of key
+                    if(keyvalue.key.startsWith("RM")){
                             var dbname = RawModel; 
                         }
                     else{

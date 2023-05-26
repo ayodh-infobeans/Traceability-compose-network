@@ -1,6 +1,8 @@
 'use strict';
 import mongoose from 'mongoose';
-
+import RawModel from './models/rawmodel.js';
+import ProductModel from './models/productmodel.js';
+import HistoryModel from './models/historymodel.js';
 export default {
   writeToMongoDB: async function(uri, model, key, value) {
     try {
@@ -17,10 +19,21 @@ export default {
           console.error('Connection error:', error);
         });
 
-      const existingRecord = await model.findOne({ rawID: key });
+      if (model===RawModel){
+          var ID ="rawID";
+      } 
+      if (model===ProductModel){
+         var ID = "productId";
+      }
+      if (model===HistoryModel){
+         var ID = "key";
+      }   
+    
+      const existingRecord = await model.findOne({[ID]: key });
       if (existingRecord) {
           // await RawModel.replaceOne({rawID: key }, value);
-          await model.updateOne({rawID: key }, value)
+          console.log("at update product");
+          await model.updateOne({[ID]: key }, value)
             .then(result => {
               console.log('Document updated:', result);
             })
@@ -38,7 +51,6 @@ export default {
           .catch(error => {
             console.error('Error creating document:', error);
           });
-        
       }
 
       return true;
@@ -53,9 +65,19 @@ export default {
   deleteRecord: async function(uri, model, key) {
     try {
       await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-      const existingRecord = await model.findOne({ rawID: key });
+      
+      if (model===RawModel){
+        var ID ="rawID";
+      } 
+      if (model===ProductModel){
+        var ID = "productId";
+      }
+      if (model===HistoryModel){
+        var ID = "key";
+      }
+      const existingRecord = await model.findOne({ [ID]: key });
       if (existingRecord) {
-        await model.deleteOne({ rawID: key });
+        await model.deleteOne({ [ID]: key });
       }
       return true;
     } catch (error) {
