@@ -8,19 +8,6 @@ const getOrgNameFromMSP = (OrgMSP) =>{
     return org;
 }
 
-const normalizePrivateKey = (privateKey) => {
-    // Remove leading/trailing whitespace and line breaks
-    privateKey = privateKey.trim().replace(/[\r\n]+/g, '');
-  
-    // Normalize line breaks to match
-    privateKey = privateKey.replace(/\r\n/g, '\n');
-  
-    // You may need to perform additional normalization if necessary
-  
-    return privateKey;
-}
-
-
 const generateUniqueIdentity = (username) =>{
   const hash = crypto.createHash('sha256');
   const uniqueIdentity = hash.update(username).digest('hex');
@@ -29,6 +16,5 @@ const generateUniqueIdentity = (username) =>{
 
 export default{
     getOrgNameFromMSP,
-    normalizePrivateKey,
     generateUniqueIdentity
 }

@@ -1,60 +1,67 @@
 import fabricNetwork from 'fabric-network';
 const { Wallets } = fabricNetwork;
 import FabricCAServices  from 'fabric-ca-client';
-// const { FabricCAServices } = fabricCaClient;
-import fs from 'fs';
 import caUtils from '../../config/CAUtils.js';
 import appUtils from '../../config/AppUtils.js';
 import buildCCP from '../../config/buildCCP.js';
-import path from 'path';
-import pkg from 'fabric-common';
-const { Utils: utils } = pkg;
+import log4js from 'log4js';
+const logger = log4js.getLogger('TraceabilityNetwork');
 import constants from '../../config.constants.js';
 import commonUtils from '../utils/common.util.js';
-import ConnectGateway from '../utils/gateway.util.js';
-import { fileURLToPath } from 'url';
-import app from '../app.js';
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-let config=utils.getConfig()
-import bcrypt from 'bcrypt';
-// config.file(path.resolve(__dirname,'config.json'))
-let walletPath = constants.GetWalletPath;
-let gateway = null;
+import Jwt from 'jsonwebtoken';
 
-const registerUser = async (req, res) => {
-    // Number(OrgMSP.match(/\d/g).join(""))
-    let OrgMSP = req.body.org;
-    let userName = req.body.userName;
-    let userId = commonUtils.generateUniqueIdentity(req.body.userName);
-    let org = commonUtils.getOrgNameFromMSP(OrgMSP);
+const registerUser = async (req, res, next) => {
+    //  Need to be tested.....
+    const {userName, orgMSP} = req.body;
+    logger.debug('End point : /users');
+    logger.debug('User name : ' + userName);
+    logger.debug('Org name  : ' + orgMSP);
+
+    var token = Jwt.sign({
+        exp: Math.floor(Date.now() / 1000) + parseInt("36000"),
+        userName: userName,
+        orgMSP: orgMSP
+    }, 'thisismysecret');
+    let org = commonUtils.getOrgNameFromMSP(orgMSP);
     let ccp = buildCCP.getCCP(org);
+    let walletPath = constants.GetWalletPath(org);
     const caClient = caUtils.buildCAClient(FabricCAServices, ccp, `${org}-ca`);
     let wallet = await appUtils.buildWallet(Wallets, walletPath);
-    await caUtils.enrollAdmin(caClient, wallet, OrgMSP);
-    wallet = await caUtils.registerAndEnrollUser(caClient, wallet, OrgMSP, userId, `${org}.department1`);
-    res.status(200).send({
-        userName: userName,
-        userId: userId,
-        result: "User register successfully. Please save this for future reference",
-    });
-}
+    await caUtils.enrollAdmin(caClient, wallet, orgMSP);
+    let response = await caUtils.registerAndEnrollUser(caClient, wallet, orgMSP, userName, `${org}.department1`);
+    logger.debug('-- returned from registering the username %s for organization %s', userName, orgMSP);
+    if (response && typeof response !== 'string') {
+        logger.debug('Successfully registered the username %s for organization %s', userName, orgMSP);
+        response.token = token;
+        res.json(response);
+    } else {
+        logger.debug('Failed to register the username %s for organization %s with::%s', userName, orgMSP ,response);
+        res.json({ success: false, message: response });
+    }
+}   
 
-const loginUser = async (req, res) => {
+const loginUser = async (req, res, next) => {
     try{
-        let userId = req.body.userName;
-        let OrgMSP = req.body.org;
-        let org = commonUtils.getOrgNameFromMSP(OrgMSP);
-        let ccp = buildCCP.getCCP(org);
-        const caClient = caUtils.buildCAClient(FabricCAServices, ccp, `${org}-ca`);
-        let wallet = await Wallets.newFileSystemWallet(walletPath);
-        const userIdentityExist = await caUtils.userExist(wallet,userId);
-        if(!userIdentityExist){
-            throw new Error(`User ${userId} does not exist`);
+        const {userName, orgMSP} = req.body;
+        logger.debug('End point : /users');
+        logger.debug('User name : ' + userName);
+        logger.debug('Org name  : ' + orgMSP);
+
+        var token = Jwt.sign({
+            exp: Math.floor(Date.now() / 1000) + parseInt("36000"),
+            userName: userName,
+            orgMSP: orgMSP
+        }, 'thisismysecret');
+
+        let walletPath = constants.GetWalletPath(org);
+        let wallet = await appUtils.buildWallet(Wallets, walletPath);
+        const userIdentityExist = await caUtils.userExist(wallet,userName);
+        if(userIdentityExist){
+            res.json({ success: true, message: { token: token } });
         }
-        let userIdentity = await wallet.get(userId);
-        let gateway = await ConnectGateway.connectToGateway(ccp, userId,userIdentity, wallet);
-        app.setSession(gateway);
-        res.send("User logged In successfully");
+        else{
+            res.json({ success: false, message: `User with username ${userName} is not registered with ${orgMSP}, Please register first.` });
+        }
     }
     catch(error){
         res.send(error);
@@ -62,7 +69,7 @@ const loginUser = async (req, res) => {
     
 }
 
-const logout = async(req, res) =>{
+const logout = async(req, res, next) =>{
     try {
         let session = app.getSession();
         if(session != null){
@@ -79,27 +86,8 @@ const logout = async(req, res) =>{
       }
 }
 
-const userExist = async(req, res)=>{
-    let OrgMSP = req.body.org;
-    let userId = req.body.userName;
-    let org = commonUtils.getOrgNameFromMSP(OrgMSP);
-    let ccp = getCCP(org)
-    const caClient = caUtils.buildCAClient(FabricCAServices, ccp, `${org}-ca`);
-    // setup the wallet to hold the credentials of the application user
-    const wallet = await appUtils.buildWallet(Wallets, walletPath);
-
-    const result=await caUtils.userExist(wallet,userId);
-   
-   res.status(200).json({
-    result: result
-   })
-}
-
-
-
 export default {
     registerUser,
-    userExist,
     loginUser,
     logout
 }

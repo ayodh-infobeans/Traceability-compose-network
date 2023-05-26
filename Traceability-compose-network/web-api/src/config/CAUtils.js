@@ -96,7 +96,11 @@ const registerAndEnrollUser = async (caClient, wallet, orgMspId, userId, affilia
 		};
 		console.log(x509Identity);
 		await wallet.put(userId, x509Identity);
-		return wallet;
+		return {
+			wallet: wallet,
+			secret: secret,
+			success: true,
+		};
 	} catch (error) {
 		console.error(`Failed to register user : ${error}`);
 	}

@@ -1,14 +1,14 @@
 import ConnectGateway from '../utils/gateway.util.js';
 import commonUtils from '../utils/common.util.js';
 
-const GetAllRawMaterial = async(req, res, next) =>{
+const GetAllProducts = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName} = req.body;
         let org = commonUtils.getOrgNameFromMSP(orgMSP);
         let gateway = await ConnectGateway.connectToGateway(org, userName);
         const network = await gateway.getNetwork(channelName);
         const contract = network.getContract(chaincodeName);
-        let result = await contract.evaluateTransaction("RawMaterialTransfer:GetAllRawMaterials");
+        let result = await contract.evaluateTransaction("ProductContract:GetAllProducts");
         const response_payload = {
             result: result.toString(),
             error: null,
@@ -28,14 +28,14 @@ const GetAllRawMaterial = async(req, res, next) =>{
     }
 }
 
-const CreateRawMaterial = async(req, res) =>{
+const CreateProduct = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
         let org = commonUtils.getOrgNameFromMSP(orgMSP);
         let gateway = await ConnectGateway.connectToGateway(org, userName);
         const network = await gateway.getNetwork(channelName);
         const contract = network.getContract(chaincodeName);
-        let result = await contract.submitTransaction("RawMaterialTransfer:CreateRawMaterial", data.rawID, data.rawMaterialName, data.rawMaterialCategory, data.rawMaterialLocation, data.rawMaterialQuantity, data.rawMaterialPrice, data.rawMaterialDescription, data.rawMaterialProductionDate, data.rawMaterialExpiryDate, data.rawMaterialSpecifications, data.rawMaterialCultivationMethod, data.rawMaterialFertilizers, data.rawMaterialStatus, data.rawMaterialImage);
+        let result = await contract.submitTransaction('ProductContract:CreateProduct', data.productId, data.productBatchNo, data.rawMaterialId, data.productName, data.productDescription, data.productCategory, data.productManufacturingLocation, data.productQuantity, data.productManufacturingPrice, data.productManufacturingDate, data.productExpiryDate, data.productIngredients, data.productSKU, data.productGTIN, data.productNotes, data.productStatus, data.productImage);
         const response_payload = {
             result: result.toString(),
             error: null,
@@ -54,40 +54,14 @@ const CreateRawMaterial = async(req, res) =>{
     }
 }
 
-const UpdateRawMaterial = async(req, res) =>{
+const UpdateProduct = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
         let org = commonUtils.getOrgNameFromMSP(orgMSP);
         let gateway = await ConnectGateway.connectToGateway(org, userName);
         const network = await gateway.getNetwork(channelName);
         const contract = network.getContract(chaincodeName);
-        let result = await contract.submitTransaction('RawMaterialTransfer:UpdateRawMaterial', data.rawID, data.rawMaterialName, data.rawMaterialCategory, data.rawMaterialLocation, data.rawMaterialQuantity, data.rawMaterialPrice, data.rawMaterialDescription, data.rawMaterialProductionDate, data.rawMaterialExpiryDate, data.rawMaterialSpecifications, data.rawMaterialCultivationMethod, data.rawMaterialFertilizers, data.rawMaterialStatus, data.rawMaterialImage);
-        const response_payload = {
-            result: "Raw Material updated successfully",
-            error: null,
-            errorData: null
-        }
-        await gateway.disconnect();
-        res.send(response_payload);
-    }
-    catch (error){
-        const response_payload = {
-            result: null,
-            error: error.name,
-            errorData: error.message
-        }
-        res.send(response_payload)
-    }
-}
-
-const GetRawMaterialById = async(req, res) => {
-    try{
-        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
-        let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await ConnectGateway.connectToGateway(org, userName);
-        const network = await gateway.getNetwork(channelName);
-        const contract = network.getContract(chaincodeName);
-        let result = await contract.evaluateTransaction("RawMaterialTransfer:GetRawMaterialById", data.rawID);
+        let result = await contract.submitTransaction('ProductContract:UpdateProduct', data.productId, data.productBatchNo, data.rawMaterialId, data.productName, data.productDescription, data.productCategory, data.productManufacturingLocation, data.productQuantity, data.productManufacturingPrice, data.productManufacturingDate, data.productExpiryDate, data.productIngredients, data.productSKU, data.productGTIN, data.productNotes, data.productStatus, data.productImage);
         const response_payload = {
             result: result.toString(),
             error: null,
@@ -106,16 +80,16 @@ const GetRawMaterialById = async(req, res) => {
     }
 }
 
-const DeleteRawMaterial = async(req, res) =>{
+const GetProductById = async(req, res) => {
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
         let org = commonUtils.getOrgNameFromMSP(orgMSP);
         let gateway = await ConnectGateway.connectToGateway(org, userName);
         const network = await gateway.getNetwork(channelName);
         const contract = network.getContract(chaincodeName);
-        let result = await contract.submitTransaction("RawMaterialTransfer:DeleteRawMaterial", data.rawID);
+        let result = await contract.evaluateTransaction("ProductContract:GetProductById", data.productId);
         const response_payload = {
-            result: "Raw Material delete Successfully",
+            result: result.toString(),
             error: null,
             errorData: null
         }
@@ -132,14 +106,40 @@ const DeleteRawMaterial = async(req, res) =>{
     }
 }
 
-const CheckRawMaterialAvailability = async(req, res)=>{
+const DeleteProduct = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
         let org = commonUtils.getOrgNameFromMSP(orgMSP);
         let gateway = await ConnectGateway.connectToGateway(org, userName);
         const network = await gateway.getNetwork(channelName);
         const contract = network.getContract(chaincodeName);
-        let result = await contract.evaluateTransaction("RawMaterialTransfer:checkRawMaterialAvailabilty", data.rawMaterialName, data.rawMaterialQuantity);
+        let result = await contract.submitTransaction("ProductContract:DeleteProduct", data.productId);
+        const response_payload = {
+            result: result.toString(),
+            error: null,
+            errorData: null
+        }
+        await gateway.disconnect();
+        res.send(response_payload);
+    }
+    catch (error){
+        const response_payload = {
+            result: null,
+            error: error.name,
+            errorData: error.message
+        }
+        res.send(response_payload)
+    }
+}
+
+const CheckProductAvailability = async(req, res)=>{
+    try{
+        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
+        let org = commonUtils.getOrgNameFromMSP(orgMSP);
+        let gateway = await ConnectGateway.connectToGateway(org, userName);
+        const network = await gateway.getNetwork(channelName);
+        const contract = network.getContract(chaincodeName);
+        let result = await contract.evaluateTransaction("ProductContract:checkProductAvailabilty", data.searchProduct, data.productQuantity);
         const response_payload = {
             result: result.toString(),
             error: null,
@@ -159,10 +159,10 @@ const CheckRawMaterialAvailability = async(req, res)=>{
 }
 
 export default{
-    GetAllRawMaterial,
-    CreateRawMaterial,
-    UpdateRawMaterial,
-    DeleteRawMaterial,
-    CheckRawMaterialAvailability,
-    GetRawMaterialById
+    GetAllProducts,
+    CreateProduct,
+    UpdateProduct,
+    DeleteProduct,
+    CheckProductAvailability,
+    GetProductById
 }
