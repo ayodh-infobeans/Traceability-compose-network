@@ -15,7 +15,7 @@ class ProductContract extends Contract {
     async InitProducts(ctx) {
 
         const mspid = ctx.clientIdentity.getMSPID();
-        if (mspid !== 'Org2MSP') {
+        if (mspid !== 'ManufacturerMSP') {
             throw new Error(`Caller with MSP ID ${mspid} is not authorized to initialize products`);
         }
 
@@ -39,8 +39,6 @@ class ProductContract extends Contract {
                 type: "product",
                 productSKU: "uniqueXYZ",
                 productGTIN: "GTINXYZ",
-                productNotes: "awaited",
-                productStatus: "Manufactured",
                 productImage: "chips" 
             },
         ];
@@ -53,10 +51,10 @@ class ProductContract extends Contract {
     }
 
     // CreateProduct issues a new product to the world state with given details.
-    async CreateProduct(ctx, productId, productBatchNo, rawMaterialId, productName, productDescription, productCategory, productManufacturingLocation, productQuantity, productManufacturingPrice, productManufacturingDate, productExpiryDate, productIngredients, productSKU, productGTIN, productNotes, productStatus, productImage) {
+    async CreateProduct(ctx, productId, productBatchNo,productBatchManufacturingDate, productBatchExpiryDate,rawMaterialId, productName, productDescription, productCategory, productManufacturingLocation, productQuantity, productManufacturingPrice, productManufacturingDate, productExpiryDate, productIngredients, productSKU, productGTIN, productImage) {
         // Only Manufacturer Organization can create new product
         const mspid = ctx.clientIdentity.getMSPID();
-        if (mspid !== 'Org2MSP') {
+        if (mspid !== 'ManufacturerMSP') {
             throw new Error(`Caller with MSP ID ${mspid} is not authorized to create product`);
         }
         // check for already existing products
@@ -69,8 +67,8 @@ class ProductContract extends Contract {
             productId : productId,
             manufacturerId: ctx.clientIdentity.getID(),
             productBatchNo: productBatchNo,
-            // productBatchManufacturingDate: "2023-04-25",
-            // productBatchExpiryDate: "2023-07-28",
+            productBatchManufacturingDate: productBatchManufacturingDate,
+            productBatchExpiryDate: productBatchExpiryDate,
             rawMaterialId: rawMaterialId,
             productName: productName,
             productDescription: productDescription,
@@ -84,8 +82,6 @@ class ProductContract extends Contract {
             type: "product",
             productSKU: productSKU,
             productGTIN: productGTIN,
-            productNotes: productNotes,
-            productStatus: productStatus,
             productImage: productImage
         };
         // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
@@ -93,10 +89,10 @@ class ProductContract extends Contract {
         return JSON.stringify(product);
     }
 
-    async UpdateProduct(ctx, productId, productBatchNo, rawMaterialId, productName, productDescription, productCategory, productManufacturingLocation, productQuantity, productManufacturingPrice, productManufacturingDate,productExpiryDate, productIngredients, productSKU, productGTIN, productNotes, productStatus, productImage){
+    async UpdateProduct(ctx, productId, productBatchNo, productBatchManufacturingDate,productBatchExpiryDate,rawMaterialId, productName, productDescription, productCategory, productManufacturingLocation, productQuantity, productManufacturingPrice, productManufacturingDate,productExpiryDate, productIngredients, productSKU, productGTIN,productImage){
         // Only Manufacturer Organization can update product
         const mspid = ctx.clientIdentity.getMSPID();
-        if (mspid !== 'Org2MSP') {
+        if (mspid !== 'ManufacturerMSP') {
             throw new Error(`Caller with MSP ID ${mspid} is not authorized to update product`);
         }
 
@@ -109,8 +105,8 @@ class ProductContract extends Contract {
             productId : productId,
             manufacturerId: ctx.clientIdentity.getID(),
             productBatchNo: productBatchNo,
-            // productBatchManufacturingDate: "2023-04-25",
-            // productBatchExpiryDate: "2023-07-28",
+            productBatchManufacturingDate: productBatchManufacturingDate,
+            productBatchExpiryDate: productBatchExpiryDate,
             rawMaterialId: rawMaterialId,
             productName: productName,
             productDescription: productDescription,
@@ -124,8 +120,6 @@ class ProductContract extends Contract {
             type: "product",
             productSKU: productSKU,
             productGTIN: productGTIN,
-            productNotes: productNotes,
-            productStatus: productStatus,
             productImage: productImage
         };
         // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
@@ -145,7 +139,7 @@ class ProductContract extends Contract {
     async DeleteProduct(ctx, productId) {
         
         const mspid = ctx.clientIdentity.getMSPID();
-        if (mspid !== 'Org2MSP') {
+        if (mspid !== 'ManufacturerMSP') {
             throw new Error(`Caller with MSP ID ${mspid} is not authorized to delete product`);
         }
         
@@ -184,21 +178,24 @@ class ProductContract extends Contract {
           }
     }
 
-    async checkProductAvailability(ctx, searchProduct, productQuantity) {
-        const allProducts = await this.GetAllProducts(ctx);
-        const data = JSON.parse(allProducts);
-        const result = data.filter((item)=> item.productName === searchProduct);
-        if(result.length !== 0){
-            if(productQuantity <= result[0].productQuantity){
-                return "Product is available in required quantity : "+ JSON.stringify(result);
-            }
-            else{
-                return "Product is not available in required quantity";
-            }
-        }
-        else{
-            return "Product is not available"; 
-        }
-    }
+   
 }
 module.exports = ProductContract;
+
+
+// async checkProductAvailability(ctx, searchProduct, productQuantity) {
+//     const allProducts = await this.GetAllProducts(ctx);
+//     const data = JSON.parse(allProducts);
+//     const result = data.filter((item)=> item.productName === searchProduct);
+//     if(result.length !== 0){
+//         if(productQuantity <= result[0].productQuantity){
+//             return "Product is available in required quantity : "+ JSON.stringify(result);
+//         }
+//         else{
+//             return "Product is not available in required quantity";
+//         }
+//     }
+//     else{
+//         return "Product is not available"; 
+//     }
+// }

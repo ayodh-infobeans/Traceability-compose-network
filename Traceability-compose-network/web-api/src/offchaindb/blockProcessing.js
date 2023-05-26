@@ -108,7 +108,6 @@ export default async function processBlockEvent(channelname, block, use_mongodb,
                         // if mongodb is configured, then write to mongodb
                         if (use_mongodb) {
                             try {
-                                console.log("Hello in write function ");
                                 await writeValuesToMongoDBP(mongodb_address, channelname, writeObject);
                             } catch (error) {
                                  
@@ -136,7 +135,6 @@ async function writeValuesToMongoDBP(mongodb_address, channelname, writeObject) 
 
             // define the database for saving block events by key - this emulates world state
             const dbname = channelname + '_' + writeObject.chaincodeid +'s';
-            console.log("cecwecwcewc"+ dbname);
             // define the database for saving all block events - this emulates history
             const historydbname = channelname + '_' + writeObject.chaincodeid + '_history';
             // set values to the array of values received
@@ -148,11 +146,10 @@ async function writeValuesToMongoDBP(mongodb_address, channelname, writeObject) 
                         values[
                         sequence
                         ];
-                    
                     if (
                         keyvalue.is_delete ==
                         true
-                    ) {
+                    ) { 
                         await mongodbutil.deleteRecord(
                             mongodb_address,
                             dbname,
@@ -164,7 +161,6 @@ async function writeValuesToMongoDBP(mongodb_address, channelname, writeObject) 
                                 keyvalue.value
                             )
                         ) {
-                            console.log("Here At WRITEMONGODB function");
                             //  insert or update value by key - this emulates world state behavior
                             await mongodbutil.writeToMongoDB(
                                 mongodb_address,

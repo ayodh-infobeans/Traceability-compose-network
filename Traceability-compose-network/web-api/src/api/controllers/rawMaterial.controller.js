@@ -6,59 +6,76 @@ import path from 'path';
 import buildCCP from '../../config/buildCCP.js';
 import ConnectGateway from '../utils/gateway.util.js';
 import mongoose from 'mongoose';
-import RawModel from '../../models/model.js'
+import RawModel from '../../models/rawmodel.js';
+import app from '../app.js';
 
-async function connectToMongoDB() {
-    try {
-      const connectionString = "mongodb://localhost:27017/test";
-      await mongoose.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true });
-      console.log('Connected to MongoDB abcd');
-      // Start your application or perform further operations
-    } catch (error) {
-      console.error('Error connecting to MongoDB:', error);
-      // Handle the error appropriately
-    }
-  }
+
+
 const GetAllRawMaterial = async(req, res) =>{
     try{
         let OrgMSP = req.body.org;
         let userId = req.body.userName;
-        let substringToRemove = 'MSP';
-        let newOrg = OrgMSP.substring(0, OrgMSP.indexOf(substringToRemove));  
-        let org = newOrg.substr(0, 1).toLowerCase() + newOrg.substr(1); 
-        const ccp = buildCCP.getCCP(org);
-        const gateway = await ConnectGateway.connectToGateway(ccp, userId);
-        const network = await gateway.getNetwork("mychannel");
-        const contract = network.getContract(req.body.chaincodeName);
-        let result = await contract.evaluateTransaction("RawMaterialTransfer:GetAllRawMaterials");
-        await gateway.disconnect();
-        res.send(result);
+        let userSession = app.getSession();
+        if(userSession != null){
+            const network = await userSession.gateway.getNetwork(req.body.channelName);
+            const contract = network.getContract(req.body.chaincodeName);
+            let result = await contract.evaluateTransaction("RawMaterialTransfer:GetAllRawMaterials");
+            if(result != null){
+                res.status(200).json({
+                    status: true,
+                    result: result.toString()
+                });
+            }
+            else{
+                res.status(500).json({
+                    status: false,
+                    message: "Error ocurred in chaincode"
+                })
+            }
+        }
+        else{
+            res.status(401).json({
+                status: false,
+                message: "you're not loggedIn. Please logIn to continue"
+            })
+        }
     }
     catch (error){
-        res.send(error);
+        res.status(500).json({
+            error: error
+        });
     }
+
 }
 
 const CreateRawMaterial = async(req, res) =>{
     try{
         let OrgMSP = req.body.org;
         let userId = req.body.userName;
-        let substringToRemove = 'MSP';
-        let newOrg = OrgMSP.substring(0, OrgMSP.indexOf(substringToRemove));  
-        let org = newOrg.substr(0, 1).toLowerCase() + newOrg.substr(1); 
-        const ccp = buildCCP.getCCP(org);
-        const gateway = await ConnectGateway.connectToGateway(ccp, userId);
-        const network = await gateway.getNetwork(req.body.channelName);
-        const contract = network.getContract(req.body.chaincodeName);
-        let data = req.body.data;
-        //  query chaincode....
-        let result = await contract.submitTransaction("RawMaterialTransfer:CreateRawMaterial", data.rawID, data.rawMaterialName, data.rawMaterialCategory, data.rawMaterialLocation, data.rawMaterialQuantity, data.rawMaterialPrice, data.rawMaterialDescription, data.rawMaterialProductionDate, data.rawMaterialExpiryDate, data.rawMaterialSpecifications, data.rawMaterialCultivationMethod, data.rawMaterialFertilizers, data.rawMaterialStatus, data.rawMaterialImage);
-        await gateway.disconnect();
-        connectToMongoDB();
+        let userSession = app.getSession();
+        console.log(userSession);
+        if(userSession != null){
+            const network = await userSession.gateway.getNetwork(req.body.channelName);
+            const contract = network.getContract(req.body.chaincodeName);
+            let data = req.body.data;
+            let result = await contract.submitTransaction("RawMaterialTransfer:CreateRawMaterial", data.rawID, data.rawMaterialName, data.rawMaterialCategory, data.rawMaterialLocation, data.rawMaterialQuantity, data.rawMaterialPrice, data.rawMaterialDescription, data.rawMaterialProductionDate, data.rawMaterialExpiryDate, data.rawMaterialSpecifications, data.rawMaterialCultivationMethod, data.rawMaterialFertilizers, data.rawMaterialStatus, data.rawMaterialImage);
+
+            if(result != null){
+                res.status(200).json({
+                    status: true,
+                    result: "Raw Materials created successfully"
+                });
+            }
+            else{
+                res.status(500).json({
+                    status: false,
+                    message: "Error ocurred in chaincode"
+                })
+            }
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await RawModel.findOne({rawID:data.rawID});
         console.log(obj);
-        if (obj) {
+        if (obj.toString()) {
             obj.org= req.body.org;
             obj.userName= req.body.userName;
             obj.userType= req.body.userType;
@@ -70,34 +87,72 @@ const CreateRawMaterial = async(req, res) =>{
           } else {
             console.log('Document not found.');
           }
-        res.send(result);
+        }
+        else{
+            res.status(401).json({
+                status: false,
+                message: "you're not loggedIn. Please logIn to continue"
+            })
+        }
     }
     catch (error){
-        res.send(error);
+        res.status(500).json({
+            error: error
+        });
     }
 }
+
 
 const UpdateRawMaterial = async(req, res) =>{
     try{
         let OrgMSP = req.body.org;
         let userId = req.body.userName;
-        let substringToRemove = 'MSP';
-        let newOrg = OrgMSP.substring(0, OrgMSP.indexOf(substringToRemove));  
-        let org = newOrg.substr(0, 1).toLowerCase() + newOrg.substr(1); 
-        const ccp = buildCCP.getCCP(org);
-        const gateway = await ConnectGateway.connectToGateway(ccp, userId);
-        const network = await gateway.getNetwork(req.body.channelName);
-        const contract = network.getContract(req.body.chaincodeName);
-        let data = req.body.data;
-        //  query chaincode....
-        let result = await contract.submitTransaction('RawMaterialTransfer:UpdateRawMaterial', data.rawID, data.rawMaterialName, data.rawMaterialCategory, data.rawMaterialLocation, data.rawMaterialQuantity, data.rawMaterialPrice, data.rawMaterialDescription, data.rawMaterialProductionDate, data.rawMaterialExpiryDate, data.rawMaterialSpecifications, data.rawMaterialCultivationMethod, data.rawMaterialFertilizers, data.rawMaterialStatus, data.rawMaterialImage);
-        await gateway.disconnect();
-        res.status(200).json({
-            result: result
-        });
+        let userSession = app.getSession();
+        if(userSession != null){
+            const network = await userSession.gateway.getNetwork(req.body.channelName);
+            const contract = network.getContract(req.body.chaincodeName);
+            let data = req.body.data;
+            let result = await contract.submitTransaction('RawMaterialTransfer:UpdateRawMaterial', data.rawID, data.rawMaterialName, data.rawMaterialCategory, data.rawMaterialLocation, data.rawMaterialQuantity, data.rawMaterialPrice, data.rawMaterialDescription, data.rawMaterialProductionDate, data.rawMaterialExpiryDate, data.rawMaterialSpecifications, data.rawMaterialCultivationMethod, data.rawMaterialFertilizers, data.rawMaterialStatus, data.rawMaterialImage);
+
+            if(result != null){
+                res.status(200).json({
+                    status: true,
+                    result: "Raw Materials updated successfully"
+                });
+            }
+            else{
+                res.status(500).json({
+                    status: false,
+                    message: "Error ocurred in chaincode"
+                })
+            }
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            const obj = await RawModel.findOne({rawID:data.rawID});
+            console.log(obj);
+            if (obj.toString()) {
+                obj.org= req.body.org;
+                obj.userName= req.body.userName;
+                obj.userType= req.body.userType;
+                obj.channelName= req.body.channelName;
+                obj.chaincodeName= req.body.chaincodeName;
+                // Save the modified document back to the database
+                await obj.save();
+                console.log('Document updated successfully.');
+          } else {
+            console.log('Document not found.');
+          }
+        }
+        else{
+            res.status(401).json({
+                status: false,
+                message: "you're not loggedIn. Please logIn to continue"
+            })
+        }
     }
     catch (error){
-        res.send(error);
+        res.status(500).json({
+            error: error
+        });
     }
 }
 
@@ -105,21 +160,37 @@ const GetRawMaterialById = async(req, res) => {
     try{
         let OrgMSP = req.body.org;
         let userId = req.body.userName;
-        let substringToRemove = 'MSP';
-        let newOrg = OrgMSP.substring(0, OrgMSP.indexOf(substringToRemove));  
-        let org = newOrg.substr(0, 1).toLowerCase() + newOrg.substr(1); 
-        const ccp = buildCCP.getCCP(org);
-        const gateway = await ConnectGateway.connectToGateway(ccp, userId);
-        const network = await gateway.getNetwork(req.body.channelName);
-        const contract = network.getContract(req.body.chaincodeName);
-        let data = req.body.data;
-        // Query chaincode...
-        let result = await contract.evaluateTransaction("RawMaterialTransfer:GetRawMaterialById", data.rawID);
-        await gateway.disconnect();
-        res.send(result);
+        let userSession = app.getSession();
+        if(userSession != null){
+            const network = await userSession.gateway.getNetwork(req.body.channelName);
+            const contract = network.getContract(req.body.chaincodeName);
+            let data = req.body.data;
+            let result = await contract.evaluateTransaction("RawMaterialTransfer:GetRawMaterialById", data.rawID);
+
+            if(result != null){
+                res.status(200).json({
+                    status: true,
+                    result: result
+                });
+            }
+            else{
+                res.status(500).json({
+                    status: false,
+                    message: "Error ocurred in chaincode"
+                })
+            }
+        }
+        else{
+            res.status(401).json({
+                status: false,
+                message: "you're not loggedIn. Please logIn to continue"
+            })
+        }
     }
     catch (error){
-        res.send(error);
+        res.status(500).json({
+            error: error
+        });
     }
 }
 
@@ -127,23 +198,38 @@ const DeleteRawMaterial = async(req, res) =>{
     try{
         let OrgMSP = req.body.org;
         let userId = req.body.userName;
-        let substringToRemove = 'MSP';
-        let newOrg = OrgMSP.substring(0, OrgMSP.indexOf(substringToRemove));  
-        let org = newOrg.substr(0, 1).toLowerCase() + newOrg.substr(1); 
-        const ccp = buildCCP.getCCP(org);
-        const gateway = await ConnectGateway.connectToGateway(ccp, userId);
-        const network = await gateway.getNetwork(req.body.channelName);
-        const contract = network.getContract(req.body.chaincodeName);
-        let data = req.body.data;
-        // Query chaincode...
-        let result = await contract.submitTransaction("RawMaterialTransfer:DeleteRawMaterial", data.rawID);
-        await gateway.disconnect();
-        res.status(200).json({
-            result: result
-        });
+        let userSession = app.getSession();
+        if(userSession != null){
+            const network = await userSession.gateway.getNetwork(req.body.channelName);
+            const contract = network.getContract(req.body.chaincodeName);
+            let data = req.body.data;
+            let result = await contract.submitTransaction("RawMaterialTransfer:DeleteRawMaterial", data.rawID);
+
+            if(result != null){
+                res.status(200).json({
+                    status: true,
+                    result: result,
+                    message: "Raw Material deleted successfully"
+                });
+            }
+            else{
+                res.status(500).json({
+                    status: false,
+                    message: "Error ocurred in chaincode"
+                })
+            }
+        }
+        else{
+            res.status(401).json({
+                status: false,
+                message: "you're not loggedIn. Please logIn to continue"
+            })
+        }
     }
     catch (error){
-        res.send(error);
+        res.status(500).json({
+            error: error
+        });
     }
 }
 
@@ -151,23 +237,48 @@ const CheckRawMaterialAvailability = async(req, res)=>{
     try{
         let OrgMSP = req.body.org;
         let userId = req.body.userName;
-        let substringToRemove = 'MSP';
-        let newOrg = OrgMSP.substring(0, OrgMSP.indexOf(substringToRemove));  
-        let org = newOrg.substr(0, 1).toLowerCase() + newOrg.substr(1); 
-        const ccp = buildCCP.getCCP(org);
-        const gateway = await ConnectGateway.connectToGateway(ccp, userId);
-        const network = await gateway.getNetwork(req.body.channelName);
-        const contract = network.getContract(req.body.chaincodeName);
-        let data = req.body.data;
-        // Query chaincode...
-        let result = await contract.evaluateTransaction("RawMaterialTransfer:checkRawMaterialAvailabilty", data.rawMaterialName, data.rawMaterialQuantity);
-        await gateway.disconnect();
-        res.status(200).json({
-            result: result
-        });
+        let userSession = app.getSession();
+        if(userSession != null){
+
+            const network = await userSession.gateway.getNetwork(req.body.channelName);
+            const contract = network.getContract(req.body.chaincodeName);
+            let data = req.body.data;
+            const rawObj = await RawModel.find({rawMaterialName: data.rawMaterialName});
+
+            if(rawObj.toString()){
+                const obj=await RawModel.find({ $and: [{rawMaterialName: data.rawMaterialName},{rawMaterialQuantity: {$gte:data.rawMaterialQuantity}}]});                
+                if(obj.toString()){
+                    // return "Raw material is available in required quantity : "+ JSON.stringify(result);
+                    res.status(200).json({
+                        status: true,
+                        result: "This "+ JSON.stringify(rawObj) + "raw material is available in required quantity"
+                    });
+                }
+                else{
+                    res.status(500).json({
+                        status: false,
+                        message: "Raw material is not available in required quantity"
+                    })
+                }
+            }
+            else{
+                res.status(500).json({
+                    status: false,
+                    message: "Raw material is not available"
+                })
+            }
+        }
+        else{
+            res.status(401).json({
+                status: false,
+                message: "you're not loggedIn. Please logIn to continue"
+            })
+        }
     }
     catch (error){
-        res.send(error);
+        res.status(500).json({
+            error: error
+        });
     }
 }
 

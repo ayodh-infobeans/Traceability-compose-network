@@ -1,44 +1,55 @@
 'use strict';
 import { MongoClient } from 'mongodb';
 import mongoose from 'mongoose';
+import RawModel from '../models/rawmodel.js';
+import ProductModel from '../models/productmodel.js';
 
 export default {
   writeToMongoDB: async function(uri, dbName, key, value) {
-    console.log("key===",key);
-      console.log("Value=",value);
     try {
       // mongoose.connect(uri);
+    
+      // const collectionName = dbName.toLowerCase(); // Use the lowercased database name as the collection name
+      // const collection = mongoose.connection.collection(collectionName);
+
+      Model=RawModel;
+      Model=ProductModel;
+      
       await mongoose.connect(uri, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
       })
         .then(() => {
-          console.log('Connected to MongoDB 123');
+          console.log('Connected to MongoDB');
+          
         })
         .catch((error) => {
           console.error('Connection error:', error);
         });
+      const existingRecord = await RawModel.findOne({ rawID: key });
+      if (existingRecord) {
+          // await RawModel.replaceOne({rawID: key }, value);
+          await RawModel.updateOne({rawID: key }, value)
+            .then(result => {
+              console.log('Document updated:', result);
+            })
+            .catch(error => {
+              console.error('Error updating document:', error);
+            });
 
-      const collectionName = dbName.toLowerCase(); // Use the lowercased database name as the collection name
-      const collection = mongoose.connection.collection(collectionName);
-      if (key) {
-        // If a key is specified, attempt to find the record by key
-        const existingRecord = await collection.findOne({ _id: key });
-  
-        if (existingRecord) {
-          // If the record exists, update it
-          value._id = key;
-          await collection.replaceOne({ _id: key }, value);
-        } else {
-          // If the record doesn't exist, insert it
-          
-          await collection.insertOne(value);
-
-        }
       } else {
-        // If no key is specified, insert the value as a new document
-        await collection.insertOne(value);
+          // If the record doesn't exist, insert it
+          // await RawModel.insertOne(value);
+          await RawModel.create(value)
+          .then(createdDocument => {
+            console.log('Document created:', createdDocument);
+          })
+          .catch(error => {
+            console.error('Error creating document:', error);
+          });
+        
       }
+
       return true;
     } catch (error) {
       console.error('Error writing to MongoDB:', error);
@@ -49,89 +60,42 @@ export default {
   },
 
   deleteRecord: async function(uri, dbName, key) {
-    const client = new MongoClient(uri);
-
     try {
-      await client.connect();
-      const db = client.db(dbName);
-      const collectionName = dbName;
-      const collection = db.collection(collectionName);
-  
-      const existingRecord = await collection.findOne({ _id: key });
-
+      await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+      const existingRecord = await RawModel.findOne({ rawID: key });
       if (existingRecord) {
-        const revision = existingRecord._rev;
-        await collection.deleteOne({ _id: key, _rev: revision });
+        await RawModel.deleteOne({ rawID: key });
       }
       return true;
     } catch (error) {
       console.error('Error deleting record from MongoDB:', error);
       throw error;
     } finally {
-      await client.close();
+      mongoose.connection.close();
     }
   }
+
 };
 
 
-// export default {
-//   writeToMongoDB: async function(uri, dbName, key, value) {
-//     const client = new MongoClient(uri);
-//     try {
-//       await client.connect();
-//       const db = client.db(dbName);
-//       const collectionName = dbName; // Use the lowercased database name as the collection name
-//       const collection = db.collection(collectionName);
-//       if (key) {
-//         // If a key is specified, attempt to find the record by key
-//         const existingRecord = await collection.findOne({ _id: key });
-  
-//         if (existingRecord) {
-//           // If the record exists, update it
-//           value._id = key;
-//           await collection.replaceOne({ _id: key }, value);
-//         } else {
-//           // If the record doesn't exist, insert it
-//           await collection.insertOne(value);
-//         }
-//       } else {
-//         // If no key is specified, insert the value as a new document
-//         await collection.insertOne(value);
-//       }
-  
-//       return true;
-//     } catch (error) {
-//       console.error('Error writing to MongoDB:', error);
-//       throw error;
-//     } finally {
-//       await client.close();
-//     }
-//   },
+// // Perform any cleanup tasks before server shutdown
+// const cleanupTasks = async () => {
+//   try {
+//     // Delete data from the MongoDB collection
+//     await RawModel.deleteMany();
 
-//   deleteRecord: async function(uri, dbName, key) {
-//     const client = new MongoClient(uri);
-//     try {
-//       await client.connect();
-//       const db = client.db(dbName);
-//       const collectionName = dbName;
-//       const collection = db.collection(collectionName);
-  
-//       const existingRecord = await collection.findOne({ _id: key });
-  
-//       if (existingRecord) {
-//         const revision = existingRecord._rev;
-//         await collection.deleteOne({ _id: key, _rev: revision });
-//       }
-  
-//       return true;
-//     } catch (error) {
-//       console.error('Error deleting record from MongoDB:', error);
-//       throw error;
-//     } finally {
-//       await client.close();
-//     }
+//     // Close the Mongoose connection
+//     await mongoose.connection.close();
+
+//     console.log('Cleanup tasks completed. Server closed.');
+//     process.exit(0); // Exit the server process
+//   } catch (error) {
+//     console.error('Error during cleanup:', error);
+//     process.exit(1); // Exit the server process with an error code
 //   }
-// }; 
+// };
 
+// // Listen for the 'SIGINT' signal
+// process.on('SIGINT', cleanupTasks);
 
 

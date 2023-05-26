@@ -59,14 +59,6 @@ const channelid = config.channelid;
 const use_mongodb = config.use_mongodb;
 const createHistoryLog = config.create_history_log;
 const mongodb_address = config.mongodb_address;
-console.log("single value",use_mongodb);
-
-
-// const channelid = config.channelid;
-// const peer_name = config.peer_name;
-// // const use_couchdb = config.use_couchdb;
-// const use_mongodb = config.use_mongodb;
-// const mongodb_address = config.mongodb_address;
 
 const configPath = path.resolve(__dirname, 'nextblock.txt');
 console.log(config.use_mongodb);
@@ -119,7 +111,6 @@ async function main() {
         }
         
         // Parse the connection profile. This would be the path to the file downloaded
-        // from the IBM Blockchain Platform operational console.
         const ccpPath = path.resolve(__dirname, '..', '..', '..','organizations','peerOrganizations','org1.example.com', 'connection-org1.json');
         const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
         // Create a new gateway for connecting to our peer node.
@@ -176,7 +167,6 @@ async function processPendingBlocks(ProcessingMap) {
             // if successful, remove the block from the ProcessingMap
             
             ProcessingMap.remove(nextBlockNumber);
-            console.log("Testing 222");
             // increment the next block number to the next block
             fs.writeFileSync(configPath, (parseInt(nextBlockNumber, 10) + 1).toString())
             

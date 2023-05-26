@@ -1,0 +1,65 @@
+[
+    {
+        "invoke":"RawMaterialTransfer:InitLedger"
+    },
+    {
+        "query":"RawMaterialTransfer:GetAllRawMaterials"
+    },
+    {
+        "query":"RawMaterialTransfer:GetRawMaterialById",
+        "args":["raw1"]
+    },
+    {
+        "query":"RawMaterialTransfer:checkRawMaterialAvailabilty",
+        "args":["Tomato","24"]
+    },
+    {
+        "invoke":"RawMaterialTransfer:UpdateRawMaterial",
+        "args":["raw2", "Mango" ,"Fruits", "Mumbai", 30, "500", "Food", "Mango", "2023-04-24", "2023-09-21", "Data to be awaited", "Data to be awaited", "Data to be awaited", "created", "Mango" ]
+    },
+    {
+        "query":"ProductContract:checkProductAvailability",
+        "args":["chips","40"]
+    },
+    {
+        "query":"ProductContract:GetAllProducts"
+    },
+    {
+        "invoke":"ProductContract:InitProducts"
+    },
+    {
+        "invoke":"ProductContract:CreateProduct",
+        "args":["Prod2","5",["raw1"],"Sprite","Sprite","Food","Mumbai",100,"30","2023-05-22","2023-08-22", "awaited", "awaited", "awaited", "awaited", "created", "Sprite"]
+    },
+    {
+        "invoke":"ProductContract:UpdateProduct",
+        "args":["Prod2","5",["raw1"],"Sprite","Sprite","Cold Drink","Mumbai",100,"30","2023-05-22","2023-08-22", "awaited", "awaited", "awaited", "awaited", "created", "Sprite"]
+    },
+    {
+        "invoke":"ProductContract:GetProductById",
+        "args":["Prod2"]
+    },
+    {
+        "invoke":"ProductContract:GetProductById",
+        "args":["Prod2"]
+    },
+    {
+        "invoke":"Payment:transferAmount",
+        "args":["Paid","1939","100","Org1MSP","Org2MSP","900","300"]
+    },
+    {
+        "invoke":"Payment:transactionExists",
+        "args":["CTX999"]
+    },
+    {
+        "invoke":"Payment:Createtransaction",
+        "args":["CTX999"]
+    },
+    {
+        "query":"Payment:GetTransactionById",
+        "args":["CTX999"]
+    },
+    {
+        "query":"Payment:GetAllPayments"
+    }
+]
