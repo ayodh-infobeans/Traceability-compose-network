@@ -4,10 +4,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const GetWalletPath = (org) =>{
     let walletPath = null
-    org == 'grower' ? walletPath = path.join(__dirname, 'grower-wallet') : null
-    org == 'manufacturer' ? walletPath = path.join(__dirname, 'manufacturer-wallet') : null
-    org == 'wholesaler' ? walletPath = path.join(__dirname, 'wholesaler-wallet') : null
-    org == 'retailer' ? walletPath = path.join(__dirname, 'retailer-wallet') : null
+    org == 'org1' ? walletPath = path.join(__dirname, 'org1-wallet') : null
+    org == 'org2' ? walletPath = path.join(__dirname, 'org2-wallet') : null
     return walletPath
 }
 

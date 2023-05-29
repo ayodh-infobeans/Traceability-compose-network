@@ -25,7 +25,7 @@ const registerUser = async (req, res, next) => {
     let org = commonUtils.getOrgNameFromMSP(orgMSP);
     let ccp = buildCCP.getCCP(org);
     let walletPath = constants.GetWalletPath(org);
-    const caClient = caUtils.buildCAClient(FabricCAServices, ccp, `${org}-ca`);
+    const caClient = caUtils.buildCAClient(FabricCAServices, ccp, `ca.${org}.example.com`);
     let wallet = await appUtils.buildWallet(Wallets, walletPath);
     await caUtils.enrollAdmin(caClient, wallet, orgMSP);
     let response = await caUtils.registerAndEnrollUser(caClient, wallet, orgMSP, userName, `${org}.department1`);
@@ -52,7 +52,7 @@ const loginUser = async (req, res, next) => {
             userName: userName,
             orgMSP: orgMSP
         }, 'thisismysecret');
-
+        let org = commonUtils.getOrgNameFromMSP(orgMSP);
         let walletPath = constants.GetWalletPath(org);
         let wallet = await appUtils.buildWallet(Wallets, walletPath);
         const userIdentityExist = await caUtils.userExist(wallet,userName);
@@ -69,25 +69,7 @@ const loginUser = async (req, res, next) => {
     
 }
 
-const logout = async(req, res, next) =>{
-    try {
-        let session = app.getSession();
-        if(session != null){
-            session.gateway.disconnect();
-            app.setSession(null);
-            res.send('User logged out successfully');
-        }
-        else{
-            res.send('You are not logged In');
-        }
-    
-      } catch (error) {
-        console.error(`Failed to log out user: ${error}`);
-      }
-}
-
 export default {
     registerUser,
-    loginUser,
-    logout
+    loginUser
 }
