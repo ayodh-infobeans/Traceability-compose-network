@@ -46,6 +46,7 @@ import path from 'path';
 import processBlockEvent from './blockProcessing.js';
 
 
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -111,7 +112,7 @@ async function main() {
         }
         
         // Parse the connection profile. This would be the path to the file downloaded
-        const ccpPath = path.resolve(__dirname, '..', 'organizations','peerOrganizations','org1.example.com', 'connection-org1.json');
+        const ccpPath = path.resolve(__dirname, '..', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
         const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
         // Create a new gateway for connecting to our peer node.
         const gateway = new Gateway();

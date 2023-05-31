@@ -3,6 +3,12 @@ import mongoose from 'mongoose';
 import RawModel from './models/rawmodel.js';
 import ProductModel from './models/productmodel.js';
 import HistoryModel from './models/historymodel.js';
+import PurchaseOrderModel from './models/purchaseordermodel.js';
+import PackageDetailModel from './models/packagedetailmodel.js';
+import BatchModel from './models/batchmodel.js';
+import OrderShipmentModel from './models/ordershipmentmodel.js';
+// import OrderInspectionModel from '../../models/purchaseorderinspectionmodel.js';
+
 export default {
   writeToMongoDB: async function(uri, model, key, value) {
     try {
@@ -25,13 +31,25 @@ export default {
       if (model===ProductModel){
          var ID = "productId";
       }
+      if (model===PurchaseOrderModel){
+        var ID = "poNumber";
+      }
+      if (model===PackageDetailModel){
+        var ID = "packageId";
+      }
+      if (model===BatchModel){
+        var ID = "batchId";
+      }
+      if (model===OrderShipmentModel){
+        var ID = "purchaseOrderId";
+      }
       if (model===HistoryModel){
          var ID = "key";
       }   
     
       const existingRecord = await model.findOne({[ID]: key });
       if (existingRecord) {
-          // await RawModel.replaceOne({rawID: key }, value);
+          // await RaBatchModelwModel.replaceOne({rawID: key }, value);
           console.log("at update product");
           await model.updateOne({[ID]: key }, value)
             .then(result => {

@@ -22,7 +22,7 @@ class RawMaterialTransfer extends Contract {
 
         const rawMaterials = [
             {
-                rawID: 'raw1',
+                rawID: 'RM0',
                 rawMaterialName: 'Tomato',
                 rawMaterialCategory: 'Vegetable',
                 rawMaterialLocation: 'Indore',

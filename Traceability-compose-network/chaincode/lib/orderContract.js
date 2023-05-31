@@ -3,62 +3,103 @@
 // Deterministic JSON.stringify()
 const stringify  = require('json-stringify-deterministic');
 const sortKeysRecursive  = require('sort-keys-recursive');
-const { Contract } = require('fabric-contract-api');
-const qrcode = require('qrcode');
-
-
+const { Contract } = require('fabric-contract-api'); 
 class OrderContract extends Contract {
 
     async createPurchaseOrder(ctx,poNumber,sellerID,fromCountry,fromState,fromCity,toCountry,toState,toCity,poDateTime,productName,productQuantity,unitProductCost,expDeliveryDateTime) {
         
-        const mspid = ctx.clientIdentity.getMSPID();
-        // create a new Purchase Order object
-        const purchaseOrder = {
-            
-            poNumber: poNumber,
-            sellerID: sellerID,
-            fromCountry: fromCountry,
-            fromState: fromState,
-            fromCity: fromCity,
+        try{
+            const mspid = ctx.clientIdentity.getMSPID();
+            // create a new Purchase Order object
+            const purchaseOrder = {
+                
+                poNumber: poNumber,
+                sellerID: sellerID,
+                fromCountry: fromCountry,
+                fromState: fromState,
+                fromCity: fromCity,
 
-            toCountry: toCountry,
-            toState: toState,
-            toCity: toCity,
+                toCountry: toCountry,
+                toState: toState,
+                toCity: toCity,
 
-            // paymentTerms: paymentTerms,
-            poDateTime: poDateTime,
-            // poStatus: 'Pending',
-            productName: productName,
-            productQuantity: productQuantity,
-            unitProductCost: unitProductCost,
-            expDeliveryDateTime: expDeliveryDateTime,
+                // paymentTerms: paymentTerms,
+                poDateTime: poDateTime,
+                // poStatus: 'Pending',
 
-            // contactPersonName: contactPersonName,
-            // contactPhoneNumber: contactPhoneNumber,
-            // contactEmail: contactEmail,
+                productName: productName,
+                productQuantity: productQuantity,
+                unitProductCost: unitProductCost,
+                expDeliveryDateTime: expDeliveryDateTime
 
-        };
+                // contactPersonName: contactPersonName,
+                // contactPhoneNumber: contactPhoneNumber,
+                // contactEmail: contactEmail,
+            };
 
-        // Convert product details to a JSON string
-        const jsonProductDetails = JSON.stringify(purchaseOrder);
+            // add the Purchase Order to the world state
+            let result = await ctx.stub.putState(poNumber, Buffer.from(stringify(sortKeysRecursive(purchaseOrder))));
 
-        // Generate QR code image with product details embedded in it
-        qrcode.toFile('./product-qrcode.png', jsonProductDetails, {
-        errorCorrectionLevel: 'H',
-        type: 'png'
-        }, (err) => {
-        if (err) throw err;
-        console.log('QR code image generated successfully!');
-        });
-
-        // add the Purchase Order to the world state
-        await ctx.stub.putState(poNumber, Buffer.from(JSON.stringify(purchaseOrder)));
-
-        // return the Purchase Order object
-        return JSON.stringify(purchaseOrder);
+            // return the Purchase Order object
+            return JSON.stringify(result);
+        }
+        catch(error){
+            return error;
+        }
     }
 
-    async OrderShipment(ctx, purchaseOrderId,batchId,batchUnitPrice,shipStartLocation,shipEndLocation,vehicleType,vehicleNumber,vehicleImage,vehicleColor,estDeliveryDateTime,gpsCoordinates,notes,status,weighbridgeSlipImage,weighbridgeSlipNumber,weighbridgeDate,tbwImage) {
+
+    async InsertPackagingDetails(ctx, packageId,packageDimentions, packageWeight,productId,productFragility,barCode) {
+        
+    // create a new Package object
+    const packageData = {
+       
+        packageId:packageId,
+       
+        // packageDimentions: packageDimentions,
+        // packageWeight: packageWeight,
+        // productId: productId,
+        // productFragility: productFragility,
+       
+        barCode: barCode
+
+    };
+
+    // add the Package to the world state
+    await ctx.stub.putState( packageId, Buffer.from(stringify(sortKeysRecursive(packageData))));
+    // return the Package object
+    return JSON.stringify(packageData);
+
+    }
+
+    async CreateBatch(ctx, batchId,rawProductId, packageInBatch,totalQuantity,carrierInfo,poNumber,transportMode,startLocation,endLocation) {
+    
+    // create a new Batch object
+    const batch = {
+        
+        batchId:batchId,
+        rawProductId:rawProductId,
+       
+        // packageInBatch: packageInBatch,
+        // totalQuantity: totalQuantity,
+        // carrierInfo: carrierInfo,
+        // poNumber: poNumber,
+        // transportMode: transportMode,
+        // rawProductId: rawProductId,
+        
+        startLocation: startLocation,
+        endLocation: endLocation
+
+    };
+
+    // add the Batch to the world state
+    await ctx.stub.putState( batchId, Buffer.from(stringify(sortKeysRecursive(batch))));
+    // return the Batch object
+    return JSON.stringify(batch);
+
+}
+
+    async OrderShipment(ctx, purchaseOrderId,batchId,batchUnitPrice,shipStartLocation,shipEndLocation,estDeliveryDateTime,gpsCoordinates,notes,status,weighbridgeSlipImage,weighbridgeSlipNumber,weighbridgeDate,tbwImage) {
        // create a new Shipment
         const shipment = {
 
@@ -80,23 +121,19 @@ class OrderContract extends Contract {
             // vehicleNumber: vehicleNumber,
             // vehicleImage: vehicleImage,
             // vehicleColor:  vehicleColor,
-  
+            
        };
 
         // add the Shipment to the world state
-        await ctx.stub.putState(purchaseOrderId, Buffer.from(JSON.stringify(shipment)));
+        await ctx.stub.putState(purchaseOrderId, Buffer.from(stringify(sortKeysRecursive(shipment))));
         // return the Shipment
         return JSON.stringify(shipment);
-    }
 
+    }
 
 }
 
-
 module.exports = OrderContract;
-
-
-
 
 // async checkRawMaterialAvailabilty(ctx, searchRawMaterial, rawMaterialQuantity) {
         
@@ -119,6 +156,38 @@ module.exports = OrderContract;
 //     }
 
 // }
+
+
+
+
+// async ConfirmAvailabilityOfRawMaterial(ctx, rawProductName,rawProductQuantity,rawProductUnitPrice,shippingDateTime,estDeliveryDateTime) {
+   
+//     const mspid = ctx.clientIdentity.getMSPID();
+    
+//     if (mspid !== 'GrowerMSP') {
+//         throw new Error(`Caller with MSP ID ${mspid} is not authorized to confirm rawMaterial Availability`);
+//     }
+
+    
+
+//    const confirmAvailability = {
+        
+//         rawProductName: rawProductName,
+//         rawProductQuantity: rawProductQuantity,
+//         rawProductUnitPrice: rawProductUnitPrice,
+//         shippingDateTime: shippingDateTime,
+//         estDeliveryDateTime: estDeliveryDateTime
+//    };
+
+//     // // add the Purchase Order to the world state
+//     await ctx.stub.putState(rawProductName, Buffer.from(JSON.stringify(confirmAvailability)));
+
+//     // return the Purchase Order object
+//     return JSON.stringify(confirmAvailability);
+
+// }
+
+
 // async checkProductlAvailabilty(ctx, searchProduct, productQuantity) {
     
 //     const mspid = ctx.clientIdentity.getMSPID();
@@ -141,30 +210,8 @@ module.exports = OrderContract;
 
 // }
 
-// async ConfirmAvailabilityOfRawMaterial(ctx, rawProductName,rawProductQuantity,rawProductUnitPrice,shippingDateTime,estDeliveryDateTime) {
-   
-//     const mspid = ctx.clientIdentity.getMSPID();
-    
-//     if (mspid !== 'GrowerMSP') {
-//         throw new Error(`Caller with MSP ID ${mspid} is not authorized to confirm rawMaterial Availability`);
-//     }
 
-//    const confirmAvailability = {
-        
-//         rawProductName: rawProductName,
-//         rawProductQuantity: rawProductQuantity,
-//         rawProductUnitPrice: rawProductUnitPrice,
-//         shippingDateTime: shippingDateTime,
-//         estDeliveryDateTime: estDeliveryDateTime
-//    };
 
-//     // // add the Purchase Order to the world state
-//     await ctx.stub.putState(rawProductName, Buffer.from(JSON.stringify(confirmAvailability)));
-
-//     // return the Purchase Order object
-//     return JSON.stringify(confirmAvailability);
-
-// }
 
 // async ConfirmAvailabilityOfProduct(ctx, productName,productQuantity,productUnitPrice,shippingDateTime,estDeliveryDateTime) {
    
@@ -189,66 +236,6 @@ module.exports = OrderContract;
 //     return JSON.stringify(confirmAvailability);
 
 // }
-
-
-
-
-
-// async InsertPackagingDetails(ctx, packageDimentions, packageWeight,productId,productFragility,barCode) {
-        
-//     // create a new Package object
-//     const packageData = {
-       
-//         packageDimentions: packageDimentions,
-//         packageWeight: packageWeight,
-//         productId: productId,
-//         productFragility: productFragility
-
-//     };
-
-//     // add the Package to the world state
-//     await ctx.stub.putState('PD_' + packageData.packageId, Buffer.from(JSON.stringify(packageData)));
-
-//     const transientData = {
-//         barCode: barCode
-//     };
-
-//     await ctx.stub.putPrivateData('PackageBarCode', packageData.packageId, Buffer.from(JSON.stringify(transientData)));
-
-//     // return the Package object
-//     return JSON.stringify(packageData);
-
-// }
-
-// async CreateBatch(ctx, rawProductId,packageInBatch,totalQuantity,carrierInfo,poNumber,transportMode,startLocation,endLocation) {
-    
-//     // create a new Batch object
-//     const batch = {
-        
-//         packageInBatch: packageInBatch,
-//         totalQuantity: totalQuantity,
-//         carrierInfo: carrierInfo,
-//         poNumber: poNumber,
-//         transportMode: transportMode,
-
-//     };
-
-//     // add the Batch to the world state
-//     await ctx.stub.putState('BD_' + batch.batchId, Buffer.from(JSON.stringify(batch)));
-
-//     const transientData = {
-//         rawProductId: rawProductId,
-//         startLocation: startLocation,
-//         endLocation: endLocation
-//     };
-    
-//     await ctx.stub.putPrivateData('BatchDelivery', batch.batchId, Buffer.from(JSON.stringify(transientData)));
-
-//     // return the Batch object
-//     return JSON.stringify(batch);
-
-// }
-
 
     //     const purchaseOrderBytes = await ctx.stub.getState('PO_' + purchaseOrderId);
     //     if (!purchaseOrderBytes || purchaseOrderBytes.length === 0) {

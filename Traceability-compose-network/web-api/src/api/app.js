@@ -3,6 +3,7 @@ import bodyparser from 'body-parser';
 import rawMaterialRoutes from './routes/rawMaterial.route.js';
 import userRoutes from './routes/user.route.js';
 import productRoutes from './routes/product.route.js';
+import orderRoutes from './routes/order.route.js';
 import morgan from 'morgan';
 import cors from 'cors';
 import expressJWT from 'express-jwt';
@@ -69,4 +70,4 @@ app.use('/products', productRoutes);
 app.use('/rawMaterials', rawMaterialRoutes);
 app.use('/user', userRoutes);
 app.use('/product', productRoutes);
-
+app.use('/order',orderRoutes);
