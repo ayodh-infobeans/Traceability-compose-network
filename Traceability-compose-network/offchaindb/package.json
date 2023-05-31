@@ -1,0 +1,16 @@
+{
+  "name": "offchaindb",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "blockEventListener.js",
+  "scripts": {
+    "start": "node blockEventListener.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fabric-network": "^2.2.18",
+    "mongoose": "^7.2.1"
+  }
+}

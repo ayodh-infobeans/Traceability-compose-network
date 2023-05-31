@@ -335,7 +335,8 @@ function networkDown() {
   else
     fatalln "Container CLI  ${CONTAINER_CLI} not supported"
   fi
-
+  docker rm -f offchaindb
+  rm -rf web-api/src/wallet web-api/src/offchaindb/nextblock.txt
 
   # Don't remove the generated artifacts -- note, the ledgers are always removed
   if [ "$MODE" != "restart" ]; then

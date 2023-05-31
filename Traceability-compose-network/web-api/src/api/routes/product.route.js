@@ -6,7 +6,7 @@ const router = express.Router();
 router.get('/',productController.GetAllProducts);
 router.route('/create').post(productController.CreateProduct);
 router.route('/update').post(productController.UpdateProduct);
-router.route('/viewRawMaterial').get(productController.GetProductById);
+router.route('/viewProduct').get(productController.GetProductById);
 router.route('/remove').post(productController.DeleteProduct);
 router.route('/checkAvailability').get(productController.CheckProductAvailability);
 

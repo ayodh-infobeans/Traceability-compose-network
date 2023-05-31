@@ -53,7 +53,7 @@ class RawMaterialTransfer extends Contract {
     }
 
     // CreateRawMaterial issues a new raw material to the world state with given details.
-    async CreateRawMaterial(ctx, rawId, rawMaterialName, rawMaterialCategory, rawMaterialLocation, rawMaterialQuantity, rawMaterialPrice, rawMaterialDescription, rawMaterialProductionDate, rawMaterialExpiryDate, rawMaterialSpecifications, rawMaterialCultivationMethod, rawMaterialFertilizers, rawMaterialStatus, rawMaterialImage) {
+    async CreateRawMaterial(ctx, rawId, rawMaterialName, rawMaterialCategory, rawMaterialLocation, rawMaterialQuantity, rawMaterialPrice, rawMaterialDescription, rawMaterialProductionDate, rawMaterialExpiryDate, rawMaterialSpecifications, rawMaterialCultivationMethod, rawMaterialFertilizers, rawMaterialImage) {
         // Only Grower Organization can create new raw material
         const mspid = ctx.clientIdentity.getMSPID();
         if (mspid !== 'Org1MSP') {
@@ -79,7 +79,6 @@ class RawMaterialTransfer extends Contract {
             rawMaterialSpecifications: rawMaterialSpecifications,
             rawMaterialCultivationMethod: rawMaterialCultivationMethod,
             rawMaterialFertilizers: rawMaterialFertilizers,
-            rawMaterialStatus: rawMaterialStatus,
             rawMaterialImage: rawMaterialImage,
             rawMaterialOwner: ctx.clientIdentity.getID()
         };
@@ -98,7 +97,7 @@ class RawMaterialTransfer extends Contract {
     }
 
     // UpdateRawMaterial updates an existing raw material in the world state with provided parameters.
-    async UpdateRawMaterial(ctx, rawId, rawMaterialName, rawMaterialCategory, rawMaterialLocation, rawMaterialQuantity, rawMaterialPrice, rawMaterialDescription, rawMaterialProductionDate, rawMaterialExpiryDate, rawMaterialSpecifications, rawMaterialCultivationMethod, rawMaterialFertilizers, rawMaterialStatus, rawMaterialImage) {
+    async UpdateRawMaterial(ctx, rawId, rawMaterialName, rawMaterialCategory, rawMaterialLocation, rawMaterialQuantity, rawMaterialPrice, rawMaterialDescription, rawMaterialProductionDate, rawMaterialExpiryDate, rawMaterialSpecifications, rawMaterialCultivationMethod, rawMaterialFertilizers, rawMaterialImage) {
         // Only Grower organizations are allowed to update raw materials
         const mspid = ctx.clientIdentity.getMSPID();
         if (mspid !== 'Org1MSP') {
@@ -125,7 +124,6 @@ class RawMaterialTransfer extends Contract {
             rawMaterialSpecifications: rawMaterialSpecifications,
             rawMaterialCultivationMethod: rawMaterialCultivationMethod,
             rawMaterialFertilizers: rawMaterialFertilizers,
-            rawMaterialStatus: rawMaterialStatus,
             rawMaterialImage: rawMaterialImage,
             rawMaterialOwner: ctx.clientIdentity.getID()
         };
@@ -176,7 +174,10 @@ class RawMaterialTransfer extends Contract {
           }
     }
 
-    // // ShipRawMaterial from Grower to Manufacturer 
+}
+
+module.exports = RawMaterialTransfer;
+ // // ShipRawMaterial from Grower to Manufacturer 
     // async ShipRawMaterial(ctx, rawId) {
     //     const mspId = ctx.clientIdentity.getMSPID();
     //     if (mspId !== 'Org1MSP') {
@@ -242,22 +243,19 @@ class RawMaterialTransfer extends Contract {
     //     await ctx.stub.putState(receivedRawMaterial.rawID, Buffer.from(JSON.stringify(receivedRawMaterial)));
     // }
 
-    async checkRawMaterialAvailabilty(ctx, searchRawMaterial, rawMaterialQuantity) {
-        const allRawMaterials = await this.GetAllRawMaterials(ctx);
-        const data = JSON.parse(allRawMaterials);
-        const result = data.filter((item)=> item.rawMaterialName === searchRawMaterial);
-        if(result.length !== 0){
-            if(rawMaterialQuantity <= result[0].rawMaterialQuantity){
-                return "Raw material is available in required quantity : "+ JSON.stringify(result);
-            }
-            else{
-                return "Raw material is not available in required quantity";
-            }
-        }
-        else{
-            return "Raw material is not available"; 
-        }
-    }
-}
-
-module.exports = RawMaterialTransfer;
+    // async checkRawMaterialAvailabilty(ctx, searchRawMaterial, rawMaterialQuantity) {
+    //     const allRawMaterials = await this.GetAllRawMaterials(ctx);
+    //     const data = JSON.parse(allRawMaterials);
+    //     const result = data.filter((item)=> item.rawMaterialName === searchRawMaterial);
+    //     if(result.length !== 0){
+    //         if(rawMaterialQuantity <= result[0].rawMaterialQuantity){
+    //             return "Raw material is available in required quantity : "+ JSON.stringify(result);
+    //         }
+    //         else{
+    //             return "Raw material is not available in required quantity";
+    //         }
+    //     }
+    //     else{
+    //         return "Raw material is not available"; 
+    //     }
+    // }

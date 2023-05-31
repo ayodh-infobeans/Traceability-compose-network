@@ -6,6 +6,8 @@ const GetWalletPath = (org) =>{
     let walletPath = null
     org == 'org1' ? walletPath = path.join(__dirname, 'org1-wallet') : null
     org == 'org2' ? walletPath = path.join(__dirname, 'org2-wallet') : null
+    // org == 'wholesaler' ? walletPath = path.join(__dirname, 'wholesaler-wallet') : null
+    // org == 'retailer' ? walletPath = path.join(__dirname, 'retailer-wallet') : null
     return walletPath
 }
 

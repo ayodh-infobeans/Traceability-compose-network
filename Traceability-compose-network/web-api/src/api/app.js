@@ -9,6 +9,7 @@ import expressJWT from 'express-jwt';
 import jwt from 'jsonwebtoken';
 import bearerToken from 'express-bearer-token';
 import log4js from 'log4js';
+import mongoose from 'mongoose';
 import util from 'util';
 const logger = log4js.getLogger('TraceabilityNetwork');
 
@@ -45,6 +46,20 @@ app.use((req, res, next) => {
 });
 
 // Server
+
+async function connectToMongoDB() {
+  try {
+    const connectionString = "mongodb://localhost:27017/test";
+    await mongoose.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true });
+    console.log('Connected to MongoDB abcd');
+    // Start your application or perform further operations
+  } catch (error) {
+    console.error('Error connecting to MongoDB:', error);
+    // Handle the error appropriately
+  }
+}
+connectToMongoDB();
+
 app.listen(4000, ()=> {
     console.log("server started");
 });
@@ -53,8 +68,5 @@ app.listen(4000, ()=> {
 app.use('/products', productRoutes);
 app.use('/rawMaterials', rawMaterialRoutes);
 app.use('/user', userRoutes);
+app.use('/product', productRoutes);
 
-export default{
-    getSession,
-    setSession
-}

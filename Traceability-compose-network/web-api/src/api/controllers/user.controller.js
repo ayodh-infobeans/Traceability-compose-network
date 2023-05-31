@@ -54,6 +54,7 @@ const loginUser = async (req, res, next) => {
         }, 'thisismysecret');
         let org = commonUtils.getOrgNameFromMSP(orgMSP);
         let walletPath = constants.GetWalletPath(org);
+        console.log(walletPath);
         let wallet = await appUtils.buildWallet(Wallets, walletPath);
         const userIdentityExist = await caUtils.userExist(wallet,userName);
         if(userIdentityExist){

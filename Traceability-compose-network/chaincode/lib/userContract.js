@@ -1,66 +1,48 @@
+
 'use strict'
 
 const { Contract } = require('fabric-contract-api');
 
 class UserContract extends Contract{
     
-  async registerUser(ctx, userId, password){
-    // Check if the user already exists in the world state
-    const userExists = await this.userExists(ctx, userId);
-    if (userExists) {
-      throw new Error(`User ${userId} already exists`);
+    async registerUser(ctx, username, password, userType) {
+        const exists = await this.userExists(ctx, username);
+        if (exists) {
+          throw new Error("The user ${username} already exists.");
+        }
+        const clientIdentity = new ClientIdentity(ctx.stub);
+        if (clientIdentity.getMSPID() !== 'adminmsp') {
+          throw new Error("Only admin users can register new users.");
+        }
+        const user = {
+          username,
+          password,
+          userType
+        };
+        await ctx.stub.putState(username, Buffer.from(JSON.stringify(user)));
     }
-
-    // Create a new user object
-    const newUser = {
-      userId,
-      email,
-      password
-    };
-
-    // Convert the user object to a buffer
-    const userBuffer = Buffer.from(JSON.stringify(newUser));
-
-    // Store the user object in the world state
-    await ctx.stub.putState(userId, userBuffer);
-  }
-
-  async login(ctx, identity) {
-    // Check if the identity exists in the world state
-    const existingIdentity = await ctx.stub.getState(identity);
-    if (!existingIdentity || existingIdentity.length === 0) {
-      throw new Error(`Identity ${identity.label} not found`);
+    
+    async loginUser(ctx, username, password) {
+        const userBytes = await ctx.stub.getState(username);
+        if (!userBytes || userBytes.length === 0) {
+          throw new Error("The user ${username} does not exist.");
+        }
+        const user = JSON.parse(userBytes.toString());
+        if (user.password !== password) {
+          throw new Error("Incorrect password for user ${username}.");
+        }
+        const response = {
+          username: user.username,
+          userType: user.userType,
+          token: 'JWT token' // Generate a JWT token here
+        };
+        return JSON.stringify(response);
     }
-
-    // Check if the identity matches the stored credentials
-    const storedIdentity = JSON.parse(existingIdentity.toString());
-    if (identity.privateKey !== storedIdentity.privateKey) {
-      throw new Error(`Invalid credentials for identity ${identity.label}`);
+    
+    async userExists(ctx, username) {
+        const userBytes = await ctx.stub.getState(username);
+        return userBytes && userBytes.length > 0;
     }
-
-    // Generate a session token and store it in the world state
-    const sessionToken = Math.random().toString(36).substring(2, 15);
-    await ctx.stub.putState(sessionToken, Buffer.from(JSON.stringify(identity)));
-
-    // Return the session token to the client
-    return sessionToken;
-  }
-
-  async logout(ctx, sessionToken) {
-    // Check if the session token exists in the world state
-    const existingIdentity = await ctx.stub.getState(sessionToken);
-    if (!existingIdentity || existingIdentity.length === 0) {
-      throw new Error(`Session ${sessionToken} not found`);
-    }
-
-    // Delete the session token from the world state
-    await ctx.stub.deleteState(sessionToken);
-  }
-
-  async userExists(ctx, userId) {
-    const userBuffer = await ctx.stub.getState(userId);
-    return userBuffer && userBuffer.length > 0;
-  }
 }
 
 module.exports = UserContract;
