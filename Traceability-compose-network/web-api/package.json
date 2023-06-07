@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Node APIs",
   "type": "module",
-  "main": "src/app.js",
+  "main": "src/api/app.js",
   "engines": {
     "node": ">=14.14",
     "npm": ">=6"

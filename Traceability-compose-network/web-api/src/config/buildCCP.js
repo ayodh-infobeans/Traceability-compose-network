@@ -31,8 +31,8 @@ const getMongoDetails = (org) => {
             break;
         case 'org2':
             mongoPort = 27019;
-            username = "org1admin";
-            password = "org1adminpassword";
+            username = "org2admin";
+            password = "org2adminpassword";
             serviceName = "org2-mongodb";
             break;
         case 'org3':

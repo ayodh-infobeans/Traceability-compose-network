@@ -1,4 +1,4 @@
-import ConnectGateway from '../utils/gateway.util.js';
+import Connections from '../utils/connections.util.js';
 import commonUtils from '../utils/common.util.js';
 import paymentUtils from '../utils/payment.util.js';
 
@@ -11,7 +11,7 @@ const makePayment = async(req, res) =>{
         let payID;
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
         let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await ConnectGateway.connectToGateway(org, userName);
+        let gateway = await Connections.connectToGateway(org, userName);
         const network = await gateway.getNetwork(channelName);
         const contract = network.getContract(chaincodeName);
 
@@ -50,7 +50,7 @@ const GetTransactionById = async(req, res) => {
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
         let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await ConnectGateway.connectToGateway(org, userName);
+        let gateway = await Connections.connectToGateway(org, userName);
         const network = await gateway.getNetwork(channelName);
         const contract = network.getContract(chaincodeName);
         let result = await contract.evaluateTransaction("Payment:GetTransactionById", data.paymentRefrenceNumber);
@@ -76,7 +76,7 @@ const GetAllTransactions = async(req, res, next) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName} = req.body;
         let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await ConnectGateway.connectToGateway(org, userName);
+        let gateway = await Connections.connectToGateway(org, userName);
         const network = await gateway.getNetwork(channelName);
         const contract = network.getContract(chaincodeName);
         let result = await contract.evaluateTransaction("Payment:GetAllTransactions");
