@@ -4,13 +4,27 @@ import rawMaterialRoutes from './routes/rawMaterial.route.js';
 import userRoutes from './routes/user.route.js';
 import productRoutes from './routes/product.route.js';
 import orderRoutes from './routes/order.route.js';
+import paymentRoutes from './routes/payment.route.js'
 import morgan from 'morgan';
 import cors from 'cors';
 import expressJWT from 'express-jwt';
+
+
 import jwt from 'jsonwebtoken';
 import bearerToken from 'express-bearer-token';
 import log4js from 'log4js';
 import util from 'util';
+import paypal from 'paypal-rest-sdk';
+
+
+paypal.configure({
+  'mode': 'sandbox', //sandbox or live
+  'client_id': 'AVRFCh2xINEVQU4Ss1RdUQkskYH0FtQi6xj9qIIQZmZ241t6r_KFKswo_GarWxk1nPwsSvLBWCYgShM2',
+  'client_secret': 'EFB4TxztvI_w2djgJQCp4zWF2cYMUUJKZ1sFjCRN0eFIEDPiKWNheRrDTc6q5iTqf5-mdwI5BTkkXPfb'
+});
+
+
+
 const logger = log4js.getLogger('TraceabilityNetwork');
 
 const app = express();
@@ -70,3 +84,8 @@ app.use('/rawMaterials', rawMaterialRoutes);
 app.use('/user', userRoutes);
 app.use('/product', productRoutes);
 app.use('/order',orderRoutes);
+app.use('/payment',paymentRoutes);
+
+
+
+

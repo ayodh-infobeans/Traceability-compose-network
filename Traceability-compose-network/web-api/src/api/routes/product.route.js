@@ -9,6 +9,7 @@ router.route('/update').post(productController.UpdateProduct);
 router.route('/viewProduct').get(productController.GetProductById);
 router.route('/remove').post(productController.DeleteProduct);
 router.route('/checkAvailability').get(productController.CheckProductAvailability);
+router.route('/confirmAvailability').post(productController.ConfirmProductAvailability);
 
 router.get('/status', (req, res) => {
 	res.json({

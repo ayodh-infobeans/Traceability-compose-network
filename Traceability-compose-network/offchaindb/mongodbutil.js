@@ -1,13 +1,16 @@
 'use strict';
 import mongoose from 'mongoose';
-import RawModel from './models/rawmodel.js';
-import ProductModel from './models/productmodel.js';
-import HistoryModel from './models/historymodel.js';
-import PurchaseOrderModel from './models/purchaseordermodel.js';
-import PackageDetailModel from './models/packagedetailmodel.js';
-import BatchModel from './models/batchmodel.js';
-import OrderShipmentModel from './models/ordershipmentmodel.js';
-// import OrderInspectionModel from '../../models/purchaseorderinspectionmodel.js';
+
+var modelToID = {
+  RawModel: "rawID",
+  ProductModel: "productId",
+  PurchaseOrderModel: "poNumber",
+  PackageDetailModel: "packageId",
+  BatchModel: "batchId",
+  OrderShipmentModel: "purchaseOrderId",
+  HistoryModel: "key",
+  PaymentModel: "paymentRefrenceNumber"
+};
 
 export default {
   writeToMongoDB: async function(uri, model, key, value) {
@@ -25,28 +28,7 @@ export default {
           console.error('Connection error:', error);
         });
 
-      if (model===RawModel){
-          var ID ="rawID";
-      } 
-      if (model===ProductModel){
-         var ID = "productId";
-      }
-      if (model===PurchaseOrderModel){
-        var ID = "poNumber";
-      }
-      if (model===PackageDetailModel){
-        var ID = "packageId";
-      }
-      if (model===BatchModel){
-        var ID = "batchId";
-      }
-      if (model===OrderShipmentModel){
-        var ID = "purchaseOrderId";
-      }
-      if (model===HistoryModel){
-         var ID = "key";
-      }   
-    
+      var ID = modelToID[model];
       const existingRecord = await model.findOne({[ID]: key });
       if (existingRecord) {
           // await RaBatchModelwModel.replaceOne({rawID: key }, value);
@@ -84,15 +66,7 @@ export default {
     try {
       await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
       
-      if (model===RawModel){
-        var ID ="rawID";
-      } 
-      if (model===ProductModel){
-        var ID = "productId";
-      }
-      if (model===HistoryModel){
-        var ID = "key";
-      }
+      var ID = modelToID[model];
       const existingRecord = await model.findOne({ [ID]: key });
       if (existingRecord) {
         await model.deleteOne({ [ID]: key });

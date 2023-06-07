@@ -221,13 +221,61 @@ const CheckRawMaterialAvailability = async(req, res)=>{
 }
 
 
+const ConfirmRawMaterialAvailability = async(req, res)=>{
+    try{
+        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
+        if (orgMSP != "Org1MSP"){
+            
+            return res.status(400).json({ message: `Caller with MSP ID ${orgMSP} is not authorized to confirm raw material availability` });
+        }
+
+        const rawObj = await RawModel.find({rawMaterialName: data.rawMaterialName});
+        if(rawObj.toString()){
+            const obj=await RawModel.find({ $and: [{rawMaterialName: data.rawMaterialName},{rawMaterialQuantity: {$gte:data.rawMaterialQuantity}},{rawMaterialPrice: { $eq: data.rawMaterialPrice }}]});                
+            if(obj.toString()){
+                    // return "Raw material is available in required quantity : "+ JSON.stringify(result);
+                res.status(500).json({
+                    status: false,
+                    message: "Confirmed Raw material is  available in this required quantity and price."
+                })                  
+            }
+            else{
+                res.status(200).json({
+                    status: true,
+                    result: "Please"+ JSON.stringify(rawObj) + " provide  this raw material detail with availabile quantity and its mentioned price. "
+                });
+            }
+        }
+        else{
+            res.status(500).json({
+                status: false,
+                message: "Raw material is not available."
+            })
+        }
+        // rawMaterialName: data.rawMaterialName;
+        // rawMaterialQuantity: data.rawMaterialQuantity;
+        // rawMaterialUnitPrice: data.rawMaterialUnitPrice;
+        // shippingDateTime: data.shippingDateTime;
+        // estDeliveryDateTime: data.estDeliveryDateTime        
+    }
+    catch (error){
+        const response_payload = {
+            result: null,
+            error: error.name,
+            errorData: error.message
+        }
+        res.send(response_payload)
+    }
+}
+
 export default{
     GetAllRawMaterial,
     CreateRawMaterial,
     UpdateRawMaterial,
     DeleteRawMaterial,
     CheckRawMaterialAvailability,
-    GetRawMaterialById
+    GetRawMaterialById,
+    ConfirmRawMaterialAvailability
 }
 
 

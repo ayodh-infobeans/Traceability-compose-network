@@ -1,42 +1,3 @@
-/*
- * Copyright IBM Corp. All Rights Reserved.
- *
- * SPDX-License-Identifier: Apache-2.0
- *
- */
-
-/*
-
-blockEventListener.js is an nodejs application to listen for block events from
-a specified channel.
-
-Configuration is stored in config.json:
-
-{
-   "peer_name": "peer0.org1.example.com",
-   "channelid": "mychannel",
-   "use_mongodb":false,
-   "mongodb_address": "http://localhost:5990"
-}
-
-peer_name:  target peer for the listener
-channelid:  channel name for block events
-use_mongodb:  if set to true, events will be stored in a local mongodb
-mongodb_address:  local address for an off chain mongodb database
-
-Note:  If use_mongodb is set to false, only a local log of events will be stored.
-
-Usage:
-
-node bockEventListener.js
-
-The block event listener will log events received to the console and write event blocks to
-a log file based on the channelid and chaincode name.
-
-The event listener stores the next block to retrieve in a file named nextblock.txt.  This file
-is automatically created and initialized to zero if it does not exist.
-
-*/
 
 'use strict';
 import { fileURLToPath } from 'url';
@@ -164,7 +125,7 @@ async function processPendingBlocks(ProcessingMap) {
 
             try {
                 
-                await processBlockEvent(channelid, processBlock, use_mongodb, mongodb_address)
+                await processBlockEvent(channelid, processBlock, use_mongodb)
             } catch (error) {
                 console.error(`Failed to process block: ${error}`);
             }

@@ -12,14 +12,37 @@ import PurchaseOrderModel from './models/purchaseordermodel.js';
 import PackageDetailModel from './models/packagedetailmodel.js';
 import BatchModel from './models/batchmodel.js';
 import OrderShipmentModel from './models/ordershipmentmodel.js';
+import PaymentModel from './models/paymentmodel.js';
 // import OrderInspectionModel from '../../models/purchaseorderinspectionmodel.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const configPath = path.resolve(__dirname, 'nextblock.txt');
+var keyToDbname = {
+    "RM": RawModel,
+    "prod": ProductModel,
+    "poNumber": PurchaseOrderModel,
+    "packageId": PackageDetailModel,
+    "batchId": BatchModel,
+    "purchaseOrderId": OrderShipmentModel,
+    "PAYID": PaymentModel
+  };
 
-export default async function processBlockEvent(channelname, block, use_mongodb, mongodb_address) {
+const configPathi = path.resolve(__dirname, 'config.json');
+const configData = fs.readFileSync(configPathi, 'utf-8');
+const config = JSON.parse(configData);
+const mongodb_address = config.mongodb_address;
+
+var orgMSPToMongoDB = {
+    "Org1MSP": mongodb_address.org1Mongodb,
+    "Org2MSP": mongodb_address.org2Mongodb,
+    "Org3MSP": mongodb_address.org3Mongodb,
+    "Org4MSP": mongodb_address.org4Mongodb
+};
+  
+  
+export default async function processBlockEvent(channelname, block, use_mongodb) {
 
     return new Promise((async (resolve, reject) => {
 
@@ -100,7 +123,7 @@ export default async function processBlockEvent(channelname, block, use_mongodb,
 
                         console.log(`Transaction Timestamp: ${writeObject.timestamp}`);
                         console.log(`ChaincodeID: ${writeObject.chaincodeid}`);
-                        console.log(writeObject.values);
+                         console.log(writeObject.values);
 
                         const logfilePath = path.resolve(__dirname, 'nextblock.txt');
 
@@ -110,7 +133,7 @@ export default async function processBlockEvent(channelname, block, use_mongodb,
                         // if mongodb is configured, then write to mongodb
                         if (use_mongodb) {
                             try {
-                                await writeValuesToMongoDBP(mongodb_address, channelname, writeObject);
+                                await writeValuesToMongoDBP( channelname, writeObject);
                             } catch (error) {
                                  
                             }
@@ -135,7 +158,7 @@ export default async function processBlockEvent(channelname, block, use_mongodb,
             // set values to the array of values received
 
             
-async function writeValuesToMongoDBP(mongodb_address, channelname, writeObject) {
+async function writeValuesToMongoDBP(channelname, writeObject) {
 
     return new Promise((async (resolve, reject) => {
         try {
@@ -152,34 +175,13 @@ async function writeValuesToMongoDBP(mongodb_address, channelname, writeObject) 
                         sequence
                         ];
                     console.log("hello ==");
-                    // var check = keyvalue.key; // Extract the value of key
-                    if(keyvalue.key.startsWith("RM")){
-                            var dbname = RawModel; 
-                        }
-                    if(keyvalue.key.startsWith("prod")){
-                            var dbname = ProductModel;
-                    }
-                    if(keyvalue.key.startsWith("poNumber")){
-                            var dbname = PurchaseOrderModel;
-                    }
-                    if(keyvalue.key.startsWith("packageId")){
-                            var dbname = PackageDetailModel;
-                    }
-                    if(keyvalue.key.startsWith("batchId")){
-                            var dbname = BatchModel;
-                    }
-                    if(keyvalue.key.startsWith("purchaseOrderId")){
-                            var dbname = OrderShipmentModel;
-                    }
-                    let mongo_add_By_org;
+                    
+                    var dbname = keyToDbname[keyvalue.key.split("_")[0]];
+
                     const jsonString = keyvalue.value.toString();
                     const keyValueObject = JSON.parse(jsonString);
-                    if(keyValueObject.orgMSP === "Org1MSP"){
-                        mongo_add_By_org = mongodb_address.org1Mongodb;
-                    }
-                    else{
-                        mongo_add_By_org = mongodb_address.org2Mongodb;
-                    }
+                     
+                    var mongo_add_By_org = orgMSPToMongoDB[keyValueObject.orgMSP];
 
                     if (
                         keyvalue.is_delete ==

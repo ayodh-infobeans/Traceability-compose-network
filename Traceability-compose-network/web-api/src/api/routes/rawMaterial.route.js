@@ -9,6 +9,7 @@ router.route('/update').post(rawMaterialController.UpdateRawMaterial);
 router.route('/viewRawMaterial').get(rawMaterialController.GetRawMaterialById);
 router.route('/remove').post(rawMaterialController.DeleteRawMaterial);
 router.route('/checkAvailability').get(rawMaterialController.CheckRawMaterialAvailability);
+router.route('/confirmAvailability').post(rawMaterialController.ConfirmRawMaterialAvailability);
 
 router.get('/status', (req, res) => {
 	res.json({
