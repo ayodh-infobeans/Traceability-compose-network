@@ -13,3 +13,5 @@ system-genesis-block/*
 *.tar.gz
 log.txt
 /web-api/node_modules
+/compose/org1-data
+/compose/org2-data

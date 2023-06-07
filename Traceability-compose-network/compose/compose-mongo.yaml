@@ -1,0 +1,40 @@
+version: '3.7'
+
+volumes:
+  org1-mongodb:
+  org2-mongodb:
+
+networks:
+  test:
+    name: fabric_test
+
+services:
+  org1-mongodb:
+    image: mongo:latest
+    container_name: org1-mongodb
+    labels:
+      service: hyperledger-fabric
+    ports:
+      - 27018:27017
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=org1admin
+      - MONGO_INITDB_ROOT_PASSWORD=org1adminpassword
+    volumes:
+      - ./org1-data:/data/db
+    networks:
+      - test
+
+  org2-mongodb:
+    image: mongo:latest
+    container_name: org2-mongodb
+    labels:
+      service: hyperledger-fabric
+    ports:
+      - 27019:27017
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=org2admin
+      - MONGO_INITDB_ROOT_PASSWORD=org2adminpassword
+    volumes:
+      - ./org2-data:/data/db
+    networks:
+      - test

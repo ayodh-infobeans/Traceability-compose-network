@@ -1,4 +1,4 @@
-import ConnectGateway from '../utils/gateway.util.js';
+import Connections from '../utils/connections.util.js';
 import commonUtils from '../utils/common.util.js';
 import PurchaseOrderModel from '../../models/purchaseordermodel.js';
 import PackageDetailModel from '../../models/packagedetailmodel.js';
@@ -10,11 +10,12 @@ const CreatePurchaseOrder = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName,data} = req.body;
         let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await ConnectGateway.connectToGateway(org, userName);
+        let gateway = await Connections.connectToGateway(org, userName);
         const network = await gateway.getNetwork(channelName);
         const contract = network.getContract(chaincodeName);
         let result = await contract.submitTransaction("OrderContract:createPurchaseOrder", data.poNumber, data.sellerID, data.fromCountry, data.fromState, data.fromCity, data.toCountry, data.toState, data.toCity, data.poDateTime, data.productName, data.productQuantity, data.unitProductCost, data.expDeliveryDateTime);
         console.log("cdcd12",JSON.stringify(result));
+        await Connections.connectToMongoDB(org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await PurchaseOrderModel.findOne({poNumber:data.poNumber});
         console.log(obj);
@@ -63,11 +64,11 @@ const InsertPackageDetail = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
         let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await ConnectGateway.connectToGateway(org, userName);
+        let gateway = await Connections.connectToGateway(org, userName);
         const network = await gateway.getNetwork(channelName);
         const contract = network.getContract(chaincodeName);
         let result = await contract.submitTransaction('OrderContract:InsertPackagingDetails', data.packageId, data.packageDimentions, data.packageWeight, data.productId, data.productFragility, data.barCode);
-        
+        await Connections.connectToMongoDB(org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await PackageDetailModel.findOne({packageId:data.packageId});
         console.log(obj);
@@ -114,11 +115,11 @@ const CreateBatch = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
         let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await ConnectGateway.connectToGateway(org, userName);
+        let gateway = await Connections.connectToGateway(org, userName);
         const network = await gateway.getNetwork(channelName);
         const contract = network.getContract(chaincodeName);
         let result = await contract.submitTransaction('OrderContract:CreateBatch', data.batchId, data.rawProductId, data.packageInBatch, data.totalQuantity, data.carrierInfo, data.poNumber, data.transportMode, data.startLocation, data.endLocation);
-        
+        await Connections.connectToMongoDB(org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await BatchModel.findOne({packageId:data.packageId});
         console.log(obj);
@@ -166,11 +167,11 @@ const OrderShipment = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
         let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await ConnectGateway.connectToGateway(org, userName);
+        let gateway = await Connections.connectToGateway(org, userName);
         const network = await gateway.getNetwork(channelName);
         const contract = network.getContract(chaincodeName);
         let result = await contract.submitTransaction('OrderContract:OrderShipment', data.purchaseOrderId, data.batchId, data.batchUnitPrice, data.shipStartLocation, data.shipEndLocation, data.estDeliveryDateTime, data.gpsCoordinates, data.notes, data.status, data.weighbridgeSlipImage, data.weighbridgeSlipNumber, data.weighbridgeDate, data.tbwImage);
-        
+        await Connections.connectToMongoDB(org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await OrderShipmentModel.findOne({purchaseOrderId:data.purchaseOrderId});
         console.log(obj);
@@ -215,7 +216,7 @@ const OrderShipment = async(req, res) =>{
 const PurchaseOrderInspection = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
-        
+        await Connections.connectToMongoDB(org);
         const obj = new OrderInspectionModel(data);
         obj.orgMSP= orgMSP;
         obj.userName= userName;

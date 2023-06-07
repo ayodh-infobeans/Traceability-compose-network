@@ -12,7 +12,7 @@ class OrderContract extends Contract {
             const mspid = ctx.clientIdentity.getMSPID();
             // create a new Purchase Order object
             const purchaseOrder = {
-                
+                orgMSP: mspid,
                 poNumber: poNumber,
                 sellerID: sellerID,
                 fromCountry: fromCountry,
@@ -38,7 +38,7 @@ class OrderContract extends Contract {
             };
 
             // add the Purchase Order to the world state
-            let result = await ctx.stub.putState(poNumber, Buffer.from(stringify(sortKeysRecursive(purchaseOrder))));
+            let result = await ctx.stub.putState("poNumber_"+poNumber, Buffer.from(stringify(sortKeysRecursive(purchaseOrder))));
 
             // return the Purchase Order object
             return JSON.stringify(result);
@@ -48,89 +48,104 @@ class OrderContract extends Contract {
         }
     }
 
-
     async InsertPackagingDetails(ctx, packageId,packageDimentions, packageWeight,productId,productFragility,barCode) {
         
     // create a new Package object
-    const packageData = {
-       
-        packageId:packageId,
-       
-        // packageDimentions: packageDimentions,
-        // packageWeight: packageWeight,
-        // productId: productId,
-        // productFragility: productFragility,
-       
-        barCode: barCode
+        try{
+            const mspid = ctx.clientIdentity.getMSPID();
+            const packageData = {
+                orgMSP: mspid,
+                packageId:packageId,
+            
+                // packageDimentions: packageDimentions,
+                // packageWeight: packageWeight,
+                // productId: productId,
+                // productFragility: productFragility,
+            
+                barCode: barCode
 
-    };
+            };
 
-    // add the Package to the world state
-    await ctx.stub.putState( packageId, Buffer.from(stringify(sortKeysRecursive(packageData))));
-    // return the Package object
-    return JSON.stringify(packageData);
+            // add the Package to the world state
+            await ctx.stub.putState( "packageId_"+packageId, Buffer.from(stringify(sortKeysRecursive(packageData))));
+            // return the Package object
+            return JSON.stringify(packageData);
+        }
+        catch(error){
+            return error;
+        }
 
     }
 
     async CreateBatch(ctx, batchId,rawProductId, packageInBatch,totalQuantity,carrierInfo,poNumber,transportMode,startLocation,endLocation) {
     
-    // create a new Batch object
-    const batch = {
-        
-        batchId:batchId,
-        rawProductId:rawProductId,
-       
-        // packageInBatch: packageInBatch,
-        // totalQuantity: totalQuantity,
-        // carrierInfo: carrierInfo,
-        // poNumber: poNumber,
-        // transportMode: transportMode,
-        // rawProductId: rawProductId,
-        
-        startLocation: startLocation,
-        endLocation: endLocation
-
-    };
-
-    // add the Batch to the world state
-    await ctx.stub.putState( batchId, Buffer.from(stringify(sortKeysRecursive(batch))));
-    // return the Batch object
-    return JSON.stringify(batch);
-
-}
-
-    async OrderShipment(ctx, purchaseOrderId,batchId,batchUnitPrice,shipStartLocation,shipEndLocation,estDeliveryDateTime,gpsCoordinates,notes,status,weighbridgeSlipImage,weighbridgeSlipNumber,weighbridgeDate,tbwImage) {
-       // create a new Shipment
-        const shipment = {
-
-            purchaseOrderId: purchaseOrderId,
-            batchId: batchId,
-            batchUnitPrice: batchUnitPrice,
-            shipStartLocation: shipStartLocation,
-            shipEndLocation: shipEndLocation,
-            estDeliveryDateTime: estDeliveryDateTime,
-            gpsCoordinates: gpsCoordinates,
-            notes: notes,
-            status: status,
-            weighbridgeSlipImage: weighbridgeSlipImage,
-            weighbridgeSlipNumber: weighbridgeSlipNumber,
-            weighbridgeDate: weighbridgeDate,
-            tbwImage: tbwImage
-
-            // vehicleType: vehicleType,
-            // vehicleNumber: vehicleNumber,
-            // vehicleImage: vehicleImage,
-            // vehicleColor:  vehicleColor,
+        // create a new Batch object
+        try{
+            const mspid = ctx.clientIdentity.getMSPID();
+            const batch = {
+                orgMSP:mspid,
+                batchId:batchId,
+                rawProductId:rawProductId,
             
-       };
+                // packageInBatch: packageInBatch,
+                // totalQuantity: totalQuantity,
+                // carrierInfo: carrierInfo,
+                // poNumber: poNumber,
+                // transportMode: transportMode,
+                // rawProductId: rawProductId,
+                
+                startLocation: startLocation,
+                endLocation: endLocation
 
-        // add the Shipment to the world state
-        await ctx.stub.putState(purchaseOrderId, Buffer.from(stringify(sortKeysRecursive(shipment))));
-        // return the Shipment
-        return JSON.stringify(shipment);
+            };
+
+            // add the Batch to the world state
+            await ctx.stub.putState( "batchId_"+batchId, Buffer.from(stringify(sortKeysRecursive(batch))));
+            // return the Batch object
+            return JSON.stringify(batch);
+        }
+        catch(error){
+            return error;
+        }
 
     }
 
+    async OrderShipment(ctx, purchaseOrderId,batchId,batchUnitPrice,shipStartLocation,shipEndLocation,estDeliveryDateTime,gpsCoordinates,notes,status,weighbridgeSlipImage,weighbridgeSlipNumber,weighbridgeDate,tbwImage) {
+       // create a new Shipment
+        try{
+            const mspid = ctx.clientIdentity.getMSPID();
+            const shipment = {
+                orgMSP:mspid,
+                purchaseOrderId: purchaseOrderId,
+                batchId: batchId,
+                batchUnitPrice: batchUnitPrice,
+                shipStartLocation: shipStartLocation,
+                shipEndLocation: shipEndLocation,
+                estDeliveryDateTime: estDeliveryDateTime,
+                gpsCoordinates: gpsCoordinates,
+                notes: notes,
+                status: status,
+                weighbridgeSlipImage: weighbridgeSlipImage,
+                weighbridgeSlipNumber: weighbridgeSlipNumber,
+                weighbridgeDate: weighbridgeDate,
+                tbwImage: tbwImage,
+                senderId: ctx.getID()
+                // vehicleType: vehicleType,
+                // vehicleNumber: vehicleNumber,
+                // vehicleImage: vehicleImage,
+                // vehicleColor:  vehicleColor,
+                
+        };
+
+            // add the Shipment to the world state
+            await ctx.stub.putState("purchaseOrderId_"+purchaseOrderId, Buffer.from(stringify(sortKeysRecursive(shipment))));
+            // return the Shipment
+            return JSON.stringify(shipment);
+        }
+        catch(error){
+            return error;
+        }
+    }
 }
 
 module.exports = OrderContract;

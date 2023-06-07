@@ -13,7 +13,6 @@ import expressJWT from 'express-jwt';
 import jwt from 'jsonwebtoken';
 import bearerToken from 'express-bearer-token';
 import log4js from 'log4js';
-import mongoose from 'mongoose';
 import util from 'util';
 import paypal from 'paypal-rest-sdk';
 
@@ -62,18 +61,18 @@ app.use((req, res, next) => {
 
 // Server
 
-async function connectToMongoDB() {
-  try {
-    const connectionString = "mongodb://localhost:27017/test";
-    await mongoose.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true });
-    console.log('Connected to MongoDB abcd');
-    // Start your application or perform further operations
-  } catch (error) {
-    console.error('Error connecting to MongoDB:', error);
-    // Handle the error appropriately
-  }
-}
-connectToMongoDB();
+// async function connectToMongoDB() {
+//   try {
+//     const connectionString = "mongodb://localhost:27017/test";
+//     await mongoose.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true });
+//     console.log('Connected to MongoDB abcd');
+//     // Start your application or perform further operations
+//   } catch (error) {
+//     console.error('Error connecting to MongoDB:', error);
+//     // Handle the error appropriately
+//   }
+// }
+// connectToMongoDB();
 
 app.listen(4000, ()=> {
     console.log("server started");

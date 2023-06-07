@@ -142,6 +142,8 @@ async function writeValuesToMongoDBP(mongodb_address, channelname, writeObject) 
         try {
 
             const values = writeObject.values;
+            console.log("values: ================ ",values);
+            console.log("value of values: ===========", values[0].value.toString());
             
             const historydbname = HistoryModel;
             try {

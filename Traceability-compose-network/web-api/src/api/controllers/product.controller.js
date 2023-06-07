@@ -1,11 +1,11 @@
-import ConnectGateway from '../utils/gateway.util.js';
+import Connections from '../utils/connections.util.js';
 import commonUtils from '../utils/common.util.js';
 import ProductModel from '../../models/productmodel.js';
 const GetAllProducts = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName} = req.body;
         let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await ConnectGateway.connectToGateway(org, userName);
+        let gateway = await Connections.connectToGateway(org, userName);
         const network = await gateway.getNetwork(channelName);
         const contract = network.getContract(chaincodeName);
         let result = await contract.evaluateTransaction("ProductContract:GetAllProducts");
@@ -32,11 +32,11 @@ const CreateProduct = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
         let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await ConnectGateway.connectToGateway(org, userName);
+        let gateway = await Connections.connectToGateway(org, userName);
         const network = await gateway.getNetwork(channelName);
         const contract = network.getContract(chaincodeName);
         let result = await contract.submitTransaction('ProductContract:CreateProduct', data.productId, data.productBatchNo,data.productBatchManufacturingDate,data.productBatchExpiryDate, data.rawMaterialId, data.productName, data.productDescription, data.productCategory, data.productManufacturingLocation, data.productQuantity, data.productManufacturingPrice, data.productManufacturingDate, data.productExpiryDate, data.productIngredients, data.productSKU, data.productGTIN,  data.productImage);
-        
+        await Connections.connectToMongoDB(org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await ProductModel.findOne({productId:data.productId});
         console.log(obj);
@@ -80,11 +80,11 @@ const UpdateProduct = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
         let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await ConnectGateway.connectToGateway(org, userName);
+        let gateway = await Connections.connectToGateway(org, userName);
         const network = await gateway.getNetwork(channelName);
         const contract = network.getContract(chaincodeName);
         let result = await contract.submitTransaction('ProductContract:UpdateProduct', data.productId, data.productBatchNo, data.productBatchManufacturingDate,data.productBatchExpiryDate, data.rawMaterialId, data.productName, data.productDescription, data.productCategory, data.productManufacturingLocation, data.productQuantity, data.productManufacturingPrice, data.productManufacturingDate, data.productExpiryDate, data.productIngredients, data.productSKU, data.productGTIN, data.productImage);
-        
+        await Connections.connectToMongoDB(org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await ProductModel.findOne({productId:data.productId});
         console.log(obj);
@@ -129,7 +129,7 @@ const GetProductById = async(req, res) => {
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
         let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await ConnectGateway.connectToGateway(org, userName);
+        let gateway = await Connections.connectToGateway(org, userName);
         const network = await gateway.getNetwork(channelName);
         const contract = network.getContract(chaincodeName);
         let result = await contract.evaluateTransaction("ProductContract:GetProductById", data.productId);
@@ -155,7 +155,7 @@ const DeleteProduct = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
         let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await ConnectGateway.connectToGateway(org, userName);
+        let gateway = await Connections.connectToGateway(org, userName);
         const network = await gateway.getNetwork(channelName);
         const contract = network.getContract(chaincodeName);
         let result = await contract.submitTransaction("ProductContract:DeleteProduct", data.productId);

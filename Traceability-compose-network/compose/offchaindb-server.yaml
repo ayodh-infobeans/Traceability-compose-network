@@ -1,0 +1,28 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '3.7'
+
+volumes:
+  offchainserver:
+
+networks:
+  test:
+    name: fabric_test
+
+services:
+  offchainserver:
+    container_name: offchainserver
+    image: ayodh/offchaindb:1.2
+    labels:
+      service: hyperledger-fabric
+    volumes:
+        - ../organizations/peerOrganizations/org1.example.com/connection-org1.json:/app/connection-org1.json
+        - ../web-api/src/org1-wallet/:/app/org1-wallet/
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    networks:
+      - test

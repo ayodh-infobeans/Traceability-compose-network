@@ -21,6 +21,7 @@ class ProductContract extends Contract {
 
         const products = [
             {
+                orgMSP:mspid,
                 productId : "prod1",
                 manufacturerId: "Man1",
                 productBatchNo: 2,
@@ -45,7 +46,7 @@ class ProductContract extends Contract {
 
         for (const product of products) {
             product.docType = 'product';
-            await ctx.stub.putState(product.productId, Buffer.from(stringify(sortKeysRecursive(product))));
+            await ctx.stub.putState("prod_"+product.productId, Buffer.from(stringify(sortKeysRecursive(product))));
             console.info(`Product ${product.productId} initialized`);
         }
     }
@@ -64,6 +65,7 @@ class ProductContract extends Contract {
         }
         
         const product = {
+            orgMSP:mspid,
             productId : productId,
             manufacturerId: ctx.clientIdentity.getID(),
             productBatchNo: productBatchNo,
@@ -86,7 +88,7 @@ class ProductContract extends Contract {
         };
         
         // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
-        await ctx.stub.putState(productId, Buffer.from(stringify(sortKeysRecursive(product))));
+        await ctx.stub.putState("prod_"+productId, Buffer.from(stringify(sortKeysRecursive(product))));
         return JSON.stringify(product);
     }
 
@@ -103,6 +105,7 @@ class ProductContract extends Contract {
         }
         
         const updateProduct = {
+            orgMSP:mspid,
             productId : productId,
             manufacturerId: ctx.clientIdentity.getID(),
             productBatchNo: productBatchNo,
@@ -124,7 +127,7 @@ class ProductContract extends Contract {
             productImage: productImage
         };
         // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
-        return ctx.stub.putState(productId, Buffer.from(stringify(sortKeysRecursive(updateProduct))));
+        return ctx.stub.putState("prod_"+productId, Buffer.from(stringify(sortKeysRecursive(updateProduct))));
     }
 
     // GetProductById returns the product stored in the world state with given id.
