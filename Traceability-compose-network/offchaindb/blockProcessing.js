@@ -143,7 +143,7 @@ async function writeValuesToMongoDBP(mongodb_address, channelname, writeObject) 
             const values = writeObject.values;
             console.log("values: ================ ",values);
             console.log("value of values: ===========", values[0].value.toString());
-            
+
             const historydbname = HistoryModel;
             try {
                 for (var sequence in values) {
@@ -171,13 +171,25 @@ async function writeValuesToMongoDBP(mongodb_address, channelname, writeObject) 
                     if(keyvalue.key.startsWith("purchaseOrderId")){
                             var dbname = OrderShipmentModel;
                     }
-                      
+                    let mongo_add_By_org;
+                    const jsonString = keyvalue.value.toString();
+                    const keyValueObject = JSON.parse(jsonString);
+                    console.log("keyValueObject", keyValueObject);
+                    console.log("keyValueObject.orgMSP", keyValueObject.orgMSP);
+                    if(keyValueObject.orgMSP === "Org1MSP"){
+                        console.log("mongodb_address.org1Mongodb=====", mongodb_address)
+                        mongo_add_By_org = mongodb_address.org1Mongodb;
+                    }
+                    else{
+                        mongo_add_By_org = mongodb_address.org2Mongodb;
+                    }
+
                     if (
                         keyvalue.is_delete ==
                         true
                     ) { 
                         await mongodbutil.deleteRecord(
-                            mongodb_address,
+                            mongo_add_By_org,
                             dbname,
                             keyvalue.key
                         );
@@ -191,7 +203,7 @@ async function writeValuesToMongoDBP(mongodb_address, channelname, writeObject) 
                             //  insert or update value by key - this emulates world state behavior
 
                             await mongodbutil.writeToMongoDB(
-                                mongodb_address,
+                                mongo_add_By_org,
                                 dbname,
                                 keyvalue.key,
                                 JSON.parse(
@@ -214,7 +226,7 @@ async function writeValuesToMongoDBP(mongodb_address, channelname, writeObject) 
                     );
 
                     await mongodbutil.writeToMongoDB(
-                        mongodb_address,
+                        mongo_add_By_org,
                         historydbname,
                         null,
                         keyvalue

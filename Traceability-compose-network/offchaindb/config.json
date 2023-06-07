@@ -3,7 +3,10 @@
     "channelid": "mychannel",
     "use_mongodb":true,
     "create_history_log":true,
-    "mongodb_address": "mongodb://localhost:27017"
+    "mongodb_address": {
+        "org1Mongodb":"mongodb://org1admin:org1adminpassword@localhost:27018/?authMechanism=DEFAULT",
+        "org2Mongodb":"mongodb://org2admin:org2adminpassword@localhost:27019/?authMechanism=DEFAULT"
+    }
 }
 
 
