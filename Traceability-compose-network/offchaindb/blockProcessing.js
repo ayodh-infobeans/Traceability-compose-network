@@ -174,10 +174,7 @@ async function writeValuesToMongoDBP(mongodb_address, channelname, writeObject) 
                     let mongo_add_By_org;
                     const jsonString = keyvalue.value.toString();
                     const keyValueObject = JSON.parse(jsonString);
-                    console.log("keyValueObject", keyValueObject);
-                    console.log("keyValueObject.orgMSP", keyValueObject.orgMSP);
                     if(keyValueObject.orgMSP === "Org1MSP"){
-                        console.log("mongodb_address.org1Mongodb=====", mongodb_address)
                         mongo_add_By_org = mongodb_address.org1Mongodb;
                     }
                     else{
