@@ -8,6 +8,13 @@ import mongodbutil  from './mongodbutil.js';
 import RawModel from './models/rawmodel.js';
 import ProductModel from './models/productmodel.js';
 import HistoryModel from './models/historymodel.js';
+import PurchaseOrderModel from './models/purchaseordermodel.js';
+import PackageDetailModel from './models/packagedetailmodel.js';
+import BatchModel from './models/batchmodel.js';
+import OrderShipmentModel from './models/ordershipmentmodel.js';
+// import OrderInspectionModel from '../../models/purchaseorderinspectionmodel.js';
+
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const configPath = path.resolve(__dirname, 'nextblock.txt');
@@ -134,6 +141,8 @@ async function writeValuesToMongoDBP(mongodb_address, channelname, writeObject) 
         try {
 
             const values = writeObject.values;
+            console.log("values: ================ ",values);
+            console.log("value of values: ===========", values[0].value.toString());
             
             const historydbname = HistoryModel;
             try {
@@ -147,10 +156,22 @@ async function writeValuesToMongoDBP(mongodb_address, channelname, writeObject) 
                     if(keyvalue.key.startsWith("RM")){
                             var dbname = RawModel; 
                         }
-                    else{
+                    if(keyvalue.key.startsWith("prod")){
                             var dbname = ProductModel;
                     }
-                    
+                    if(keyvalue.key.startsWith("poNumber")){
+                            var dbname = PurchaseOrderModel;
+                    }
+                    if(keyvalue.key.startsWith("packageId")){
+                            var dbname = PackageDetailModel;
+                    }
+                    if(keyvalue.key.startsWith("batchId")){
+                            var dbname = BatchModel;
+                    }
+                    if(keyvalue.key.startsWith("purchaseOrderId")){
+                            var dbname = OrderShipmentModel;
+                    }
+                      
                     if (
                         keyvalue.is_delete ==
                         true

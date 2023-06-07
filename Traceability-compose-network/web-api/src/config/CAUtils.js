@@ -99,6 +99,7 @@ const registerAndEnrollUser = async (caClient, wallet, orgMspId, userId, affilia
 		return {
 			wallet: wallet,
 			secret: secret,
+			userId: userId,
 			success: true,
 		};
 	} catch (error) {

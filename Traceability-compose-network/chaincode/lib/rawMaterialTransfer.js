@@ -22,7 +22,8 @@ class RawMaterialTransfer extends Contract {
 
         const rawMaterials = [
             {
-                rawID: 'raw1',
+                orgMSP:mspid,
+                rawID: 'RM0',
                 rawMaterialName: 'Tomato',
                 rawMaterialCategory: 'Vegetable',
                 rawMaterialLocation: 'Indore',
@@ -47,7 +48,7 @@ class RawMaterialTransfer extends Contract {
             // use convetion of alphabetic order
             // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
             // when retrieving data, in any lang, the order of data will be the same and consequently also the corresonding hash
-            await ctx.stub.putState(rawMaterial.rawID, Buffer.from(stringify(sortKeysRecursive(rawMaterial))));
+            await ctx.stub.putState("RM"+rawMaterial.rawID, Buffer.from(stringify(sortKeysRecursive(rawMaterial))));
             console.info(`RawMaterial ${rawMaterial.rawID} initialized`);
         }
     }
@@ -66,6 +67,7 @@ class RawMaterialTransfer extends Contract {
         }
         
         const rawMaterial = {
+            orgMSP:mspid,
             rawID: rawId,
             rawMaterialName: rawMaterialName,
             rawMaterialCategory: rawMaterialCategory,
@@ -83,7 +85,7 @@ class RawMaterialTransfer extends Contract {
             rawMaterialOwner: ctx.clientIdentity.getID()
         };
         // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
-        await ctx.stub.putState(rawId, Buffer.from(stringify(sortKeysRecursive(rawMaterial))));
+        await ctx.stub.putState("RM_"+rawId, Buffer.from(stringify(sortKeysRecursive(rawMaterial))));
         return JSON.stringify(rawMaterial);
     }
 
@@ -111,6 +113,7 @@ class RawMaterialTransfer extends Contract {
 
         // overwriting original raw material with new raw material
         const updatedRawMaterial = {
+            orgMSP:mspid,
             rawID: rawId,
             rawMaterialName: rawMaterialName,
             rawMaterialCategory: rawMaterialCategory,
@@ -128,7 +131,7 @@ class RawMaterialTransfer extends Contract {
             rawMaterialOwner: ctx.clientIdentity.getID()
         };
         // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
-        return ctx.stub.putState(rawId, Buffer.from(stringify(sortKeysRecursive(updatedRawMaterial))));
+        return ctx.stub.putState("RM_"+rawId, Buffer.from(stringify(sortKeysRecursive(updatedRawMaterial))));
     }
 
     // DeleteRawMaterial deletes an given raw material from the world state.

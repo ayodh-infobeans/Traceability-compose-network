@@ -47,6 +47,7 @@ import path from 'path';
 import processBlockEvent from './blockProcessing.js';
 
 
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -99,7 +100,7 @@ async function main() {
         }
         
         // Create a new file system based wallet for managing identities.
-        const walletPath = path.join(process.cwd(),'org1-wallet');
+        const walletPath = path.join(process.cwd(),'..','web-api','src','org1-wallet');
         const wallet = await Wallets.newFileSystemWallet(walletPath);
         console.log(`Wallet path: ${walletPath}`);
 
@@ -112,13 +113,13 @@ async function main() {
         }
         
         // Parse the connection profile. This would be the path to the file downloaded
-        const ccpPath = path.resolve(__dirname, 'connection-org1.json');
+        const ccpPath = path.resolve(__dirname, '..', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
         const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
         console.log("============================");
         // Create a new gateway for connecting to our peer node.
         console.log(`ccp ${ccp}`);
         const gateway = new Gateway();
-        await gateway.connect(ccp, { wallet, identity: 'admin', discovery: { enabled: true, asLocalhost: false } });
+        await gateway.connect(ccp, { wallet, identity: 'admin', discovery: { enabled: true, asLocalhost: true } });
         
         // Get the network (channel) our contract is deployed to.
         const network = await gateway.getNetwork('mychannel');

@@ -1,4 +1,4 @@
-import ConnectGateway from '../utils/gateway.util.js';
+import Connections from '../utils/connections.util.js';
 import commonUtils from '../utils/common.util.js';
 import RawModel from '../../models/rawmodel.js';
 
@@ -6,7 +6,7 @@ const GetAllRawMaterial = async(req, res, next) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName} = req.body;
         let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await ConnectGateway.connectToGateway(org, userName);
+        let gateway = await Connections.connectToGateway(org, userName);
         const network = await gateway.getNetwork(channelName);
         const contract = network.getContract(chaincodeName);
         let result = await contract.evaluateTransaction("RawMaterialTransfer:GetAllRawMaterials");
@@ -34,16 +34,16 @@ const CreateRawMaterial = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
         let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await ConnectGateway.connectToGateway(org, userName);
+        let gateway = await Connections.connectToGateway(org, userName);
         const network = await gateway.getNetwork(channelName);
         const contract = network.getContract(chaincodeName);
         let result = await contract.submitTransaction("RawMaterialTransfer:CreateRawMaterial", data.rawID, data.rawMaterialName, data.rawMaterialCategory, data.rawMaterialLocation, data.rawMaterialQuantity, data.rawMaterialPrice, data.rawMaterialDescription, data.rawMaterialProductionDate, data.rawMaterialExpiryDate, data.rawMaterialSpecifications, data.rawMaterialCultivationMethod, data.rawMaterialFertilizers, data.rawMaterialImage);
         await gateway.disconnect();
         console.log("result ==",result);
+        await Connections.connectToMongoDB(org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await RawModel.findOne({rawID:data.rawID});
         console.log(obj);
-
         if (obj.toString()) {
 
             obj.orgMSP= orgMSP;
@@ -83,11 +83,11 @@ const UpdateRawMaterial = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
         let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await ConnectGateway.connectToGateway(org, userName);
+        let gateway = await Connections.connectToGateway(org, userName);
         const network = await gateway.getNetwork(channelName);
         const contract = network.getContract(chaincodeName);
         let result = await contract.submitTransaction('RawMaterialTransfer:UpdateRawMaterial', data.rawID, data.rawMaterialName, data.rawMaterialCategory, data.rawMaterialLocation, data.rawMaterialQuantity, data.rawMaterialPrice, data.rawMaterialDescription, data.rawMaterialProductionDate, data.rawMaterialExpiryDate, data.rawMaterialSpecifications, data.rawMaterialCultivationMethod, data.rawMaterialFertilizers,  data.rawMaterialImage);
-        
+        await Connections.connectToMongoDB(org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await RawModel.findOne({rawID:data.rawID});
         console.log(obj);
@@ -131,7 +131,7 @@ const GetRawMaterialById = async(req, res) => {
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
         let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await ConnectGateway.connectToGateway(org, userName);
+        let gateway = await Connections.connectToGateway(org, userName);
         const network = await gateway.getNetwork(channelName);
         const contract = network.getContract(chaincodeName);
         let result = await contract.evaluateTransaction("RawMaterialTransfer:GetRawMaterialById", data.rawID);
@@ -157,7 +157,7 @@ const DeleteRawMaterial = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
         let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await ConnectGateway.connectToGateway(org, userName);
+        let gateway = await Connections.connectToGateway(org, userName);
         const network = await gateway.getNetwork(channelName);
         const contract = network.getContract(chaincodeName);
         let result = await contract.submitTransaction("RawMaterialTransfer:DeleteRawMaterial", data.rawID);

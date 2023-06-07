@@ -8,7 +8,6 @@
 
 const RawMaterialTransfer = require('./lib/rawMaterialTransfer');
 const ProductContract = require('./lib/productContract');
-const Payment = require('./lib/paymentContract');
 const OrderContract = require('./lib/orderContract');
 // import ProductContract from './lib/productContract';
 console.log(ProductContract);
@@ -16,5 +15,4 @@ console.log(ProductContract);
 module.exports.RawMaterialTransfer = RawMaterialTransfer;
 module.exports.ProductContract = ProductContract;
 module.exports.OrderContract = OrderContract;
-module.exports.Payment = Payment;
-module.exports.contracts = [ProductContract, RawMaterialTransfer, Payment, OrderContract];
+module.exports.contracts = [ProductContract, RawMaterialTransfer,OrderContract];
