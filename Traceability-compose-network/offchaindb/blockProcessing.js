@@ -12,6 +12,7 @@ import PurchaseOrderModel from './models/purchaseordermodel.js';
 import PackageDetailModel from './models/packagedetailmodel.js';
 import BatchModel from './models/batchmodel.js';
 import OrderShipmentModel from './models/ordershipmentmodel.js';
+import PaymentModel from './models/paymentmodel.js';
 // import OrderInspectionModel from '../../models/purchaseorderinspectionmodel.js';
 
 
@@ -168,6 +169,9 @@ async function writeValuesToMongoDBP(mongodb_address, channelname, writeObject) 
                     }
                     if(keyvalue.key.startsWith("purchaseOrderId")){
                             var dbname = OrderShipmentModel;
+                    }
+                    if(keyvalue.key.startsWith("PAYID")){
+                        var dbname = OrderShipmentModel;
                     }
                       
                     if (

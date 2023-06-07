@@ -7,7 +7,9 @@ import PurchaseOrderModel from './models/purchaseordermodel.js';
 import PackageDetailModel from './models/packagedetailmodel.js';
 import BatchModel from './models/batchmodel.js';
 import OrderShipmentModel from './models/ordershipmentmodel.js';
+import PaymentModel from './models/paymentmodel.js';
 // import OrderInspectionModel from '../../models/purchaseorderinspectionmodel.js';
+
 
 export default {
   writeToMongoDB: async function(uri, model, key, value) {
@@ -45,7 +47,10 @@ export default {
       }
       if (model===HistoryModel){
          var ID = "key";
-      }   
+      }
+      if (model===PaymentModel){
+        var ID = "paymentRefrenceNumber";
+     }
     
       const existingRecord = await model.findOne({[ID]: key });
       if (existingRecord) {

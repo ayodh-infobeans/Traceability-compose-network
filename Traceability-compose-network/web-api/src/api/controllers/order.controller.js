@@ -58,6 +58,7 @@ const CreatePurchaseOrder = async(req, res) =>{
     }
 }
 
+
 const InsertPackageDetail = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
@@ -240,10 +241,39 @@ const PurchaseOrderInspection = async(req, res) =>{
     }
 }
 
+const ConfirmDeliveredOrder = async(req, res) =>{
+    try{
+        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
+        
+        const obj = await BatchModel.find({batchId: data.batchId});
+        if(obj.toString()){
+            res.status(500).json({
+                status: false,
+                message: "Batch "+ JSON.stringify(obj)+ "is Delivered."
+            }) 
+        }
+        else{
+            res.status(200).json({
+                status: true,
+                result: "Please"+ JSON.stringify(obj) + " provide  this raw material detail with availabile quantity and its mentioned price. "
+            });
+        }
+    }
+    catch (error){
+        const response_payload = {
+            result: null,
+            error: error.name,
+            errorData: error.message
+        }
+        res.send(response_payload)
+    }
+}
+
 export default{
     CreatePurchaseOrder,
     InsertPackageDetail,
     CreateBatch,
     OrderShipment,
-    PurchaseOrderInspection
+    PurchaseOrderInspection,
+    ConfirmDeliveredOrder
 }

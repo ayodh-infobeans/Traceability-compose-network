@@ -216,11 +216,60 @@ const CheckProductAvailability = async(req, res)=>{
     }
 }
 
+const ConfirmProductAvailability = async(req, res)=>{
+    try{
+        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
+        if (orgMSP != "Org2MSP"){
+            
+            return res.status(400).json({ message: `Caller with MSP ID ${orgMSP} is not authorized to confirm product availability` });
+        }
+
+        const prodObj = await ProductModel.find({productName: data.productName});
+        if(prodObj.toString()){
+            const obj=await ProductModel.find({ $and: [{productName: data.productName},{productQuantity: {$gte:data.productQuantity}},{productManufacturingPrice: { $eq: data.productManufacturingPrice }}]});                
+            if(obj.toString()){
+                    // return "Raw material is available in required quantity : "+ JSON.stringify(result);
+                res.status(500).json({
+                    status: false,
+                    message: "Confirmed Prouct is  available in this required quantity and price."
+                })                  
+            }
+            else{
+                res.status(200).json({
+                    status: true,
+                    result: "Please"+ JSON.stringify(prodObj) + " provide  this Product detail with availabile quantity and its mentioned price. "
+                });
+            }
+        }
+        else{
+            res.status(500).json({
+                status: false,
+                message: "Product is not available."
+            })
+        }
+        // rawMaterialName: data.rawMaterialName;
+        // rawMaterialQuantity: data.rawMaterialQuantity;
+        // rawMaterialUnitPrice: data.rawMaterialUnitPrice;
+        // shippingDateTime: data.shippingDateTime;
+        // estDeliveryDateTime: data.estDeliveryDateTime        
+    }
+    catch (error){
+        const response_payload = {
+            result: null,
+            error: error.name,
+            errorData: error.message
+        }
+        res.send(response_payload)
+    }
+}
+
+
 export default{
     GetAllProducts,
     CreateProduct,
     UpdateProduct,
     DeleteProduct,
     CheckProductAvailability,
-    GetProductById
+    GetProductById,
+    ConfirmProductAvailability
 }

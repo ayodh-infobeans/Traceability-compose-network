@@ -8,7 +8,8 @@ router.route('/createPurchaseOrder').post(orderController.CreatePurchaseOrder);
 router.route('/insertPackageDetail').post(orderController.InsertPackageDetail);
 router.route('/createBatch').post(orderController.CreateBatch);
 router.route('/orderShipment').post(orderController.OrderShipment);
-router.route('/purchaseOrderInspection').post(orderController.PurchaseOrderInspection);
+router.route('/confirmDeliverOrder').post(orderController.ConfirmDeliveredOrder);
+
 
 router.get('/status', (req, res) => {
 	res.json({
