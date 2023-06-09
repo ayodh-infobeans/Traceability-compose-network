@@ -2,27 +2,83 @@ import mongoose from 'mongoose';
 
 const RawSchema = new mongoose.Schema({
   // Define your schema fields here
-  rawID: String,
-  rawMaterialName: String,
-  rawMaterialCategory: String,
-  rawMaterialLocation: String,
-  rawMaterialQuantity: Number,
-  rawMaterialPrice: Number,
-  type: String,
-  rawMaterialDescription: String,
-  rawMaterialProductionDate: String,
-  rawMaterialExpiryDate: String,
-  rawMaterialSpecifications: String,
-  rawMaterialCultivationMethod: String,
-  rawMaterialFertilizers: String,
-  rawMaterialStatus: String,
-  rawMaterialImage: String,
-  rawMaterialOwner: String,
-  org: String,
-  userName: String,
-  userType: String,
-  channelName: String,
-  chaincodeName: String
+  rawID: {
+    type: String,
+    required: true
+  },
+  rawMaterialName: {
+    type: String,
+    required: true
+  },
+  rawMaterialCategory: {
+    type: String,
+    required: true
+  },
+  rawMaterialLocation: {
+    type: String,
+    required: true
+  },
+  rawMaterialQuantity: {
+    type: Number,
+    required: true
+  },
+  rawMaterialPrice: {
+    type: Number,
+    required: true
+  },
+  type: {
+    type: String,
+    required: true
+  },
+  rawMaterialDescription: {
+    type: String
+  },
+  rawMaterialProductionDate: {
+    type: Date,
+    required: true
+  },
+  rawMaterialExpiryDate: {
+    type: Date,
+    required: true
+  },
+  rawMaterialSpecifications: {
+    type: String,
+    required: true
+  },
+  rawMaterialCultivationMethod: {
+    type: String,
+    required: true
+  },
+  rawMaterialFertilizers: {
+    type: String,
+    required: true
+  },
+  rawMaterialStatus: {
+    type: String
+  },
+  rawMaterialImage: {
+    type: String,
+    required: true
+  },
+  rawMaterialOwner: {
+    type: String,
+    required: true
+  },
+  org: {
+    type: String
+  },
+  userName: {
+    type: String
+  },
+  userType: {
+    type: String
+  },
+  channelName: {
+    type: String
+  },
+  chaincodeName: {
+    type: String
+  }
   
 });
 

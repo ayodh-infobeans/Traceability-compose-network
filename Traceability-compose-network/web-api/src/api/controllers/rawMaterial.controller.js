@@ -2,6 +2,7 @@ import Connections from '../utils/connections.util.js';
 import commonUtils from '../utils/common.util.js';
 import RawModel from '../../models/rawmodel.js';
 
+
 const GetAllRawMaterial = async(req, res, next) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName} = req.body;
@@ -45,6 +46,8 @@ const CreateRawMaterial = async(req, res) =>{
         const obj = await RawModel.findOne({rawID:data.rawID});
         console.log(obj);
         if (obj.toString()) {
+            
+            obj.rawMaterialStatus=data.rawMaterialStatus;
 
             obj.orgMSP= orgMSP;
             obj.userName= userName;
@@ -52,7 +55,7 @@ const CreateRawMaterial = async(req, res) =>{
             obj.channelName= channelName;
             obj.chaincodeName= chaincodeName;
 
-            obj.rawMaterialStatus=data.rawMaterialStatus;
+            
             // Save the modified document back to the database
             await obj.save();
             console.log('Document updated successfully.');
@@ -269,6 +272,8 @@ const ConfirmRawMaterialAvailability = async(req, res)=>{
 }
 
 export default{
+
+    
     GetAllRawMaterial,
     CreateRawMaterial,
     UpdateRawMaterial,
@@ -276,6 +281,8 @@ export default{
     CheckRawMaterialAvailability,
     GetRawMaterialById,
     ConfirmRawMaterialAvailability
+
+
 }
 
 

@@ -9,7 +9,6 @@ import morgan from 'morgan';
 import cors from 'cors';
 import expressJWT from 'express-jwt';
 
-
 import jwt from 'jsonwebtoken';
 import bearerToken from 'express-bearer-token';
 import log4js from 'log4js';

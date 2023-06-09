@@ -5,6 +5,10 @@ const PackageDetailSchema = new mongoose.Schema({
       type: String,
       required: true
     },
+    assetId:{
+      type: String,
+      required: true
+    },
     packageDimensions: {
       type: String,
       required: false
@@ -13,11 +17,11 @@ const PackageDetailSchema = new mongoose.Schema({
       type: Number,
       required: false
     },
-    productId: {
+    assetId: { 
       type: String,
       required: false
     },
-    productFragility: {
+    assetFragility: {
       type: String
     },
     barCode: {

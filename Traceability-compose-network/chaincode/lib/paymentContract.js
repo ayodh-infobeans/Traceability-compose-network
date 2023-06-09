@@ -11,13 +11,15 @@ const stringify  = require('json-stringify-deterministic');
 const sortKeysRecursive  = require('sort-keys-recursive');
 const { Contract } = require('fabric-contract-api');
 
+
 class Payment extends Contract {
     // async PaymentIDExists(ctx, rawID) {
     //     const rawMaterialJSON = await ctx.stub.getState(rawID);
     //     return rawMaterialJSON && rawMaterialJSON.length > 0;
     // }
     
-    async makePayment(ctx,poNumber, paymentRefrenceNumber,vendorName,invoiceNumber,invoiceDate,invoiceAmount,paymentAmount,paymentDate,paymentMethod ,description,paymentStatus,notes) {
+
+    async makePayment(ctx, poNumber, paymentRefrenceNumber, vendorName, invoiceNumber, invoiceDate, invoiceAmount, paymentAmount,paymentDate,paymentMethod ,description,paymentStatus,notes) {
         // get the Purchase Order from the world state
 
         const purchaseOrderBytes = await ctx.stub.getState(poNumber);
@@ -37,7 +39,7 @@ class Payment extends Contract {
             invoiceNumber: invoiceNumber,
             invoiceDate: invoiceDate,
             // paymentDueDate: paymentDueDate,
-         //  paymentReciept
+            //  paymentReciept
             type:"transaction",
             invoiceAmount: invoiceAmount,
             paymentAmount:  paymentAmount,
@@ -62,6 +64,7 @@ class Payment extends Contract {
         return JSON.stringify(payment);
     }
 
+
     async GetTransactionById(ctx, paymentRefrenceNumber) {
         const transactionJSON = await ctx.stub.getState(paymentRefrenceNumber); 
         if (!transactionJSON || transactionJSON.length === 0) {
@@ -70,6 +73,7 @@ class Payment extends Contract {
         return transactionJSON.toString();
     }
     
+
     // GetAllpay returns all transfer materials found in the world state.
     async GetAllTransactions(ctx) {
         const query = {
@@ -95,10 +99,4 @@ class Payment extends Contract {
 }
 
 module.exports = Payment;
-
-
-
-
-
-
 

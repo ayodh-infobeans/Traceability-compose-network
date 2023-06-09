@@ -35,7 +35,9 @@ const CreateProduct = async(req, res) =>{
         let gateway = await Connections.connectToGateway(org, userName);
         const network = await gateway.getNetwork(channelName);
         const contract = network.getContract(chaincodeName);
-        let result = await contract.submitTransaction('ProductContract:CreateProduct', data.productId, data.productBatchNo,data.productBatchManufacturingDate,data.productBatchExpiryDate, data.rawMaterialId, data.productName, data.productDescription, data.productCategory, data.productManufacturingLocation, data.productQuantity, data.productManufacturingPrice, data.productManufacturingDate, data.productExpiryDate, data.productIngredients, data.productSKU, data.productGTIN,  data.productImage);
+
+        
+        let result = await contract.submitTransaction('ProductContract:CreateProduct', data.productId, data.rawMaterialIds, data.productName, data.productDescription, data.productCategory, data.productManufacturingLocation, data.productQuantity, data.productManufacturingPrice, data.productManufacturingDate, data.productExpiryDate, data.productIngredients, data.productSKU, data.productGTIN,  data.productImage);
         await Connections.connectToMongoDB(org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await ProductModel.findOne({productId:data.productId});
@@ -83,7 +85,7 @@ const UpdateProduct = async(req, res) =>{
         let gateway = await Connections.connectToGateway(org, userName);
         const network = await gateway.getNetwork(channelName);
         const contract = network.getContract(chaincodeName);
-        let result = await contract.submitTransaction('ProductContract:UpdateProduct', data.productId, data.productBatchNo, data.productBatchManufacturingDate,data.productBatchExpiryDate, data.rawMaterialId, data.productName, data.productDescription, data.productCategory, data.productManufacturingLocation, data.productQuantity, data.productManufacturingPrice, data.productManufacturingDate, data.productExpiryDate, data.productIngredients, data.productSKU, data.productGTIN, data.productImage);
+        let result = await contract.submitTransaction('ProductContract:UpdateProduct', data.productId,  data.rawMaterialIds, data.productName, data.productDescription, data.productCategory, data.productManufacturingLocation, data.productQuantity, data.productManufacturingPrice, data.productManufacturingDate, data.productExpiryDate, data.productIngredients, data.productSKU, data.productGTIN, data.productImage);
         await Connections.connectToMongoDB(org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await ProductModel.findOne({productId:data.productId});
