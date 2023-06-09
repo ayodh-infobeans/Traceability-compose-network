@@ -11,11 +11,12 @@ import commonUtils from '../utils/common.util.js';
 import UserModel from '../../models/usermodel.js';
 import Jwt from 'jsonwebtoken';
 import Connections from '../utils/connections.util.js';
+import sendEmail from '../utils/notifications.util.js';
 
 const registerUser = async (req, res, next) => {
     //  Need to be tested.....
     try{
-        const {userName, orgMSP} = req.body;
+        const {userName, orgMSP, userEmail} = req.body;
         logger.debug('End point : /users');
         logger.debug('User name : ' + userName);
         logger.debug('Org name  : ' + orgMSP);
@@ -39,8 +40,13 @@ const registerUser = async (req, res, next) => {
         if (response && typeof response !== 'string') {
             logger.debug('Successfully registered the username %s for organization %s', userName, orgMSP);
             obj.save()
-                .then(() => {
+                .then(async () => {
                     response.token = token;
+                    let subject = 'User Registration Successful';
+                    let msg_body = 'Hi ' + userName + ' ' + orgMSP + ',<br />';
+                        msg_body += `Registration Successful !! Please same your user Id & token for future login & assistance<br />`;
+                        msg_body += '<br /><br /> User Id' + response.userId + '<br />';
+                    await sendEmail.sendEmailByNodemailer(userEmail, subject, msg_body);
                     res.json(response); 
                 })
                 .catch((error) => {
