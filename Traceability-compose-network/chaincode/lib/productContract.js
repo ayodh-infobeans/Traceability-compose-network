@@ -65,21 +65,21 @@ class ProductContract extends Contract {
             throw new Error(`This product ${productId} already exists`);
         }
 
-        for (const rawMaterialId of rawMaterialIds) {
+        // for (const rawMaterialId of rawMaterialIds) {
             
-            const exists = await this.RawMaterialExists(ctx, rawMaterialId);
-            if (!exists) {
-                throw new Error(`This Raw Material ${rawId} not exists in the network`);
-            }
+        //     const exists = await this.RawMaterialExists(ctx, rawMaterialId);
+        //     if (!exists) {
+        //         throw new Error(`This Raw Material ${rawId} not exists in the network`);
+        //     }
             
-            rawMaterial.docType = 'rawMaterial';
-            // example of how to write to world state deterministically
-            // use convetion of alphabetic order
-            // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
-            // when retrieving data, in any lang, the order of data will be the same and consequently also the corresonding hash
-            await ctx.stub.putState("RM"+rawMaterial.rawID, Buffer.from(stringify(sortKeysRecursive(rawMaterial))));
-            console.info(`RawMaterial ${rawMaterial.rawID} initialized`);
-        }
+        //     rawMaterial.docType = 'rawMaterial';
+        //     // example of how to write to world state deterministically
+        //     // use convetion of alphabetic order
+        //     // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
+        //     // when retrieving data, in any lang, the order of data will be the same and consequently also the corresonding hash
+        //     await ctx.stub.putState("RM"+rawMaterial.rawID, Buffer.from(stringify(sortKeysRecursive(rawMaterial))));
+        //     console.info(`RawMaterial ${rawMaterial.rawID} initialized`);
+        // }
         
         const product = {
             orgMSP:mspid,
@@ -143,7 +143,7 @@ class ProductContract extends Contract {
 
     // GetProductById returns the product stored in the world state with given id.
     async GetProductById(ctx, productId) {
-        const productJSON = await ctx.stub.getState(productId); // get the product from chaincode state
+        const productJSON = await ctx.stub.getState("prod_"+productId); // get the product from chaincode state
         if (!productJSON || productJSON.length === 0) {
             throw new Error(`The product ${productId} does not exist`);
         }
@@ -162,12 +162,12 @@ class ProductContract extends Contract {
         if (!exists) {
             throw new Error(`The product ${productId} does not exist`);
         }
-        return ctx.stub.deleteState(productId);
+        return ctx.stub.deleteState("prod_"+productId);
     }
 
     // RawMaterialExists returns true when raw material with given ID exists in world state.
     async ProductExists(ctx, productId) {
-        const productJSON = await ctx.stub.getState(productId);
+        const productJSON = await ctx.stub.getState("prod_"+productId);
         return productJSON && productJSON.length > 0;
     }    
 

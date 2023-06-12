@@ -48,7 +48,7 @@ class RawMaterialTransfer extends Contract {
             // use convetion of alphabetic order
             // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
             // when retrieving data, in any lang, the order of data will be the same and consequently also the corresonding hash
-            await ctx.stub.putState("RM"+rawMaterial.rawID, Buffer.from(stringify(sortKeysRecursive(rawMaterial))));
+            await ctx.stub.putState("RM_"+rawMaterial.rawID, Buffer.from(stringify(sortKeysRecursive(rawMaterial))));
             console.info(`RawMaterial ${rawMaterial.rawID} initialized`);
         }
     }
@@ -61,10 +61,10 @@ class RawMaterialTransfer extends Contract {
             throw new Error(`Caller with MSP ID ${mspid} is not authorized to create raw materials`);
         }
         // check for already existing raw materials
-        // const exists = await this.RawMaterialExists(ctx, rawId);
-        // if (exists) {
-        //     throw new Error(`This Raw Material ${rawId} already exists`);
-        // }
+        const exists = await this.RawMaterialExists(ctx, rawId);
+        if (exists) {
+            throw new Error(`This Raw Material ${rawId} already exists`);
+        }
         
         const rawMaterial = {
             orgMSP:mspid,
@@ -91,7 +91,7 @@ class RawMaterialTransfer extends Contract {
 
     // GetRawMaterialById returns the raw material stored in the world state with given id.
     async GetRawMaterialById(ctx, rawId) {
-        const rawMaterialJSON = await ctx.stub.getState(rawId); // get the asset from chaincode state
+        const rawMaterialJSON = await ctx.stub.getState("RM_"+rawId); // get the asset from chaincode state
         if (!rawMaterialJSON || rawMaterialJSON.length === 0) {
             throw new Error(`The raw material ${rawId} does not exist`);
         }
@@ -142,16 +142,16 @@ class RawMaterialTransfer extends Contract {
             throw new Error(`Caller with MSP ID ${mspid} is not authorized to delete raw material`);
         }
         
-        const exists = await this.RawMaterialExists(ctx, rawID);
+        const exists = await this.RawMaterialExists(ctx,rawID);
         if (!exists) {
             throw new Error(`The raw material ${rawID} does not exist`);
         }
-        return ctx.stub.deleteState(rawID);
+        return ctx.stub.deleteState("RM_"+rawID);
     }
 
     // RawMaterialExists returns true when raw material with given ID exists in world state.
     async RawMaterialExists(ctx, rawID) {
-        const rawMaterialJSON = await ctx.stub.getState(rawID);
+        const rawMaterialJSON = await ctx.stub.getState("RM_"+rawID);
         return rawMaterialJSON && rawMaterialJSON.length > 0;
     }
 

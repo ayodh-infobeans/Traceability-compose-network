@@ -9,7 +9,7 @@ router.route('/insertPackageDetail').post(orderController.InsertPackageDetail);
 router.route('/createBatch').post(orderController.CreateBatch);
 router.route('/orderShipment').post(orderController.OrderShipment);
 router.route('/confirmDeliverOrder').post(orderController.ConfirmDeliveredOrder);
-
+router.route('/getkeyhistory').get(orderController.getKeyHistory);
 
 router.get('/status', (req, res) => {
 	res.json({

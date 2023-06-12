@@ -155,6 +155,26 @@ class OrderContract extends Contract {
             return error;
         }
     }
+
+    async getKeyHistory(ctx, key) {
+        
+        const historyIterator = await ctx.stub.getHistoryForKey(key);
+        const history = [];
+      
+        while (true) {
+          const historyRecord = await historyIterator.next();
+      
+          if (historyRecord.value && historyRecord.value.value.toString()) {
+            history.push(historyRecord.value.value.toString());
+          }
+      
+          if (historyRecord.done) {
+            await historyIterator.close();
+            return JSON.stringify(history);
+          }
+        }
+    }
+      
 }
 
 module.exports = OrderContract;

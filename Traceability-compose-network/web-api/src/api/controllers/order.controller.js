@@ -290,11 +290,51 @@ const ConfirmDeliveredOrder = async(req, res) =>{
     }
 }
 
+const getKeyHistory = async(req, res) =>{
+    try{
+        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
+        let org = commonUtils.getOrgNameFromMSP(orgMSP);
+        let gateway = await Connections.connectToGateway(org, userName);
+        const network = await gateway.getNetwork(channelName);
+        const contract = network.getContract(chaincodeName);
+        console.log("result ==");
+        var key = data.key;
+
+        if (data.typeSelector == "rawMaterial"){
+           key = 'RM_'+key;
+        }
+        else{
+            key='prod_'+key;
+        }
+
+        const result = await contract.evaluateTransaction('OrderContract:getKeyHistory', key);
+
+        console.log("result ==",result);
+        const response_payload = {
+            result: result.toString(),
+            error: null,
+            errorData: null
+        }
+        await gateway.disconnect();
+        res.send(response_payload);
+    }
+    catch (error){
+        const response_payload = {
+            result: null,
+            error: error.name,
+            errorData: error.message
+        }
+        res.send(response_payload)
+    }
+}
+
+
 export default{
     CreatePurchaseOrder,
     InsertPackageDetail,
     CreateBatch,
     OrderShipment,
     PurchaseOrderInspection,
-    ConfirmDeliveredOrder
+    ConfirmDeliveredOrder,
+    getKeyHistory
 }
