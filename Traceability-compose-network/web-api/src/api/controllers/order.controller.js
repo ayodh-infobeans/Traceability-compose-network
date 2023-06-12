@@ -13,11 +13,17 @@ const CreatePurchaseOrder = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName,data} = req.body;
         const networkAccess =  await Connections.connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        if(networkAccess.status === false){
+            const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
+            res.send(response_payload);
+            return;
+        }
         if(data.sellerID == orgMSP ){ 
             res.status(200).json({
                 status: true,
                 result: "Buyer "+ orgMSP + " and seller sellerID = "+ data.sellerID +" can not be same. "
             });
+            return;
         }
         let result = await networkAccess.contract.submitTransaction("OrderContract:createPurchaseOrder", data.poNumber, data.sellerID, data.fromCountry, data.fromState, data.fromCity, data.toCountry, data.toState, data.toCity, data.poDateTime, data.productName, data.productQuantity, data.unitProductCost, data.expDeliveryDateTime);
         await Connections.connectToMongoDB(networkAccess.org);
@@ -48,7 +54,7 @@ const CreatePurchaseOrder = async(req, res) =>{
         const response_payload = commonUtils.generateResponsePayload(result.toString(), null, null);
         await networkAccess.gateway.disconnect();
         res.send(response_payload);
-        
+        return;
     }
     catch (error){
         const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
@@ -60,6 +66,11 @@ const InsertPackageDetail = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
         const networkAccess =  await Connections.connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        if(networkAccess.status === false){
+            const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
+            res.send(response_payload);
+            return;
+        }
         var barCodePath=null;
         let assetDetail = await networkAccess.contract.evaluateTransaction("ProductContract:GetProductById", data.assetId);
         
@@ -103,6 +114,7 @@ const InsertPackageDetail = async(req, res) =>{
         const response_payload = commonUtils.generateResponsePayload(result.toString(), null, null);
         await networkAccess.gateway.disconnect();
         res.send(response_payload);
+        return;
     }
     catch (error){
         const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
@@ -114,6 +126,11 @@ const CreateBatch = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
         const networkAccess =  await Connections.connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        if(networkAccess.status === false){
+            const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
+            res.send(response_payload);
+            return;
+        }
         let result = await networkAccess.contract.submitTransaction('OrderContract:CreateBatch', data.batchId, data.assetId, data.packageInBatch, data.totalQuantity, data.carrierInfo, data.poNumber, data.transportMode, data.startLocation, data.endLocation);
         await Connections.connectToMongoDB(networkAccess.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
@@ -140,6 +157,7 @@ const CreateBatch = async(req, res) =>{
         const response_payload = commonUtils.generateResponsePayload(result.toString(), null, null);
         await networkAccess.gateway.disconnect();
         res.send(response_payload);
+        return;
     }
     catch (error){
         const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
@@ -151,6 +169,11 @@ const OrderShipment = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
         const networkAccess =  await Connections.connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        if(networkAccess.status === false){
+            const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
+            res.send(response_payload);
+            return;
+        }
         let result = await networkAccess.contract.submitTransaction('OrderContract:OrderShipment', data.purchaseOrderId, data.senderId, data.batchIds, data.packageUnitPrice, data.shipStartLocation, data.shipEndLocation, data.estDeliveryDateTime, data.gpsCoordinates, data.notes, data.status, data.weighbridgeSlipImage, data.weighbridgeSlipNumber, data.weighbridgeDate, data.tbwImage);
         await Connections.connectToMongoDB(networkAccess.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
@@ -179,6 +202,7 @@ const OrderShipment = async(req, res) =>{
         const response_payload = commonUtils.generateResponsePayload(result.toString(), null, null);
         await networkAccess.gateway.disconnect();
         res.send(response_payload);
+        return;
     }
     catch (error){
         const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);

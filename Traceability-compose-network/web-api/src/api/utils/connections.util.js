@@ -35,10 +35,10 @@ const connectToFabricNetwork = async (userName, orgMSP ,channelName, chaincodeNa
     let gateway = await connectToGateway(org, userName);
     const network = await gateway.getNetwork(channelName);
     const contract = network.getContract(chaincodeName);
-    return { gateway, contract, org};
+    return { status: true, gateway, contract, org};
   }
   catch(error){
-    return error;
+    return {status: false, error: error};
   }
 }
 

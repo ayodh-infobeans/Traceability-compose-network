@@ -5,10 +5,16 @@ const GetAllProducts = async(req, res) =>{
     try{
         const {userName, orgMSP ,channelName, chaincodeName} = req.body;
         const networkAccess =  await Connections.connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        if(networkAccess.status === false){
+            const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
+            res.send(response_payload);
+            return;
+        }
         let result = await networkAccess.contract.evaluateTransaction("ProductContract:GetAllProducts");
         const response_payload = commonUtils.generateResponsePayload(result.toString(), null, null);
         await networkAccess.gateway.disconnect();
         res.send(response_payload);
+        return;
         
     }
     catch (error){
@@ -21,6 +27,11 @@ const CreateProduct = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
         const networkAccess =  await Connections.connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        if(networkAccess.status === false){
+            const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
+            res.send(response_payload);
+            return;
+        }
         let result = await networkAccess.contract.submitTransaction('ProductContract:CreateProduct', data.productId, data.rawMaterialIds, data.productName, data.productDescription, data.productCategory, data.productManufacturingLocation, data.productQuantity, data.productManufacturingPrice, data.productManufacturingDate, data.productExpiryDate, data.productIngredients, data.productSKU, data.productGTIN,  data.productImage);
         await Connections.connectToMongoDB(networkAccess.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
@@ -47,6 +58,7 @@ const CreateProduct = async(req, res) =>{
         const response_payload = commonUtils.generateResponsePayload(result.toString(), null, null);
         await networkAccess.gateway.disconnect();
         res.send(response_payload);
+        return;
     }
     catch (error){
         const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
@@ -58,6 +70,11 @@ const UpdateProduct = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
         const networkAccess =  await Connections.connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        if(networkAccess.status === false){
+            const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
+            res.send(response_payload);
+            return;
+        }
         let result = await networkAccess.contract.submitTransaction('ProductContract:UpdateProduct', data.productId,  data.rawMaterialIds, data.productName, data.productDescription, data.productCategory, data.productManufacturingLocation, data.productQuantity, data.productManufacturingPrice, data.productManufacturingDate, data.productExpiryDate, data.productIngredients, data.productSKU, data.productGTIN, data.productImage);
         await Connections.connectToMongoDB(networkAccess.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
@@ -85,6 +102,7 @@ const UpdateProduct = async(req, res) =>{
         const response_payload = commonUtils.generateResponsePayload(result.toString(), null, null);
         await networkAccess.gateway.disconnect();
         res.send(response_payload);
+        return;
     }
     catch (error){
         const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
@@ -96,10 +114,16 @@ const GetProductById = async(req, res) => {
     try{
         const {userName, orgMSP ,channelName, chaincodeName, data} = req.body;
         const networkAccess =  await Connections.connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        if(networkAccess.status === false){
+            const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
+            res.send(response_payload);
+            return;
+        }
         let result = await networkAccess.contract.evaluateTransaction("ProductContract:GetProductById", data.productId);
         const response_payload = commonUtils.generateResponsePayload(result.toString(), null, null);
         await networkAccess.gateway.disconnect();
         res.send(response_payload);
+        return;
     }
     catch (error){
         const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
@@ -111,10 +135,16 @@ const DeleteProduct = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
         const networkAccess =  await Connections.connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        if(networkAccess.status === false){
+            const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
+            res.send(response_payload);
+            return;
+        }
         let result = await networkAccess.contract.submitTransaction("ProductContract:DeleteProduct", data.productId);
         const response_payload = commonUtils.generateResponsePayload(result.toString(), null, null);
         await networkAccess.gateway.disconnect();
         res.send(response_payload);
+        return;
     }
     catch (error){
         const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);

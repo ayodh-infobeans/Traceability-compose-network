@@ -11,7 +11,11 @@ const makePayment = async(req, res) =>{
         let payID;
         const {userName, orgMSP, channelName, chaincodeName, data} = req.body;
         const networkAccess =  await Connections.connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
-
+        if(networkAccess.status === false){
+            const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
+            res.send(response_payload);
+            return;
+        }
         paymentUtils.payStatus(data.paymentAmount).then((status) => {
             payStatus="Paid";
             payID=JSON.parse(status).id;
@@ -26,6 +30,7 @@ const makePayment = async(req, res) =>{
 
         const response_payload = commonUtils.generateResponsePayload(result.toString(), null, null);
         res.send(response_payload);
+        return;
     }
 
     catch (error){
@@ -39,6 +44,11 @@ const GetTransactionById = async(req, res) => {
     try{
         const {userName, orgMSP,channelName, chaincodeName, data} = req.body;
         const networkAccess =  await Connections.connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        if(networkAccess.status === false){
+            const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
+            res.send(response_payload);
+            return;
+        }
         let result = await networkAccess.contract.evaluateTransaction("Payment:GetTransactionById", data.paymentRefrenceNumber);
         const response_payload = {
             result: result.toString(),
@@ -47,6 +57,7 @@ const GetTransactionById = async(req, res) => {
         }
         await networkAccess.gateway.disconnect();
         res.send(response_payload);
+        return;
     }
     catch (error){
         const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
@@ -58,10 +69,16 @@ const GetAllTransactions = async(req, res, next) =>{
     try{
         const {userName, orgMSP,channelName, chaincodeName} = req.body;
         const networkAccess =  await Connections.connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        if(networkAccess.status === false){
+            const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
+            res.send(response_payload);
+            return;
+        }
         let result = await networkAccess.contract.evaluateTransaction("Payment:GetAllTransactions");
         const response_payload = commonUtils.generateResponsePayload(result.toString(), null, null);
         await networkAccess.gateway.disconnect();
         res.send(response_payload);
+        return;
     }
     catch (error){
         const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);

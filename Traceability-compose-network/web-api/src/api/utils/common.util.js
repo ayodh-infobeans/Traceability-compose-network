@@ -4,7 +4,6 @@ const getOrgNameFromMSP = (OrgMSP) =>{
     let substringToRemove = 'MSP';
     let newOrg = OrgMSP.substring(0, OrgMSP.indexOf(substringToRemove));  
     let org = newOrg.substr(0, 1).toLowerCase() + newOrg.substr(1);
-
     return org;
 }
 

@@ -7,15 +7,20 @@ const GetAllRawMaterial = async(req, res, next) =>{
     try{
         const {userName, orgMSP ,channelName, chaincodeName} = req.body;
         const networkAccess =  await Connections.connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        if(networkAccess.status === false){
+            const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
+            res.send(response_payload);
+            return;
+        }
         let result = await networkAccess.contract.evaluateTransaction("RawMaterialTransfer:GetAllRawMaterials");
-        const response_payload = commonUtils.generateResponsePayload(result, null, null);
+        const response_payload = commonUtils.generateResponsePayload(result.toString(), null, null);
         await networkAccess.gateway.disconnect();
         res.send(response_payload);
-        
+        return;
     }
     catch (error){
         const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
-        res.send(response_payload)
+        res.send(response_payload);
     }
 
 }
@@ -24,6 +29,11 @@ const CreateRawMaterial = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
         const networkAccess =  await Connections.connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        if(networkAccess.status === false){
+            const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
+            res.send(response_payload);
+            return;
+        }
         let result = await networkAccess.contract.submitTransaction("RawMaterialTransfer:CreateRawMaterial", data.rawID, data.rawMaterialName, data.rawMaterialCategory, data.rawMaterialLocation, data.rawMaterialQuantity, data.rawMaterialPrice, data.rawMaterialDescription, data.rawMaterialProductionDate, data.rawMaterialExpiryDate, data.rawMaterialSpecifications, data.rawMaterialCultivationMethod, data.rawMaterialFertilizers, data.rawMaterialImage);
         await Connections.connectToMongoDB(networkAccess.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
@@ -50,6 +60,7 @@ const CreateRawMaterial = async(req, res) =>{
         const response_payload = commonUtils.generateResponsePayload(result, null, null);
         await networkAccess.gateway.disconnect();
         res.send(response_payload);
+        return;
     }
     catch (error){
         const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
@@ -61,6 +72,11 @@ const UpdateRawMaterial = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
         const networkAccess =  await Connections.connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        if(networkAccess.status === false){
+            const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
+            res.send(response_payload);
+            return;
+        }
         let result = await networkAccess.contract.submitTransaction('RawMaterialTransfer:UpdateRawMaterial', data.rawID, data.rawMaterialName, data.rawMaterialCategory, data.rawMaterialLocation, data.rawMaterialQuantity, data.rawMaterialPrice, data.rawMaterialDescription, data.rawMaterialProductionDate, data.rawMaterialExpiryDate, data.rawMaterialSpecifications, data.rawMaterialCultivationMethod, data.rawMaterialFertilizers,  data.rawMaterialImage);
         await Connections.connectToMongoDB(networkAccess.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
@@ -85,6 +101,7 @@ const UpdateRawMaterial = async(req, res) =>{
         const response_payload = commonUtils.generateResponsePayload(result.toString() + "Raw Material updated successfully", null, null);
         await networkAccess.gateway.disconnect();
         res.send(response_payload);
+        return;
     }
     catch (error){
         const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
@@ -96,10 +113,16 @@ const GetRawMaterialById = async(req, res) => {
     try{
         const {userName, orgMSP ,channelName, chaincodeName, data} = req.body;
         const networkAccess =  await Connections.connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        if(networkAccess.status === false){
+            const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
+            res.send(response_payload);
+            return;
+        }
         let result = await networkAccess.contract.evaluateTransaction("RawMaterialTransfer:GetRawMaterialById", data.rawID);
         const response_payload = commonUtils.generateResponsePayload(result.toString(), null, null);
         await networkAccess.gateway.disconnect();
         res.send(response_payload);
+        return;
     }
     catch (error){
         const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
@@ -111,10 +134,16 @@ const DeleteRawMaterial = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
         const networkAccess =  await Connections.connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        if(networkAccess.status === false){
+            const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
+            res.send(response_payload);
+            return;
+        }
         let result = await networkAccess.contract.submitTransaction("RawMaterialTransfer:DeleteRawMaterial", data.rawID);
         const response_payload = commonUtils.generateResponsePayload("Raw Material deleted Successfully", null, null);
         await networkAccess.gateway.disconnect();
         res.send(response_payload);
+        return;
     }
     catch (error){
         const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
