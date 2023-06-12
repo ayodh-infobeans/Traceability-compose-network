@@ -18,6 +18,7 @@ class ProductContract extends Contract {
         if (mspid !== 'Org2MSP') {
             throw new Error(`Caller with MSP ID ${mspid} is not authorized to initialize products`);
         }
+    
 
         const products = [
             {
@@ -27,7 +28,7 @@ class ProductContract extends Contract {
                 productBatchNo: 2,
                 productBatchManufacturingDate: "2023-04-25",
                 productBatchExpiryDate: "2023-07-28",
-                rawMaterialId: ["raw1", "raw2"],
+                rawMaterialIds: ["raw1", "raw2"],
                 productName: "chips",
                 productDescription: "chips",
                 productCategory: "Food",
@@ -52,7 +53,7 @@ class ProductContract extends Contract {
     }
 
     // CreateProduct issues a new product to the world state with given details.
-    async CreateProduct(ctx, productId, productBatchNo,productBatchManufacturingDate, productBatchExpiryDate,rawMaterialId, productName, productDescription, productCategory, productManufacturingLocation, productQuantity, productManufacturingPrice, productManufacturingDate, productExpiryDate, productIngredients, productSKU, productGTIN, productImage) {
+    async CreateProduct(ctx, productId,rawMaterialIds, productName, productDescription, productCategory, productManufacturingLocation, productQuantity, productManufacturingPrice, productManufacturingDate, productExpiryDate, productIngredients, productSKU, productGTIN, productImage) {
         // Only Manufacturer Organization can create new product
         const mspid = ctx.clientIdentity.getMSPID();
         if (mspid !== 'Org2MSP') {
@@ -63,15 +64,28 @@ class ProductContract extends Contract {
         if (exists) {
             throw new Error(`This product ${productId} already exists`);
         }
+
+        for (const rawMaterialId of rawMaterialIds) {
+            
+            const exists = await this.RawMaterialExists(ctx, rawMaterialId);
+            if (!exists) {
+                throw new Error(`This Raw Material ${rawId} not exists in the network`);
+            }
+            
+            rawMaterial.docType = 'rawMaterial';
+            // example of how to write to world state deterministically
+            // use convetion of alphabetic order
+            // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
+            // when retrieving data, in any lang, the order of data will be the same and consequently also the corresonding hash
+            await ctx.stub.putState("RM"+rawMaterial.rawID, Buffer.from(stringify(sortKeysRecursive(rawMaterial))));
+            console.info(`RawMaterial ${rawMaterial.rawID} initialized`);
+        }
         
         const product = {
             orgMSP:mspid,
             productId : productId,
             manufacturerId: ctx.clientIdentity.getID(),
-            productBatchNo: productBatchNo,
-            productBatchManufacturingDate: productBatchManufacturingDate,
-            productBatchExpiryDate: productBatchExpiryDate,
-            rawMaterialId: rawMaterialId,
+            rawMaterialIds: rawMaterialIds,
             productName: productName,
             productDescription: productDescription,
             productCategory: productCategory,
@@ -92,7 +106,7 @@ class ProductContract extends Contract {
         return JSON.stringify(product);
     }
 
-    async UpdateProduct(ctx, productId, productBatchNo, productBatchManufacturingDate,productBatchExpiryDate,rawMaterialId, productName, productDescription, productCategory, productManufacturingLocation, productQuantity, productManufacturingPrice, productManufacturingDate,productExpiryDate, productIngredients, productSKU, productGTIN,productImage){
+    async UpdateProduct(ctx, productId,rawMaterialIds, productName, productDescription, productCategory, productManufacturingLocation, productQuantity, productManufacturingPrice, productManufacturingDate,productExpiryDate, productIngredients, productSKU, productGTIN,productImage){
         // Only Manufacturer Organization can update product
         const mspid = ctx.clientIdentity.getMSPID();
         if (mspid !== 'Org2MSP') {
@@ -108,10 +122,7 @@ class ProductContract extends Contract {
             orgMSP:mspid,
             productId : productId,
             manufacturerId: ctx.clientIdentity.getID(),
-            productBatchNo: productBatchNo,
-            productBatchManufacturingDate: productBatchManufacturingDate,
-            productBatchExpiryDate: productBatchExpiryDate,
-            rawMaterialId: rawMaterialId,
+            rawMaterialIds: rawMaterialIds,
             productName: productName,
             productDescription: productDescription,
             productCategory: productCategory,

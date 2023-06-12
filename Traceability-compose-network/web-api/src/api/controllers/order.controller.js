@@ -5,20 +5,24 @@ import PackageDetailModel from '../../models/packagedetailmodel.js';
 import BatchModel from '../../models/batchmodel.js';
 import OrderShipmentModel from '../../models/ordershipmentmodel.js';
 import OrderInspectionModel from '../../models/purchaseorderinspectionmodel.js';
+import barcode from '../utils/barcode.util.js';
+import fs from 'fs';
 
 const CreatePurchaseOrder = async(req, res) =>{
+    
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName,data} = req.body;
-        let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await Connections.connectToGateway(org, userName);
-        const network = await gateway.getNetwork(channelName);
-        const contract = network.getContract(chaincodeName);
-        let result = await contract.submitTransaction("OrderContract:createPurchaseOrder", data.poNumber, data.sellerID, data.fromCountry, data.fromState, data.fromCity, data.toCountry, data.toState, data.toCity, data.poDateTime, data.productName, data.productQuantity, data.unitProductCost, data.expDeliveryDateTime);
-        console.log("cdcd12",JSON.stringify(result));
-        await Connections.connectToMongoDB(org);
+        const networkAccess =  await Connections.connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        if(data.sellerID == orgMSP ){ 
+            res.status(200).json({
+                status: true,
+                result: "Buyer "+ orgMSP + " and seller sellerID = "+ data.sellerID +" can not be same. "
+            });
+        }
+        let result = await networkAccess.contract.submitTransaction("OrderContract:createPurchaseOrder", data.poNumber, data.sellerID, data.fromCountry, data.fromState, data.fromCity, data.toCountry, data.toState, data.toCity, data.poDateTime, data.productName, data.productQuantity, data.unitProductCost, data.expDeliveryDateTime);
+        await Connections.connectToMongoDB(networkAccess.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await PurchaseOrderModel.findOne({poNumber:data.poNumber});
-        console.log(obj);
         if (obj.toString()) {
 
             obj.orgMSP= orgMSP;
@@ -36,39 +40,42 @@ const CreatePurchaseOrder = async(req, res) =>{
             await obj.save();
             console.log('Document updated successfully.');
 
+
           } else {
             console.log('Document not found.');
         }
         
-        const response_payload = {
-            result: result.toString(),
-            error: null,
-            errorData: null
-        }
-        await gateway.disconnect();
+        const response_payload = commonUtils.generateResponsePayload(result.toString(), null, null);
+        await networkAccess.gateway.disconnect();
         res.send(response_payload);
         
     }
     catch (error){
-        const response_payload = {
-            result: null,
-            error: error.name,
-            errorData: error.message
-        }
+        const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
         res.send(response_payload)
     }
 }
 
-
 const InsertPackageDetail = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
-        let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await Connections.connectToGateway(org, userName);
-        const network = await gateway.getNetwork(channelName);
-        const contract = network.getContract(chaincodeName);
-        let result = await contract.submitTransaction('OrderContract:InsertPackagingDetails', data.packageId, data.packageDimentions, data.packageWeight, data.productId, data.productFragility, data.barCode);
-        await Connections.connectToMongoDB(org);
+        const networkAccess =  await Connections.connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        var barCodePath=null;
+        let assetDetail = await networkAccess.contract.evaluateTransaction("ProductContract:GetProductById", data.assetId);
+        
+        barcode.generateBarcode(assetDetail, function (barcodeImageBuffer) {
+            fs.writeFile(`./barcode_images/${data.packageId}.png`, barcodeImageBuffer, function (err) {
+              if (err) {
+                console.error(err);
+                return;
+              }
+              barCodePath = `./barcode_images/${data.packageId}.png`;
+              console.log(`Barcode generated and saved as ${data.packageId}.png in barcode_images directory.`);
+            });
+          });
+
+        let result = await contract.submitTransaction('OrderContract:InsertPackagingDetails', data.packageId, data.assetId,  barCodePath);
+        await Connections.connectToMongoDB(networkAccess.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await PackageDetailModel.findOne({packageId:data.packageId});
         console.log(obj);
@@ -82,8 +89,8 @@ const InsertPackageDetail = async(req, res) =>{
 
             obj.packageDimentions=data.packageDimentions;
             obj.packageWeight=data.packageWeight;
-            obj.productId=data.productId;
-            obj.productFragility=data.productFragility;
+            obj.assetId=data.assetId;
+            obj.assetFragility=data.assetFragility;
             
             // Save the modified document back to the database
             await obj.save();
@@ -93,20 +100,12 @@ const InsertPackageDetail = async(req, res) =>{
             console.log('Document not found.');
         }
         
-        const response_payload = {
-            result: result.toString(),
-            error: null,
-            errorData: null
-        }
-        await gateway.disconnect();
+        const response_payload = commonUtils.generateResponsePayload(result.toString(), null, null);
+        await networkAccess.gateway.disconnect();
         res.send(response_payload);
     }
     catch (error){
-        const response_payload = {
-            result: null,
-            error: error.name,
-            errorData: error.message
-        }
+        const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
         res.send(response_payload)
     }
 }
@@ -114,15 +113,11 @@ const InsertPackageDetail = async(req, res) =>{
 const CreateBatch = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
-        let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await Connections.connectToGateway(org, userName);
-        const network = await gateway.getNetwork(channelName);
-        const contract = network.getContract(chaincodeName);
-        let result = await contract.submitTransaction('OrderContract:CreateBatch', data.batchId, data.rawProductId, data.packageInBatch, data.totalQuantity, data.carrierInfo, data.poNumber, data.transportMode, data.startLocation, data.endLocation);
-        await Connections.connectToMongoDB(org);
+        const networkAccess =  await Connections.connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        let result = await networkAccess.contract.submitTransaction('OrderContract:CreateBatch', data.batchId, data.assetId, data.packageInBatch, data.totalQuantity, data.carrierInfo, data.poNumber, data.transportMode, data.startLocation, data.endLocation);
+        await Connections.connectToMongoDB(networkAccess.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await BatchModel.findOne({packageId:data.packageId});
-        console.log(obj);
         if (obj.toString()) {
 
             obj.orgMSP= orgMSP;
@@ -131,12 +126,9 @@ const CreateBatch = async(req, res) =>{
             obj.channelName= channelName;
             obj.chaincodeName= chaincodeName;
 
-            obj.packageInBatch=data.packageInBatch;
             obj.totalQuantity=data.totalQuantity;
             obj.carrierInfo=data.carrierInfo;
-            obj.poNumber=data.poNumber;
             obj.transportMode=data.transportMode;
-            obj.rawProductId=data.rawProductId;
             // Save the modified document back to the database
             await obj.save();
             console.log('Document updated successfully.');
@@ -145,20 +137,12 @@ const CreateBatch = async(req, res) =>{
             console.log('Document not found.');
         }
         
-        const response_payload = {
-            result: result.toString(),
-            error: null,
-            errorData: null
-        }
-        await gateway.disconnect();
+        const response_payload = commonUtils.generateResponsePayload(result.toString(), null, null);
+        await networkAccess.gateway.disconnect();
         res.send(response_payload);
     }
     catch (error){
-        const response_payload = {
-            result: null,
-            error: error.name,
-            errorData: error.message
-        }
+        const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
         res.send(response_payload)
     }
 }
@@ -166,12 +150,9 @@ const CreateBatch = async(req, res) =>{
 const OrderShipment = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
-        let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await Connections.connectToGateway(org, userName);
-        const network = await gateway.getNetwork(channelName);
-        const contract = network.getContract(chaincodeName);
-        let result = await contract.submitTransaction('OrderContract:OrderShipment', data.purchaseOrderId, data.batchId, data.batchUnitPrice, data.shipStartLocation, data.shipEndLocation, data.estDeliveryDateTime, data.gpsCoordinates, data.notes, data.status, data.weighbridgeSlipImage, data.weighbridgeSlipNumber, data.weighbridgeDate, data.tbwImage);
-        await Connections.connectToMongoDB(org);
+        const networkAccess =  await Connections.connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        let result = await networkAccess.contract.submitTransaction('OrderContract:OrderShipment', data.purchaseOrderId, data.senderId, data.batchIds, data.packageUnitPrice, data.shipStartLocation, data.shipEndLocation, data.estDeliveryDateTime, data.gpsCoordinates, data.notes, data.status, data.weighbridgeSlipImage, data.weighbridgeSlipNumber, data.weighbridgeDate, data.tbwImage);
+        await Connections.connectToMongoDB(networkAccess.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await OrderShipmentModel.findOne({purchaseOrderId:data.purchaseOrderId});
         console.log(obj);
@@ -195,20 +176,12 @@ const OrderShipment = async(req, res) =>{
             console.log('Document not found.');
         }
         
-        const response_payload = {
-            result: result.toString(),
-            error: null,
-            errorData: null
-        }
-        await gateway.disconnect();
+        const response_payload = commonUtils.generateResponsePayload(result.toString(), null, null);
+        await networkAccess.gateway.disconnect();
         res.send(response_payload);
     }
     catch (error){
-        const response_payload = {
-            result: null,
-            error: error.name,
-            errorData: error.message
-        }
+        const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
         res.send(response_payload)
     }
 }
@@ -216,7 +189,7 @@ const OrderShipment = async(req, res) =>{
 const PurchaseOrderInspection = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
-        await Connections.connectToMongoDB(org);
+        await Connections.connectToMongoDB(commonUtils.getOrgNameFromMSP(orgMSP));
         const obj = new OrderInspectionModel(data);
         obj.orgMSP= orgMSP;
         obj.userName= userName;
@@ -233,18 +206,14 @@ const PurchaseOrderInspection = async(req, res) =>{
         });
     }
     catch (error){
-        const response_payload = {
-            result: null,
-            error: error.name,
-            errorData: error.message
-        }
+        const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
         res.send(response_payload)
     }
 }
 
 const ConfirmDeliveredOrder = async(req, res) =>{
     try{
-        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
+        const {data} = req.body;
         
         const obj = await BatchModel.find({batchId: data.batchId});
         if(obj.toString()){
@@ -261,11 +230,7 @@ const ConfirmDeliveredOrder = async(req, res) =>{
         }
     }
     catch (error){
-        const response_payload = {
-            result: null,
-            error: error.name,
-            errorData: error.message
-        }
+        const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
         res.send(response_payload)
     }
 }

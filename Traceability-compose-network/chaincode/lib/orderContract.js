@@ -6,7 +6,7 @@ const sortKeysRecursive  = require('sort-keys-recursive');
 const { Contract } = require('fabric-contract-api'); 
 class OrderContract extends Contract {
 
-    async createPurchaseOrder(ctx,poNumber,sellerID,fromCountry,fromState,fromCity,toCountry,toState,toCity,poDateTime,productName,productQuantity,unitProductCost,expDeliveryDateTime) {
+    async createPurchaseOrder(ctx, poNumber,sellerID,fromCountry,fromState,fromCity,toCountry,toState,toCity,poDateTime,productName,productQuantity,unitProductCost,expDeliveryDateTime) {
         
         try{
             const mspid = ctx.clientIdentity.getMSPID();
@@ -48,15 +48,18 @@ class OrderContract extends Contract {
         }
     }
 
-    async InsertPackagingDetails(ctx, packageId,packageDimentions, packageWeight,productId,productFragility,barCode) {
+    async InsertPackagingDetails(ctx, packageId,assetId, barCode) {
         
     // create a new Package object
         try{
+
             const mspid = ctx.clientIdentity.getMSPID();
             const packageData = {
+                
                 orgMSP: mspid,
                 packageId:packageId,
-            
+                assetId:assetId,
+                
                 // packageDimentions: packageDimentions,
                 // packageWeight: packageWeight,
                 // productId: productId,
@@ -77,23 +80,28 @@ class OrderContract extends Contract {
 
     }
 
-    async CreateBatch(ctx, batchId,rawProductId, packageInBatch,totalQuantity,carrierInfo,poNumber,transportMode,startLocation,endLocation) {
+    async CreateBatch(ctx, batchId,assetId, packageInBatch,totalQuantity,carrierInfo,poNumber,transportMode,startLocation,endLocation) {
     
         // create a new Batch object
         try{
+
             const mspid = ctx.clientIdentity.getMSPID();
+            const purchaseOrderBytes = await ctx.stub.getState(poNumber);
+
+            if (!purchaseOrderBytes || purchaseOrderBytes.length === 0) {
+                throw new Error(`Purchase Order ${poNumber} does not exist, Let Purchase Order arrive First.`);
+            }
+            
             const batch = {
                 orgMSP:mspid,
                 batchId:batchId,
-                rawProductId:rawProductId,
-            
-                // packageInBatch: packageInBatch,
+                assetId:assetId,
+                packageInBatch: packageInBatch,
                 // totalQuantity: totalQuantity,
                 // carrierInfo: carrierInfo,
-                // poNumber: poNumber,
+                poNumber: poNumber,
                 // transportMode: transportMode,
                 // rawProductId: rawProductId,
-                
                 startLocation: startLocation,
                 endLocation: endLocation
 
@@ -110,26 +118,27 @@ class OrderContract extends Contract {
 
     }
 
-    async OrderShipment(ctx, purchaseOrderId,batchId,batchUnitPrice,shipStartLocation,shipEndLocation,estDeliveryDateTime,gpsCoordinates,notes,status,weighbridgeSlipImage,weighbridgeSlipNumber,weighbridgeDate,tbwImage) {
+    async OrderShipment(ctx, purchaseOrderId,senderId,batchIds,packageUnitPrice,shipStartLocation,shipEndLocation,estDeliveryDateTime,gpsCoordinates,notes,status,weighbridgeSlipImage,weighbridgeSlipNumber,weighbridgeDate,tbwImage) {
        // create a new Shipment
         try{
             const mspid = ctx.clientIdentity.getMSPID();
             const shipment = {
                 orgMSP:mspid,
                 purchaseOrderId: purchaseOrderId,
-                batchId: batchId,
-                batchUnitPrice: batchUnitPrice,
+                senderId: senderId,
+                batchIds: batchIds,
+                packageUnitPrice: packageUnitPrice,
                 shipStartLocation: shipStartLocation,
                 shipEndLocation: shipEndLocation,
                 estDeliveryDateTime: estDeliveryDateTime,
                 gpsCoordinates: gpsCoordinates,
                 notes: notes,
-                status: status,
+                status: "Delivered",
                 weighbridgeSlipImage: weighbridgeSlipImage,
                 weighbridgeSlipNumber: weighbridgeSlipNumber,
                 weighbridgeDate: weighbridgeDate,
-                tbwImage: tbwImage,
-                senderId: ctx.getID()
+                tbwImage: tbwImage
+                
                 // vehicleType: vehicleType,
                 // vehicleNumber: vehicleNumber,
                 // vehicleImage: vehicleImage,
@@ -171,7 +180,6 @@ module.exports = OrderContract;
 //     }
 
 // }
-
 
 
 

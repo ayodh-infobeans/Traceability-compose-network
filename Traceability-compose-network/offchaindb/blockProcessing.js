@@ -29,10 +29,14 @@ var keyToDbname = {
     "PAYID": PaymentModel
   };
 
+
+
 const configPathi = path.resolve(__dirname, 'config.json');
 const configData = fs.readFileSync(configPathi, 'utf-8');
 const config = JSON.parse(configData);
 const mongodb_address = config.mongodb_address;
+
+
 
 var orgMSPToMongoDB = {
     "Org1MSP": mongodb_address.org1Mongodb,

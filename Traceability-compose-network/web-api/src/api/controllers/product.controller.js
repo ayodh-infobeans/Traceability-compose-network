@@ -3,27 +3,16 @@ import commonUtils from '../utils/common.util.js';
 import ProductModel from '../../models/productmodel.js';
 const GetAllProducts = async(req, res) =>{
     try{
-        const {userName, orgMSP, userType,channelName, chaincodeName} = req.body;
-        let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await Connections.connectToGateway(org, userName);
-        const network = await gateway.getNetwork(channelName);
-        const contract = network.getContract(chaincodeName);
-        let result = await contract.evaluateTransaction("ProductContract:GetAllProducts");
-        const response_payload = {
-            result: result.toString(),
-            error: null,
-            errorData: null
-        }
-        await gateway.disconnect();
+        const {userName, orgMSP ,channelName, chaincodeName} = req.body;
+        const networkAccess =  await Connections.connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        let result = await networkAccess.contract.evaluateTransaction("ProductContract:GetAllProducts");
+        const response_payload = commonUtils.generateResponsePayload(result.toString(), null, null);
+        await networkAccess.gateway.disconnect();
         res.send(response_payload);
         
     }
     catch (error){
-        const response_payload = {
-            result: null,
-            error: error.name,
-            errorData: error.message
-        }
+        const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
         res.send(response_payload)
     }
 }
@@ -31,12 +20,9 @@ const GetAllProducts = async(req, res) =>{
 const CreateProduct = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
-        let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await Connections.connectToGateway(org, userName);
-        const network = await gateway.getNetwork(channelName);
-        const contract = network.getContract(chaincodeName);
-        let result = await contract.submitTransaction('ProductContract:CreateProduct', data.productId, data.productBatchNo,data.productBatchManufacturingDate,data.productBatchExpiryDate, data.rawMaterialId, data.productName, data.productDescription, data.productCategory, data.productManufacturingLocation, data.productQuantity, data.productManufacturingPrice, data.productManufacturingDate, data.productExpiryDate, data.productIngredients, data.productSKU, data.productGTIN,  data.productImage);
-        await Connections.connectToMongoDB(org);
+        const networkAccess =  await Connections.connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        let result = await networkAccess.contract.submitTransaction('ProductContract:CreateProduct', data.productId, data.rawMaterialIds, data.productName, data.productDescription, data.productCategory, data.productManufacturingLocation, data.productQuantity, data.productManufacturingPrice, data.productManufacturingDate, data.productExpiryDate, data.productIngredients, data.productSKU, data.productGTIN,  data.productImage);
+        await Connections.connectToMongoDB(networkAccess.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await ProductModel.findOne({productId:data.productId});
         console.log(obj);
@@ -58,20 +44,12 @@ const CreateProduct = async(req, res) =>{
             console.log('Document not found.');
         }
         
-        const response_payload = {
-            result: result.toString(),
-            error: null,
-            errorData: null
-        }
-        await gateway.disconnect();
+        const response_payload = commonUtils.generateResponsePayload(result.toString(), null, null);
+        await networkAccess.gateway.disconnect();
         res.send(response_payload);
     }
     catch (error){
-        const response_payload = {
-            result: null,
-            error: error.name,
-            errorData: error.message
-        }
+        const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
         res.send(response_payload)
     }
 }
@@ -79,12 +57,9 @@ const CreateProduct = async(req, res) =>{
 const UpdateProduct = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
-        let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await Connections.connectToGateway(org, userName);
-        const network = await gateway.getNetwork(channelName);
-        const contract = network.getContract(chaincodeName);
-        let result = await contract.submitTransaction('ProductContract:UpdateProduct', data.productId, data.productBatchNo, data.productBatchManufacturingDate,data.productBatchExpiryDate, data.rawMaterialId, data.productName, data.productDescription, data.productCategory, data.productManufacturingLocation, data.productQuantity, data.productManufacturingPrice, data.productManufacturingDate, data.productExpiryDate, data.productIngredients, data.productSKU, data.productGTIN, data.productImage);
-        await Connections.connectToMongoDB(org);
+        const networkAccess =  await Connections.connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        let result = await networkAccess.contract.submitTransaction('ProductContract:UpdateProduct', data.productId,  data.rawMaterialIds, data.productName, data.productDescription, data.productCategory, data.productManufacturingLocation, data.productQuantity, data.productManufacturingPrice, data.productManufacturingDate, data.productExpiryDate, data.productIngredients, data.productSKU, data.productGTIN, data.productImage);
+        await Connections.connectToMongoDB(networkAccess.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await ProductModel.findOne({productId:data.productId});
         console.log(obj);
@@ -107,46 +82,27 @@ const UpdateProduct = async(req, res) =>{
         }
         
         
-        const response_payload = {
-            result: result.toString(),
-            error: null,
-            errorData: null
-        }
-        await gateway.disconnect();
+        const response_payload = commonUtils.generateResponsePayload(result.toString(), null, null);
+        await networkAccess.gateway.disconnect();
         res.send(response_payload);
     }
     catch (error){
-        const response_payload = {
-            result: null,
-            error: error.name,
-            errorData: error.message
-        }
+        const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
         res.send(response_payload)
     }
 }
 
 const GetProductById = async(req, res) => {
     try{
-        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
-        let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await Connections.connectToGateway(org, userName);
-        const network = await gateway.getNetwork(channelName);
-        const contract = network.getContract(chaincodeName);
-        let result = await contract.evaluateTransaction("ProductContract:GetProductById", data.productId);
-        const response_payload = {
-            result: result.toString(),
-            error: null,
-            errorData: null
-        }
-        await gateway.disconnect();
+        const {userName, orgMSP ,channelName, chaincodeName, data} = req.body;
+        const networkAccess =  await Connections.connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        let result = await networkAccess.contract.evaluateTransaction("ProductContract:GetProductById", data.productId);
+        const response_payload = commonUtils.generateResponsePayload(result.toString(), null, null);
+        await networkAccess.gateway.disconnect();
         res.send(response_payload);
     }
     catch (error){
-        const response_payload = {
-            result: null,
-            error: error.name,
-            errorData: error.message
-        }
+        const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
         res.send(response_payload)
     }
 }
@@ -154,32 +110,21 @@ const GetProductById = async(req, res) => {
 const DeleteProduct = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
-        let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await Connections.connectToGateway(org, userName);
-        const network = await gateway.getNetwork(channelName);
-        const contract = network.getContract(chaincodeName);
-        let result = await contract.submitTransaction("ProductContract:DeleteProduct", data.productId);
-        const response_payload = {
-            result: result.toString(),
-            error: null,
-            errorData: null
-        }
-        await gateway.disconnect();
+        const networkAccess =  await Connections.connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        let result = await networkAccess.contract.submitTransaction("ProductContract:DeleteProduct", data.productId);
+        const response_payload = commonUtils.generateResponsePayload(result.toString(), null, null);
+        await networkAccess.gateway.disconnect();
         res.send(response_payload);
     }
     catch (error){
-        const response_payload = {
-            result: null,
-            error: error.name,
-            errorData: error.message
-        }
+        const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
         res.send(response_payload)
     }
 }
 
 const CheckProductAvailability = async(req, res)=>{
     try{
-        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
+        const {data} = req.body;
         
         const productObj = await ProductModel.find({productName: data.productName});
 
@@ -207,18 +152,14 @@ const CheckProductAvailability = async(req, res)=>{
         }
     }
     catch (error){
-        const response_payload = {
-            result: null,
-            error: error.name,
-            errorData: error.message
-        }
+        const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
         res.send(response_payload)
     }
 }
 
 const ConfirmProductAvailability = async(req, res)=>{
     try{
-        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
+        const {orgMSP, data} = req.body;
         if (orgMSP != "Org2MSP"){
             
             return res.status(400).json({ message: `Caller with MSP ID ${orgMSP} is not authorized to confirm product availability` });
@@ -254,11 +195,7 @@ const ConfirmProductAvailability = async(req, res)=>{
         // estDeliveryDateTime: data.estDeliveryDateTime        
     }
     catch (error){
-        const response_payload = {
-            result: null,
-            error: error.name,
-            errorData: error.message
-        }
+        const response_payload = commonUtils.generateResponsePayload(null, error.name, error.message);
         res.send(response_payload)
     }
 }

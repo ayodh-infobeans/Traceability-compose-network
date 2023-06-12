@@ -14,7 +14,16 @@ const generateUniqueIdentity = (username) =>{
   return uniqueIdentity;
 }
 
+const generateResponsePayload = (result, errorName, errorData) =>{
+  return {
+    result: result,
+    error: errorName,
+    errorData: errorData
+  }
+}
+
 export default{
     getOrgNameFromMSP,
-    generateUniqueIdentity
+    generateUniqueIdentity,
+    generateResponsePayload
 }

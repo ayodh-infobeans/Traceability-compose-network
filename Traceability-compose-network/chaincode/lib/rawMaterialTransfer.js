@@ -28,7 +28,7 @@ class RawMaterialTransfer extends Contract {
                 rawMaterialCategory: 'Vegetable',
                 rawMaterialLocation: 'Indore',
                 rawMaterialQuantity: 22,
-                rawMaterialPrice: '200',
+                rawMaterialPrice: 200,
                 type: 'rawMaterial',
                 rawMaterialDescription: 'Tomato',
                 rawMaterialProductionDate: '2023-04-21',
@@ -61,10 +61,10 @@ class RawMaterialTransfer extends Contract {
             throw new Error(`Caller with MSP ID ${mspid} is not authorized to create raw materials`);
         }
         // check for already existing raw materials
-        const exists = await this.RawMaterialExists(ctx, rawId);
-        if (exists) {
-            throw new Error(`This Raw Material ${rawId} already exists`);
-        }
+        // const exists = await this.RawMaterialExists(ctx, rawId);
+        // if (exists) {
+        //     throw new Error(`This Raw Material ${rawId} already exists`);
+        // }
         
         const rawMaterial = {
             orgMSP:mspid,

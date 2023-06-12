@@ -4,11 +4,15 @@ const OrderShipmentSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  batchId: {
+  senderId:{
     type: String,
     required: true
   },
-  batchUnitPrice: {
+  batchIds: {
+    type: [String], 
+    required: true
+  },
+  packageUnitPrice: {
     type: Number,
     required: true
   },

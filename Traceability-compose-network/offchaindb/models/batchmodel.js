@@ -4,7 +4,7 @@ const BatchSchema = new mongoose.Schema({
       type: String,
       required: true
     },
-    rawProductId: {
+    assetId: {
       type: String,
       required: true
     },
