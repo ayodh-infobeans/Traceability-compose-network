@@ -1,9 +1,9 @@
 import crypto from 'crypto';
 
 const getOrgNameFromMSP = (OrgMSP) =>{
-    let substringToRemove = 'MSP';
-    let newOrg = OrgMSP.substring(0, OrgMSP.indexOf(substringToRemove));  
-    let org = newOrg.substr(0, 1).toLowerCase() + newOrg.substr(1);
+    const substringToRemove = 'MSP';
+    const newOrg = OrgMSP.substring(0, OrgMSP.indexOf(substringToRemove));  
+    const org = newOrg.substr(0, 1).toLowerCase() + newOrg.substr(1);
     return org;
 }
 
@@ -13,7 +13,7 @@ const generateUniqueIdentity = (username) =>{
   return uniqueIdentity;
 }
 
-const generateResponsePayload = (result, errorName, errorData) =>{
+const generateResponsePayload = (result = null, errorName = null, errorData = null) =>{
   return {
     result: result,
     error: errorName,
@@ -21,7 +21,7 @@ const generateResponsePayload = (result, errorName, errorData) =>{
   }
 }
 
-export default{
+export default {
     getOrgNameFromMSP,
     generateUniqueIdentity,
     generateResponsePayload

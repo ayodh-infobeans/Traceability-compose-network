@@ -63,7 +63,7 @@ const payStatus = async (amount) =>{
       }
 }
 export default{
-    payStatus,
+    payStatus
 }
 
 
