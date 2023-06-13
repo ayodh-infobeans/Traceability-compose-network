@@ -1,6 +1,10 @@
 import Connections from '../utils/connections.util.js';
 import commonUtils from '../utils/common.util.js';
 import ProductModel from '../../models/productmodel.js';
+import path from 'path';
+import offchainUtil from '../utils/offchain.util.js';
+
+
 const GetAllProducts = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName} = req.body;
@@ -38,6 +42,10 @@ const CreateProduct = async(req, res) =>{
 
         
         let result = await contract.submitTransaction('ProductContract:CreateProduct', data.productId, data.rawMaterialIds, data.productName, data.productDescription, data.productCategory, data.productManufacturingLocation, data.productQuantity, data.productManufacturingPrice, data.productManufacturingDate, data.productExpiryDate, data.productIngredients, data.productSKU, data.productGTIN,  data.productImage);
+        
+        let options = offchainUtil.setOrgChannel(org, channelName);
+        offchainUtil.runTerminalCommand(command,options);
+        
         await Connections.connectToMongoDB(org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await ProductModel.findOne({productId:data.productId});
@@ -59,7 +67,7 @@ const CreateProduct = async(req, res) =>{
           } else {
             console.log('Document not found.');
         }
-        
+        offchainUtil.stopScript();
         const response_payload = {
             result: result.toString(),
             error: null,

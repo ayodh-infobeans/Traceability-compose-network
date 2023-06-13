@@ -1,16 +1,22 @@
 import Connections from '../utils/connections.util.js';
 import commonUtils from '../utils/common.util.js';
+import offchainUtil from '../utils/offchain.util.js';
 import RawModel from '../../models/rawmodel.js';
 
 
 const GetAllRawMaterial = async(req, res, next) =>{
     try{
+        
         const {userName, orgMSP, userType,channelName, chaincodeName} = req.body;
         let org = commonUtils.getOrgNameFromMSP(orgMSP);
         let gateway = await Connections.connectToGateway(org, userName);
         const network = await gateway.getNetwork(channelName);
         const contract = network.getContract(chaincodeName);
         let result = await contract.evaluateTransaction("RawMaterialTransfer:GetAllRawMaterials");
+
+
+        // offchaindb(./connectionPath, ./walletPath, ./channelName)
+
         const response_payload = {
             result: result.toString(),
             error: null,
@@ -40,7 +46,13 @@ const CreateRawMaterial = async(req, res) =>{
         const contract = network.getContract(chaincodeName);
         let result = await contract.submitTransaction("RawMaterialTransfer:CreateRawMaterial", data.rawID, data.rawMaterialName, data.rawMaterialCategory, data.rawMaterialLocation, data.rawMaterialQuantity, data.rawMaterialPrice, data.rawMaterialDescription, data.rawMaterialProductionDate, data.rawMaterialExpiryDate, data.rawMaterialSpecifications, data.rawMaterialCultivationMethod, data.rawMaterialFertilizers, data.rawMaterialImage);
         await gateway.disconnect();
+        
         console.log("result ==",result);
+
+        let options = offchainUtil.setOrgChannel(org, channelName);
+        offchainUtil.runTerminalCommand("node",options);
+        
+        console.log("additionalArgs==",additionalArgs);
         await Connections.connectToMongoDB(org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await RawModel.findOne({rawID:data.rawID});
@@ -63,7 +75,7 @@ const CreateRawMaterial = async(req, res) =>{
           } else {
             console.log('Document not found.');
         }
-
+        offchainUtil.stopScript();
         const response_payload = {
             result: result.toString(),
             error: null,

@@ -6,8 +6,8 @@ const { Wallets, Gateway } = pkg;
 import fs from 'fs';
 import path from 'path';
 import processBlockEvent from './blockProcessing.js';
-
-
+import readline from 'readline';
+let isTerminated; 
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -47,6 +47,7 @@ let ProcessingMap = new BlockMap()
 
 async function main() {
     try {
+        
          // initialize the next block to be 0
         let nextBlock = 0;
         
@@ -61,7 +62,9 @@ async function main() {
         }
         
         // Create a new file system based wallet for managing identities.
-        const walletPath = path.join(process.cwd(),'..','web-api','src','org1-wallet');
+        
+        const walletPath = path.join(process.cwd(), ...walletSegments);
+
         const wallet = await Wallets.newFileSystemWallet(walletPath);
         console.log(`Wallet path: ${walletPath}`);
 
@@ -73,8 +76,10 @@ async function main() {
             return;
         }
         
+        
         // Parse the connection profile. This would be the path to the file downloaded
-        const ccpPath = path.resolve(__dirname, '..', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
+        
+        const ccpPath = path.resolve(__dirname, ...pathSegments );
         const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
         console.log("============================");
         // Create a new gateway for connecting to our peer node.
@@ -98,6 +103,21 @@ async function main() {
         console.log(`Listening for block events, nextblock: ${nextBlock}`);
         // start processing, looking for entries in the ProcessingMap
         processPendingBlocks(ProcessingMap);
+       
+        // const stopFilePath = path.resolve(__dirname, 'stop.txt');
+        // const rl = readline.createInterface({
+        // input: fs.createReadStream(stopFilePath),
+        // });
+
+        // rl.on('line', (input) => {
+        // if (input.trim() === 'stop') {
+        //     console.log('Stopping the script...');
+        //     fs.unlinkSync(stopFilePath); // Delete the stop.txt file
+        //     gateway.disconnect(); // Disconnect from the gateway
+        //     process.exit(0); // Terminate the script
+        // }
+        // });
+
 
     } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);
@@ -108,12 +128,24 @@ async function main() {
 // listener function to check for blocks in the ProcessingMap
 async function processPendingBlocks(ProcessingMap) {
 
+        // Check if the stop command is received
+    // const stopFilePath = path.resolve(__dirname, 'stop.txt');
+    // if (fs.existsSync(stopFilePath)) {
+    //     console.log('Stopping the script...');
+    //     fs.unlinkSync(stopFilePath); // Delete the stop.txt file
+    //     return; // Exit the function to stop the loop
+    // }
+
     setTimeout(async () => {
 
         // get the next block number from nextblock.txt
         let nextBlockNumber = fs.readFileSync(configPath, 'utf8');
         let processBlock;
-
+        if (isTerminated) {
+            console.log('Termination signal received. Stopping the script...');
+            process.exit(0); // Terminate the script
+            return; // Exit the function and stop processing blocks
+          }
         do {
             
             // get the next block to process from the ProcessingMap
@@ -147,10 +179,19 @@ async function processPendingBlocks(ProcessingMap) {
 
 }
 
-main();
+const terminationCommand = process.argv[2] || process.env.TERMINATION_COMMAND;
+if (terminationCommand === 'stop') {
+  console.log('Termination command received. Stopping the script...');
+  process.exit(0); // Terminate the script
+  isTerminated = true;
+} else {
+  main();
+}
 
 
 
 
 
+
+// const { spawn } = require('child_process');
 

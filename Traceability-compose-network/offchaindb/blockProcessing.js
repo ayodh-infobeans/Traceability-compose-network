@@ -19,6 +19,7 @@ import PaymentModel from './models/paymentmodel.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const configPath = path.resolve(__dirname, 'nextblock.txt');
+
 var keyToDbname = {
     "RM": RawModel,
     "prod": ProductModel,
@@ -29,8 +30,7 @@ var keyToDbname = {
     "PAYID": PaymentModel
   };
 
-
-
+  
 const configPathi = path.resolve(__dirname, 'config.json');
 const configData = fs.readFileSync(configPathi, 'utf-8');
 const config = JSON.parse(configData);
