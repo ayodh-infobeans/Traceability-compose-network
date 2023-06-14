@@ -13,10 +13,10 @@ const GetAllProducts = async(req, res) =>{
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
-        let result = await networkAccess?.contract.evaluateTransaction("ProductContract:GetAllProducts");
+        let result = await networkAccess?.contract?.evaluateTransaction("ProductContract:GetAllProducts");
         if(result) {
-            const responsePayload = generateResponsePayload(result.toString(), null, null);
-            await networkAccess?.gateway.disconnect();
+            const responsePayload = generateResponsePayload(result?.toString(), null, null);
+            await networkAccess?.gateway?.disconnect();
             return res.send(responsePayload);
         }
 
@@ -38,7 +38,7 @@ const CreateProduct = async(req, res) =>{
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
-        let result = await networkAccess?.contract.submitTransaction('ProductContract:CreateProduct', data?.productId, data?.rawMaterialIds, data?.productName, data?.productDescription, data?.productCategory, data?.productManufacturingLocation, data?.productQuantity, data?.productManufacturingPrice, data?.productManufacturingDate, data?.productExpiryDate, data?.productIngredients, data?.productSKU, data?.productGTIN,  data?.productImage);
+        let result = await networkAccess?.contract?.submitTransaction('ProductContract:CreateProduct', data?.productId, data?.rawMaterialIds, data?.productName, data?.productDescription, data?.productCategory, data?.productManufacturingLocation, data?.productQuantity, data?.productManufacturingPrice, data?.productManufacturingDate, data?.productExpiryDate, data?.productIngredients, data?.productSKU, data?.productGTIN,  data?.productImage);
         await connectToMongoDB(networkAccess?.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await ProductModel.findOne({productId:data?.productId});
@@ -62,8 +62,8 @@ const CreateProduct = async(req, res) =>{
         }
         
         if(result) {
-            const responsePayload = generateResponsePayload(result.toString(), null, null);
-            await networkAccess?.gateway.disconnect();
+            const responsePayload = generateResponsePayload(result?.toString(), null, null);
+            await networkAccess?.gateway?.disconnect();
             return res.send(responsePayload);
         }
 
@@ -84,7 +84,7 @@ const UpdateProduct = async(req, res) =>{
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
-        let result = await networkAccess?.contract.submitTransaction('ProductContract:UpdateProduct', data?.productId,  data?.rawMaterialIds, data?.productName, data?.productDescription, data?.productCategory, data?.productManufacturingLocation, data?.productQuantity, data?.productManufacturingPrice, data?.productManufacturingDate, data?.productExpiryDate, data?.productIngredients, data?.productSKU, data?.productGTIN, data?.productImage);
+        let result = await networkAccess?.contract?.submitTransaction('ProductContract:UpdateProduct', data?.productId,  data?.rawMaterialIds, data?.productName, data?.productDescription, data?.productCategory, data?.productManufacturingLocation, data?.productQuantity, data?.productManufacturingPrice, data?.productManufacturingDate, data?.productExpiryDate, data?.productIngredients, data?.productSKU, data?.productGTIN, data?.productImage);
         await connectToMongoDB(networkAccess?.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await ProductModel.findOne({productId:data?.productId});
@@ -108,8 +108,8 @@ const UpdateProduct = async(req, res) =>{
         
         
         if(result) {
-            const responsePayload = generateResponsePayload(result.toString(), null, null);
-            await networkAccess?.gateway.disconnect();
+            const responsePayload = generateResponsePayload(result?.toString(), null, null);
+            await networkAccess?.gateway?.disconnect();
             return res.send(responsePayload);
         }
 
@@ -130,10 +130,10 @@ const GetProductById = async(req, res) => {
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
-        let result = await networkAccess?.contract.evaluateTransaction("ProductContract:GetProductById", data?.productId);
+        let result = await networkAccess?.contract?.evaluateTransaction("ProductContract:GetProductById", data?.productId);
         if(result) {
-            const responsePayload = generateResponsePayload(result.toString(), null, null);
-            await networkAccess?.gateway.disconnect();
+            const responsePayload = generateResponsePayload(result?.toString(), null, null);
+            await networkAccess?.gateway?.disconnect();
             return res.send(responsePayload);
         }
 
@@ -154,10 +154,10 @@ const DeleteProduct = async(req, res) =>{
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
-        let result = await networkAccess?.contract.submitTransaction("ProductContract:DeleteProduct", data?.productId);
+        let result = await networkAccess?.contract?.submitTransaction("ProductContract:DeleteProduct", data?.productId);
         if(result) {
-            const responsePayload = generateResponsePayload(result.toString(), null, null);
-            await networkAccess?.gateway.disconnect();
+            const responsePayload = generateResponsePayload(result?.toString(), null, null);
+            await networkAccess?.gateway?.disconnect();
             return res.send(responsePayload);
         }
 

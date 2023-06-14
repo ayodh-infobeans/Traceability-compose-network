@@ -10,6 +10,7 @@ import barcode from '../utils/barcode.util.js';
 
 const { connectToFabricNetwork, connectToMongoDB } = Connections;
 const { generateResponsePayload } = commonUtils;
+const { generateBarcode } = barcode;
 
 const CreatePurchaseOrder = async(req, res) =>{
     
@@ -20,13 +21,13 @@ const CreatePurchaseOrder = async(req, res) =>{
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
-        if(data?.sellerID == orgMSP ){ 
+        if(data?.sellerID === orgMSP ){ 
             return res.status(200).json({
                 status: true,
                 result: "Buyer "+ orgMSP + " and seller sellerID = "+ data?.sellerID +" can not be same. "
             });
         }
-        let result = await networkAccess?.contract.submitTransaction("OrderContract:createPurchaseOrder", data?.poNumber, data?.sellerID, data?.fromCountry, data?.fromState, data?.fromCity, data?.toCountry, data?.toState, data?.toCity, data?.poDateTime, data?.productName, data?.productQuantity, data?.unitProductCost, data?.expDeliveryDateTime);
+        let result = await networkAccess?.contract?.submitTransaction("OrderContract:createPurchaseOrder", data?.poNumber, data?.sellerID, data?.fromCountry, data?.fromState, data?.fromCity, data?.toCountry, data?.toState, data?.toCity, data?.poDateTime, data?.productName, data?.productQuantity, data?.unitProductCost, data?.expDeliveryDateTime);
         await connectToMongoDB(networkAccess?.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await PurchaseOrderModel.findOne({poNumber:data?.poNumber});
@@ -53,8 +54,8 @@ const CreatePurchaseOrder = async(req, res) =>{
         }
         
         if(result) {
-            const responsePayload = generateResponsePayload(result.toString(), null, null);
-            await networkAccess?.gateway.disconnect();
+            const responsePayload = generateResponsePayload(result?.toString(), null, null);
+            await networkAccess?.gateway?.disconnect();
             return res.send(responsePayload);
         }
 
@@ -76,9 +77,9 @@ const InsertPackageDetail = async(req, res) =>{
             return res.send(response_payload);
         }
         var barCodePath=null;
-        let assetDetail = await networkAccess?.contract.evaluateTransaction("ProductContract:GetProductById", data?.assetId);
+        let assetDetail = await networkAccess?.contract?.evaluateTransaction("ProductContract:GetProductById", data?.assetId);
         
-        barcode.generateBarcode(assetDetail, function (barcodeImageBuffer) {
+        generateBarcode(assetDetail, function (barcodeImageBuffer) {
             fs.writeFile(`./barcode_images/${data?.packageId}.png`, barcodeImageBuffer, function (err) {
               if (err) {
                 console.error(err);
@@ -89,11 +90,10 @@ const InsertPackageDetail = async(req, res) =>{
             });
           });
 
-        let result = await contract.submitTransaction('OrderContract:InsertPackagingDetails', data?.packageId, data?.assetId,  barCodePath);
+        let result = await contract?.submitTransaction('OrderContract:InsertPackagingDetails', data?.packageId, data?.assetId,  barCodePath);
         await connectToMongoDB(networkAccess?.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await PackageDetailModel.findOne({packageId:data?.packageId});
-        console.log(obj);
         if (obj.toString()) {
 
             obj.orgMSP= orgMSP;
@@ -116,8 +116,8 @@ const InsertPackageDetail = async(req, res) =>{
         }
         
         if(result) {
-            const responsePayload = generateResponsePayload(result.toString(), null, null);
-            await networkAccess?.gateway.disconnect();
+            const responsePayload = generateResponsePayload(result?.toString(), null, null);
+            await networkAccess?.gateway?.disconnect();
             return res.send(responsePayload);
         }
 
@@ -138,7 +138,7 @@ const CreateBatch = async(req, res) =>{
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
-        let result = await networkAccess?.contract.submitTransaction('OrderContract:CreateBatch', data?.batchId, data?.assetId, data?.packageInBatch, data?.totalQuantity, data?.carrierInfo, data?.poNumber, data?.transportMode, data?.startLocation, data?.endLocation);
+        let result = await networkAccess?.contract?.submitTransaction('OrderContract:CreateBatch', data?.batchId, data?.assetId, data?.packageInBatch, data?.totalQuantity, data?.carrierInfo, data?.poNumber, data?.transportMode, data?.startLocation, data?.endLocation);
         await connectToMongoDB(networkAccess?.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await BatchModel.findOne({packageId:data?.packageId});
@@ -162,8 +162,8 @@ const CreateBatch = async(req, res) =>{
         }
         
         if(result) {
-            const responsePayload = generateResponsePayload(result.toString(), null, null);
-            await networkAccess?.gateway.disconnect();
+            const responsePayload = generateResponsePayload(result?.toString(), null, null);
+            await networkAccess?.gateway?.disconnect();
             return res.send(responsePayload);
         }
 
@@ -184,7 +184,7 @@ const OrderShipment = async(req, res) =>{
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
-        let result = await networkAccess?.contract.submitTransaction('OrderContract:OrderShipment', data?.purchaseOrderId, data?.senderId, data.batchIds, data.packageUnitPrice, data.shipStartLocation, data.shipEndLocation, data.estDeliveryDateTime, data.gpsCoordinates, data.notes, data.status, data.weighbridgeSlipImage, data.weighbridgeSlipNumber, data.weighbridgeDate, data.tbwImage);
+        let result = await networkAccess?.contract?.submitTransaction('OrderContract:OrderShipment', data?.purchaseOrderId, data?.senderId, data.batchIds, data.packageUnitPrice, data.shipStartLocation, data.shipEndLocation, data.estDeliveryDateTime, data.gpsCoordinates, data.notes, data.status, data.weighbridgeSlipImage, data.weighbridgeSlipNumber, data.weighbridgeDate, data.tbwImage);
         await connectToMongoDB(networkAccess?.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await OrderShipmentModel.findOne({purchaseOrderId:data?.purchaseOrderId});
@@ -210,8 +210,8 @@ const OrderShipment = async(req, res) =>{
         }
         
         if(result) {
-            const responsePayload = generateResponsePayload(result.toString(), null, null);
-            await networkAccess?.gateway.disconnect();
+            const responsePayload = generateResponsePayload(result?.toString(), null, null);
+            await networkAccess?.gateway?.disconnect();
             return res.send(responsePayload);
         }
 
@@ -254,7 +254,7 @@ const ConfirmDeliveredOrder = async(req, res) =>{
         const {data} = req?.body;
         
         const obj = await BatchModel.find({batchId: data?.batchId});
-        if(obj.toString()){
+        if(obj?.toString()){
             return res.status(500).json({
                 status: false,
                 message: "Batch "+ JSON.stringify(obj)+ "is Delivered."
@@ -273,11 +273,42 @@ const ConfirmDeliveredOrder = async(req, res) =>{
     }
 }
 
+const getKeyHistory = async(req, res) =>{
+    try{
+        const {userName, orgMSP, channelName, chaincodeName, data} = req?.body;
+        const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        if(!networkAccess?.status){
+            const response_payload = generateResponsePayload(null, error?.name, error?.message);
+            return res.send(response_payload);
+        }
+        console.log("result ==");
+
+        let key = data?.key || '';
+        key = data?.typeSelector === "rawMaterial" ? `RM_${key}` : `prod_${key}`;
+
+        const result = await contract?.evaluateTransaction('OrderContract:getKeyHistory', key);
+
+        if(result) {
+            const responsePayload = generateResponsePayload(result?.toString(), null, null);
+            await networkAccess?.gateway?.disconnect();
+            return res.send(responsePayload);
+        }
+
+        const responsePayload = generateResponsePayload(null, "Oops!", "Something went wrong. Please try again.");
+        return res.send(responsePayload);
+    } catch (error){
+        const response_payload = generateResponsePayload(null, error?.name, error?.message);
+        return res.send(response_payload);
+    }
+}
+
+
 export default{
     CreatePurchaseOrder,
     InsertPackageDetail,
     CreateBatch,
     OrderShipment,
     PurchaseOrderInspection,
-    ConfirmDeliveredOrder
+    ConfirmDeliveredOrder,
+    getKeyHistory
 }

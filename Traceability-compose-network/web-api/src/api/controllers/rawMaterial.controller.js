@@ -14,10 +14,10 @@ const GetAllRawMaterial = async(req, res) =>{
             return res.send(responsePayload);
         }
 
-        let result = await networkAccess?.contract.evaluateTransaction("RawMaterialTransfer:GetAllRawMaterials");
+        let result = await networkAccess?.contract?.evaluateTransaction("RawMaterialTransfer:GetAllRawMaterials");
         if(result) {
-            const responsePayload = generateResponsePayload(result.toString(), null, null);
-            await networkAccess?.gateway.disconnect();
+            const responsePayload = generateResponsePayload(result?.toString(), null, null);
+            await networkAccess?.gateway?.disconnect();
             return res.send(responsePayload);
         }
 
@@ -38,7 +38,7 @@ const CreateRawMaterial = async(req, res) =>{
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
-        let result = await networkAccess?.contract.submitTransaction("RawMaterialTransfer:CreateRawMaterial", data?.rawID, data?.rawMaterialName, data?.rawMaterialCategory, data?.rawMaterialLocation, data?.rawMaterialQuantity, data?.rawMaterialPrice, data?.rawMaterialDescription, data?.rawMaterialProductionDate, data?.rawMaterialExpiryDate, data?.rawMaterialSpecifications, data?.rawMaterialCultivationMethod, data?.rawMaterialFertilizers, data?.rawMaterialImage);
+        let result = await networkAccess?.contract?.submitTransaction("RawMaterialTransfer:CreateRawMaterial", data?.rawID, data?.rawMaterialName, data?.rawMaterialCategory, data?.rawMaterialLocation, data?.rawMaterialQuantity, data?.rawMaterialPrice, data?.rawMaterialDescription, data?.rawMaterialProductionDate, data?.rawMaterialExpiryDate, data?.rawMaterialSpecifications, data?.rawMaterialCultivationMethod, data?.rawMaterialFertilizers, data?.rawMaterialImage);
         await connectToMongoDB(networkAccess?.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await RawModel.findOne({rawID:data?.rawID});
@@ -62,8 +62,8 @@ const CreateRawMaterial = async(req, res) =>{
         }
 
         if(result) {
-            const responsePayload = generateResponsePayload(result.toString(), null, null);
-            await networkAccess?.gateway.disconnect();
+            const responsePayload = generateResponsePayload(result?.toString(), null, null);
+            await networkAccess?.gateway?.disconnect();
             return res.send(responsePayload);
         }
 
@@ -84,7 +84,7 @@ const UpdateRawMaterial = async(req, res) =>{
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
-        let result = await networkAccess?.contract.submitTransaction('RawMaterialTransfer:UpdateRawMaterial', data?.rawID, data?.rawMaterialName, data?.rawMaterialCategory, data?.rawMaterialLocation, data?.rawMaterialQuantity, data?.rawMaterialPrice, data?.rawMaterialDescription, data?.rawMaterialProductionDate, data?.rawMaterialExpiryDate, data?.rawMaterialSpecifications, data?.rawMaterialCultivationMethod, data?.rawMaterialFertilizers,  data?.rawMaterialImage);
+        let result = await networkAccess?.contract?.submitTransaction('RawMaterialTransfer:UpdateRawMaterial', data?.rawID, data?.rawMaterialName, data?.rawMaterialCategory, data?.rawMaterialLocation, data?.rawMaterialQuantity, data?.rawMaterialPrice, data?.rawMaterialDescription, data?.rawMaterialProductionDate, data?.rawMaterialExpiryDate, data?.rawMaterialSpecifications, data?.rawMaterialCultivationMethod, data?.rawMaterialFertilizers,  data?.rawMaterialImage);
         await connectToMongoDB(networkAccess?.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await RawModel.findOne({rawID:data?.rawID});
@@ -106,8 +106,8 @@ const UpdateRawMaterial = async(req, res) =>{
         }
 
         if(result) {
-            const responsePayload = generateResponsePayload(result.toString(), null, null);
-            await networkAccess?.gateway.disconnect();
+            const responsePayload = generateResponsePayload(result?.toString(), null, null);
+            await networkAccess?.gateway?.disconnect();
             return res.send(responsePayload);
         }
 
@@ -128,10 +128,10 @@ const GetRawMaterialById = async(req, res) => {
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
-        let result = await networkAccess?.contract.evaluateTransaction("RawMaterialTransfer:GetRawMaterialById", data?.rawID);
+        let result = await networkAccess?.contract?.evaluateTransaction("RawMaterialTransfer:GetRawMaterialById", data?.rawID);
         if(result) {
-            const responsePayload = generateResponsePayload(result.toString(), null, null);
-            await networkAccess?.gateway.disconnect();
+            const responsePayload = generateResponsePayload(result?.toString(), null, null);
+            await networkAccess?.gateway?.disconnect();
             return res.send(responsePayload);
         }
 
@@ -152,10 +152,10 @@ const DeleteRawMaterial = async(req, res) =>{
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
-        let result = await networkAccess?.contract.submitTransaction("RawMaterialTransfer:DeleteRawMaterial", data?.rawID);
+        let result = await networkAccess?.contract?.submitTransaction("RawMaterialTransfer:DeleteRawMaterial", data?.rawID);
         if(result) {
-            const responsePayload = generateResponsePayload(result.toString(), null, null);
-            await networkAccess?.gateway.disconnect();
+            const responsePayload = generateResponsePayload(result?.toString(), null, null);
+            await networkAccess?.gateway?.disconnect();
             return res.send(responsePayload);
         }
 

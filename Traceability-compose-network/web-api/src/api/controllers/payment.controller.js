@@ -19,17 +19,17 @@ const makePayment = async(req, res) =>{
         
         paymentUtils.payStatus(data?.paymentAmount).then((status) => {
             payStatus="Paid";
-            payID=JSON.parse(status).id;
+            payID=JSON.parse(status)?.id;
           })
           .catch((error) => {
             console.error(error);
           });
           
         await new Promise(resolve => setTimeout(resolve, 5000));
-        let result = await networkAccess?.contract.submitTransaction("Payment:makePayment", data?.poNumber, payID, data?.vendorName,data?.invoiceNumber,data?.invoiceDate,data?.invoiceAmount,data?.paymentAmount,data?.paymentDate,data?.paymentMethod ,data?.description,payStatus,data?.notes);
+        let result = await networkAccess?.contract?.submitTransaction("Payment:makePayment", data?.poNumber, payID, data?.vendorName,data?.invoiceNumber,data?.invoiceDate,data?.invoiceAmount,data?.paymentAmount,data?.paymentDate,data?.paymentMethod ,data?.description,payStatus,data?.notes);
         if(result) {
-            const responsePayload = generateResponsePayload(result.toString(), null, null);
-            await networkAccess?.gateway.disconnect();
+            const responsePayload = generateResponsePayload(result?.toString(), null, null);
+            await networkAccess?.gateway?.disconnect();
             return res.send(responsePayload);
         }
 
@@ -51,10 +51,10 @@ const GetTransactionById = async(req, res) => {
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
-        let result = await networkAccess?.contract.evaluateTransaction("Payment:GetTransactionById", data?.paymentRefrenceNumber);
+        let result = await networkAccess?.contract?.evaluateTransaction("Payment:GetTransactionById", data?.paymentRefrenceNumber);
         if(result) {
-            const responsePayload = generateResponsePayload(result.toString(), null, null);
-            await networkAccess?.gateway.disconnect();
+            const responsePayload = generateResponsePayload(result?.toString(), null, null);
+            await networkAccess?.gateway?.disconnect();
             return res.send(responsePayload);
         }
 
@@ -75,10 +75,10 @@ const GetAllTransactions = async(req, res) =>{
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
-        let result = await networkAccess?.contract.evaluateTransaction("Payment:GetAllTransactions");
+        let result = await networkAccess?.contract?.evaluateTransaction("Payment:GetAllTransactions");
         if(result) {
-            const responsePayload = generateResponsePayload(result.toString(), null, null);
-            await networkAccess?.gateway.disconnect();
+            const responsePayload = generateResponsePayload(result?.toString(), null, null);
+            await networkAccess?.gateway?.disconnect();
             return res.send(responsePayload);
         }
 
