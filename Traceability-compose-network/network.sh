@@ -339,7 +339,8 @@ function networkDown() {
   docker stop org1-mongodb org2-mongodb
   docker rm org1-mongodb org2-mongodb
 
-  rm -rf offchaindb/nextblock.txt offchaindb/mychannel_basic.log web-api/src/org1-wallet web-api/src/org2-wallet
+  rm -rf web-api/src/api/offchaindb/nextblock.txt web-api/src/api/offchaindb/mychannel_basic.log web-api/src/org1-wallet web-api/src/org2-wallet
+  sudo rm -rf compose/org1-data compose/org2-data
 
   # Don't remove the generated artifacts -- note, the ledgers are always removed
   if [ "$MODE" != "restart" ]; then

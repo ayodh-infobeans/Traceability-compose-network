@@ -1,44 +1,77 @@
 import pkg from 'fabric-network';
-const { Gateway, Wallets } = pkg;
+import mongoose from 'mongoose';
+
 import constants from '../../config.constants.js';
 import appUtils from '../../config/AppUtils.js';
 import buildCCP from '../../config/buildCCP.js';
-import mongoose from 'mongoose';
+import commonUtils from './common.util.js';
 
-const connectToGateway = async (org, userName) =>{
-    let ccp = buildCCP.getCCP(org);
-    let walletPath = constants.GetWalletPath(org);
-    let wallet = await appUtils.buildWallet(Wallets, walletPath);
-    let userIdentity = await wallet.get(userName);
-    console.log(userIdentity);
-    let gateway = new Gateway();
-    console.log("================================= Gateway "+ ccp.toString());
-    await gateway.connect(ccp, {wallet, identity: userIdentity, discovery: {enabled: true, asLocalhost: true}});
-    console.log("============================= gateway close", gateway);
-    
-    return gateway;
+const { Gateway, Wallets } = pkg;
+const { getOrgNameFromMSP } = commonUtils;
+
+const connectToGateway = async (org = null, userName = null) =>{
+    try{
+      if(org){
+        const ccp = buildCCP.getCCP(org);
+        const walletPath = constants.GetWalletPath(org);
+        if(walletPath){
+          const wallet = await appUtils.buildWallet(Wallets, walletPath);
+          if(wallet){
+            const userIdentity = await wallet.get(userName);
+            const gateway = new Gateway();
+            if(ccp && userIdentity){
+              await gateway.connect(ccp, {wallet, identity: userIdentity, discovery: {enabled: true, asLocalhost: true}});
+              return { status: true, gateway };
+            }
+          }
+        }
+      }
+      return {status: false, error: "Something went wrong. Please try again."}
+    } catch(error){
+      return { status: false, error: error };
+    }
 }
 
-const connectToMongoDB = async (org) =>{
+const connectToMongoDB = async (org = null) =>{
     try {
-      let port = buildCCP.getMongoDetails(org).mongoPort;
-      let username = buildCCP.getMongoDetails(org).username;
-      let password = buildCCP.getMongoDetails(org).password;
-      console.log(username);
-      console.log(password);
-      const connectionString = `mongodb://${username}:${password}@localhost:${port}/?authMechanism=DEFAULT`;
-      console.log(connectionString);
-      await mongoose.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true });
-      console.log('Connected to MongoDB abcd');
-      return mongoose;
-      // Start your application or perform further operations
+      if(org){
+        const port = buildCCP.getMongoDetails(org).mongoPort;
+        const username = buildCCP.getMongoDetails(org).username;
+        const password = buildCCP.getMongoDetails(org).password;
+        const connectionString = `mongodb://${username}:${password}@localhost:${port}/?authMechanism=DEFAULT`;
+        if(connectionString){
+          await mongoose.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true });
+          return { status: true, mongoose };
+        }
+      }
+      return {status: false, error: "Something went wrong. Please try again."};
     } catch (error) {
-      console.error('Error connecting to MongoDB:', error);
-      // Handle the error appropriately
+      return { status: false, error: error };
     }
+}
+
+const connectToFabricNetwork = async (userName = null, orgMSP = null, channelName = null, chaincodeName = null) =>{
+  try {
+    const org = getOrgNameFromMSP(orgMSP);
+    if(org) {
+      const gatewayAccess = await connectToGateway(org, userName);
+      if(gatewayAccess?.status) {
+        const network = await gatewayAccess?.gateway.getNetwork(channelName);
+        if(network) {
+          const contract = network.getContract(chaincodeName);
+          return { status: true, gateway: gatewayAccess.gateway, contract, org};
+        }
+      }
+    }
+
+    return {status: false, error: "Something went wrong. Please try again."};
+  } catch(error){
+    return { status: false, error: error };
+  }
 }
 
 export default{
     connectToGateway,
-    connectToMongoDB
+    connectToMongoDB,
+    connectToFabricNetwork
 }

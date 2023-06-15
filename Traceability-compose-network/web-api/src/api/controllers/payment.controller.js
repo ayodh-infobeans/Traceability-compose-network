@@ -2,20 +2,24 @@ import Connections from '../utils/connections.util.js';
 import commonUtils from '../utils/common.util.js';
 import paymentUtils from '../utils/payment.util.js';
 
-
+const { connectToFabricNetwork, connectToMongoDB } = Connections;
+const { generateResponsePayload } = commonUtils;
 
 const makePayment = async(req, res) =>{
     try{
         
         let payStatus="Due";
         let payID;
-        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
-        let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await Connections.connectToGateway(org, userName);
-        const network = await gateway.getNetwork(channelName);
-        const contract = network.getContract(chaincodeName);
+        const {userName, orgMSP, channelName, chaincodeName, data} = req?.body;
+        const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        let options = setOrgChannel(networkAccess?.org, channelName);
 
-        paymentUtils.payStatus(data.paymentAmount).then((status) => {
+        if(!networkAccess?.status){
+            const response_payload = generateResponsePayload(null, error?.name, error?.message);
+            return res.send(response_payload);
+        }
+        
+        paymentUtils.payStatus(data?.paymentAmount).then((status) => {
             payStatus="Paid";
             payID=JSON.parse(status).id;
           })
@@ -24,77 +28,70 @@ const makePayment = async(req, res) =>{
           });
           
         await new Promise(resolve => setTimeout(resolve, 5000));
-        let result = await contract.submitTransaction("Payment:makePayment", data.poNumber, payID, data.vendorName,data.invoiceNumber,data.invoiceDate,data.invoiceAmount,data.paymentAmount,data.paymentDate,data.paymentMethod ,data.description,payStatus,data.notes);
-        await gateway.disconnect();
-
-        const response_payload = {
-            result: result.toString(),
-            error: null,
-            errorData: null
+        let result = await networkAccess?.contract.submitTransaction("Payment:makePayment", data?.poNumber, payID, data?.vendorName,data?.invoiceNumber,data?.invoiceDate,data?.invoiceAmount,data?.paymentAmount,data?.paymentDate,data?.paymentMethod ,data?.description,payStatus,data?.notes);
+        await runOffchainScript("node",options);
+        await stopOffchainScript();
+        if(result) {
+            const responsePayload = generateResponsePayload(result.toString(), null, null);
+            await networkAccess?.gateway.disconnect();
+            return res.send(responsePayload);
         }
-        res.send(response_payload);
+
+        const responsePayload = generateResponsePayload(null, "Oops!", "Something went wrong. Please try again.");
+        return res.send(responsePayload);
     }
 
     catch (error){
-        const response_payload = {
-            result: null,
-            error: error.name,
-            errorData: error.message
-        }
-        res.send(response_payload)
+        const response_payload = generateResponsePayload(null, error?.name, error?.message);
+        return res.send(response_payload);
     }
 }
-
 
 const GetTransactionById = async(req, res) => {
     try{
-        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
-        let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await Connections.connectToGateway(org, userName);
-        const network = await gateway.getNetwork(channelName);
-        const contract = network.getContract(chaincodeName);
-        let result = await contract.evaluateTransaction("Payment:GetTransactionById", data.paymentRefrenceNumber);
-        const response_payload = {
-            result: result.toString(),
-            error: null,
-            errorData: null
+        const {userName, orgMSP,channelName, chaincodeName, data} = req?.body;
+        const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        if(!networkAccess?.status){
+            const response_payload = generateResponsePayload(null, error?.name, error?.message);
+            return res.send(response_payload);
         }
-        await gateway.disconnect();
-        res.send(response_payload);
+        let result = await networkAccess?.contract.evaluateTransaction("Payment:GetTransactionById", data?.paymentRefrenceNumber);
+        if(result) {
+            const responsePayload = generateResponsePayload(result.toString(), null, null);
+            await networkAccess?.gateway.disconnect();
+            return res.send(responsePayload);
+        }
+
+        const responsePayload = generateResponsePayload(null, "Oops!", "Something went wrong. Please try again.");
+        return res.send(responsePayload);
     }
     catch (error){
-        const response_payload = {
-            result: null,
-            error: error.name,
-            errorData: error.message
-        }
-        res.send(response_payload)
+        const response_payload = generateResponsePayload(null, error?.name, error?.message);
+        return res.send(response_payload);
     }
 }
 
-const GetAllTransactions = async(req, res, next) =>{
+const GetAllTransactions = async(req, res) =>{
     try{
-        const {userName, orgMSP, userType,channelName, chaincodeName} = req.body;
-        let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await Connections.connectToGateway(org, userName);
-        const network = await gateway.getNetwork(channelName);
-        const contract = network.getContract(chaincodeName);
-        let result = await contract.evaluateTransaction("Payment:GetAllTransactions");
-        const response_payload = {
-            result: result.toString(),
-            error: null,
-            errorData: null
+        const {userName, orgMSP,channelName, chaincodeName} = req?.body;
+        const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        if(!networkAccess?.status){
+            const response_payload = generateResponsePayload(null, error?.name, error?.message);
+            return res.send(response_payload);
         }
-        await gateway.disconnect();
-        res.send(response_payload);
+        let result = await networkAccess?.contract.evaluateTransaction("Payment:GetAllTransactions");
+        if(result) {
+            const responsePayload = generateResponsePayload(result.toString(), null, null);
+            await networkAccess?.gateway.disconnect();
+            return res.send(responsePayload);
+        }
+
+        const responsePayload = generateResponsePayload(null, "Oops!", "Something went wrong. Please try again.");
+        return res.send(responsePayload);
     }
     catch (error){
-        const response_payload = {
-            result: null,
-            error: error.name,
-            errorData: error.message
-        }
-        res.send(response_payload)
+        const response_payload = generateResponsePayload(null, error?.name, error?.message);
+        return res.send(response_payload);
     }
 
 }

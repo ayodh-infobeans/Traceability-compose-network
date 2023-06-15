@@ -5,8 +5,6 @@ let childProcess;
 
 const workingDirectory = `./src/api/offchaindb`;
 const scriptPath = path.join(workingDirectory, 'blockEventListener.js');
-// Change the working directory
-// process.chdir(workingDirectory);
 
 
 const setOrgChannel = (org, channelName) =>{
@@ -15,11 +13,12 @@ const setOrgChannel = (org, channelName) =>{
     let options = [scriptPath, ...additionalArgs];
 
     return options;
+    
 
 }
 
 
-const runTerminalCommand = (command, options) =>{
+const runOffchainScript = (command, options) =>{
   console.log("Path checking",options);
   childProcess = spawn(command, options);
 
@@ -36,24 +35,20 @@ const runTerminalCommand = (command, options) =>{
   });
 }
 
-const stopScript = () =>{
+const stopOffchainScript = () =>{
   if (childProcess) {
     console.log('Stopping script...');
     childProcess.kill('SIGINT');
-    // process.exit(0);
+    
   } else {
     console.log('No script is currently running.');
   }
 }
 
-// Call the function with the terminal command
-
-// runTerminalCommand('node blockEventListener.js');
-
 
 export default{
-    stopScript,
-    runTerminalCommand,
+    stopOffchainScript,
+    runOffchainScript,
     setOrgChannel
 }
 
@@ -64,7 +59,7 @@ export default{
 // // Set the desired working directory
 
 // // Call the function with the terminal command and options
-// runTerminalCommand(command, options);
+// runOffchainScript(command, options);
 
 // // Example: Stop the script by sending a command
-// stopScript();
+// stopOffchainScript();

@@ -1,4 +1,5 @@
 
+
 'use strict';
 import { fileURLToPath } from 'url';
 import pkg from 'fabric-network';
@@ -8,29 +9,26 @@ import path from 'path';
 import processBlockEvent from './blockProcessing.js';
 
 
-//walletPath
-//connectionPath
-//channelName
-
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-
 const configPathi = path.resolve(__dirname, 'config.json');
 const configData = fs.readFileSync(configPathi, 'utf-8');
 const config = JSON.parse(configData);
    
-
-const peer_name = config.peer_name;
 const channelid = config.channelid;
 const use_mongodb = config.use_mongodb;
-const createHistoryLog = config.create_history_log;
-const mongodb_address = config.mongodb_address;
-
 const configPath = path.resolve(__dirname, 'nextblock.txt');
-console.log(config.use_mongodb);
-
+const segment =config.segment;
+// const segment = {
+//     org1: {
+//       walletSegments: ['..', 'web-api', 'src', 'org1-wallet'],
+//       pathSegments: ['..', '..', '..', '..', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json']
+//     },
+//     org2: {
+//       walletSegments: ['..', 'web-api', 'src', 'org2-wallet'],
+//       pathSegments: ['..', '..', '..', '..', 'organizations', 'peerOrganizations', 'org2.example.com', 'connection-org2.json']
+//     }
+//   };
 
 class BlockMap {
     constructor() {
@@ -55,25 +53,21 @@ async function main() {
     try {
          // initialize the next block to be 0
         let nextBlock = 0;
-        // const eventName = process.argv[2];
-        // console.log("arg checking = 1",eventName);
-        // const eventName1 = process.argv[3];
-        // console.log("arg checking = 2",eventName1);
+        const { walletSegments, pathSegments } = segment[process.argv[2]];
 
-        if (process.argv[2]==='org1'){
-            var walletSegments = ['..', 'web-api', 'src', 'org1-wallet'];
-            var pathSegments = ['..','..','..','..', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json'];
-           console.log("IN Org1 hhhhh");
-        }
+        // if (process.argv[2]==='org1'){
+        //     var walletSegments = ['..', 'web-api', 'src', 'org1-wallet'];
+        //     var pathSegments = ['..','..','..','..', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json'];
+           
+        // }
 
-        if (process.argv[2]==='org2'){
-            var walletSegments = ['..', 'web-api', 'src', 'org2-wallet'];
-            var pathSegments = ['..','..','..','..', 'organizations', 'peerOrganizations', 'org2.example.com', 'connection-org2.json'];
-            console.log("IN Org2 hhhhh");
-        }
+        // if (process.argv[2]==='org2'){
+        //     var walletSegments = ['..', 'web-api', 'src', 'org2-wallet'];
+        //     var pathSegments = ['..','..','..','..', 'organizations', 'peerOrganizations', 'org2.example.com', 'connection-org2.json'];
+            
+        // }
 
-
-
+    
         // check to see if there is a next block already defined
         if (fs.existsSync(configPath)) {
             // read file containing the next block to read
@@ -83,6 +77,7 @@ async function main() {
             // store the next block as 0
             fs.writeFileSync(configPath, parseInt(nextBlock, 10).toString())
         }
+        
         
 
         // Create a new file system based wallet for managing identities.

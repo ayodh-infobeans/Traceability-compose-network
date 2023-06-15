@@ -4,9 +4,46 @@
     "use_mongodb":true,
     "create_history_log":true,
     "mongodb_address": {
-        "org1Mongodb":"mongodb://org1admin:org1adminpassword@localhost:27018/?authMechanism=DEFAULT",
-        "org2Mongodb":"mongodb://org2admin:org2adminpassword@localhost:27019/?authMechanism=DEFAULT"
+      "org1Mongodb":"mongodb://org1admin:org1adminpassword@localhost:27018/?authMechanism=DEFAULT",
+      "org2Mongodb":"mongodb://org2admin:org2adminpassword@localhost:27019/?authMechanism=DEFAULT"
+  },
+  "keyToDbname" : {
+    "RM": "RawModel",
+    "prod": "ProductModel",
+    "poNumber": "PurchaseOrderModel",
+    "packageId":"PackageDetailModel",
+    "batchId": "BatchModel",
+    "purchaseOrderId": "OrderShipmentModel",
+    "PAYID": "PaymentModel"
+  },
+    
+    "orgMSPToMongoDB" : {
+        "Org1MSP": "mongodb://org1admin:org1adminpassword@localhost:27018/?authMechanism=DEFAULT",
+        "Org2MSP": "mongodb://org2admin:org2adminpassword@localhost:27019/?authMechanism=DEFAULT"
+    },
+    "segment": {
+        "org1": {
+          "walletSegments": ["..", "web-api", "src", "org1-wallet"],
+          "pathSegments": ["..", "..", "..", "..", "organizations", "peerOrganizations", "org1.example.com", "connection-org1.json"]
+        },
+        "org2": {
+          "walletSegments": ["..", "web-api", "src", "org2-wallet"],
+          "pathSegments": ["..", "..", "..", "..", "organizations", "peerOrganizations", "org2.example.com", "connection-org2.json"]
+        }
+    },
+    "modelToID":{
+            
+        "RawModel": "rawID",
+        "ProductModel": "productId",
+        "PurchaseOrderModel": "poNumber",
+        "PackageDetailModel": "packageId",
+        "BatchModel": "batchId",
+        "OrderShipmentModel": "purchaseOrderId",
+        "HistoryModel": "key",
+        "PaymentModel": "paymentRefrenceNumber"
+
     }
+    
 
 }
 

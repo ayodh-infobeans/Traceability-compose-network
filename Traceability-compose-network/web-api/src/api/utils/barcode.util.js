@@ -1,7 +1,7 @@
 import bwipjs from 'bwip-js';
 
 
-const generateBarcode = async(assetDetails, callback) =>{
+const generateBarcode = async(assetDetails = null, callback = null) =>{
   // Set the barcode options
   const options = {
     bcid: 'code128', // Barcode type

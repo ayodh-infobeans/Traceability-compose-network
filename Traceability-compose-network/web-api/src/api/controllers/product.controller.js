@@ -1,54 +1,54 @@
 import Connections from '../utils/connections.util.js';
 import commonUtils from '../utils/common.util.js';
 import ProductModel from '../../models/productmodel.js';
-import path from 'path';
 import offchainUtil from '../utils/offchain.util.js';
 
+const { connectToFabricNetwork, connectToMongoDB} = Connections;
+const { generateResponsePayload } = commonUtils;
+const {setOrgChannel,runOffchainScript,stopOffchainScript } = offchainUtil;
 
 const GetAllProducts = async(req, res) =>{
     try{
-        const {userName, orgMSP, userType,channelName, chaincodeName} = req.body;
-        let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await Connections.connectToGateway(org, userName);
-        const network = await gateway.getNetwork(channelName);
-        const contract = network.getContract(chaincodeName);
-        let result = await contract.evaluateTransaction("ProductContract:GetAllProducts");
-        const response_payload = {
-            result: result.toString(),
-            error: null,
-            errorData: null
+        const {userName, orgMSP ,channelName, chaincodeName} = req?.body;
+        const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        if(!networkAccess?.status){
+            const response_payload = generateResponsePayload(null, error?.name, error?.message);
+            return res.send(response_payload);
         }
-        await gateway.disconnect();
-        res.send(response_payload);
+        let result = await networkAccess?.contract.evaluateTransaction("ProductContract:GetAllProducts");
+        if(result) {
+            const responsePayload = generateResponsePayload(result.toString(), null, null);
+            await networkAccess?.gateway.disconnect();
+            return res.send(responsePayload);
+        }
+
+        const responsePayload = generateResponsePayload(null, "Oops!", "Something went wrong. Please try again.");
+        return res.send(responsePayload);
         
     }
     catch (error){
-        const response_payload = {
-            result: null,
-            error: error.name,
-            errorData: error.message
-        }
+        const response_payload = generateResponsePayload(null, error?.name, error?.message);
         res.send(response_payload)
     }
 }
 
 const CreateProduct = async(req, res) =>{
     try{
-        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
-        let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await Connections.connectToGateway(org, userName);
-        const network = await gateway.getNetwork(channelName);
-        const contract = network.getContract(chaincodeName);
+        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req?.body;
+        const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        let options = setOrgChannel(networkAccess?.org, channelName);
+        if(!networkAccess?.status){
+            const response_payload = generateResponsePayload(null, error?.name, error?.message);
+            return res.send(response_payload);
+        }
+        let result = await networkAccess?.contract.submitTransaction('ProductContract:CreateProduct', data?.productId, data?.rawMaterialIds, data?.productName, data?.productDescription, data?.productCategory, data?.productManufacturingLocation, data?.productQuantity, data?.productManufacturingPrice, data?.productManufacturingDate, data?.productExpiryDate, data?.productIngredients, data?.productSKU, data?.productGTIN,  data?.productImage);
+        
+        
+        await runOffchainScript("node",options);
 
-        
-        let result = await contract.submitTransaction('ProductContract:CreateProduct', data.productId, data.rawMaterialIds, data.productName, data.productDescription, data.productCategory, data.productManufacturingLocation, data.productQuantity, data.productManufacturingPrice, data.productManufacturingDate, data.productExpiryDate, data.productIngredients, data.productSKU, data.productGTIN,  data.productImage);
-        
-        let options = offchainUtil.setOrgChannel(org, channelName);
-        offchainUtil.runTerminalCommand(command,options);
-        
-        await Connections.connectToMongoDB(org);
+        await Connections.connectToMongoDB(networkAccess?.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
-        const obj = await ProductModel.findOne({productId:data.productId});
+        const obj = await ProductModel.findOne({productId:data?.productId});
         console.log(obj);
         if (obj.toString()) {
 
@@ -58,8 +58,8 @@ const CreateProduct = async(req, res) =>{
             obj.channelName= channelName;
             obj.chaincodeName= chaincodeName;
 
-            obj.productNotes=data.productNotes;
-            obj.productStatus=data.productStatus;
+            obj.productNotes=data?.productNotes;
+            obj.productStatus=data?.productStatus;
             // Save the modified document back to the database
             await obj.save();
             console.log('Document updated successfully.');
@@ -67,37 +67,37 @@ const CreateProduct = async(req, res) =>{
           } else {
             console.log('Document not found.');
         }
-        offchainUtil.stopScript();
-        const response_payload = {
-            result: result.toString(),
-            error: null,
-            errorData: null
+        
+        await stopOffchainScript();
+        if(result) {
+            const responsePayload = generateResponsePayload(result.toString(), null, null);
+            await networkAccess?.gateway.disconnect();
+            return res.send(responsePayload);
         }
-        await gateway.disconnect();
-        res.send(response_payload);
+
+        const responsePayload = generateResponsePayload(null, "Oops!", "Something went wrong. Please try again.");
+        return res.send(responsePayload);
     }
     catch (error){
-        const response_payload = {
-            result: null,
-            error: error.name,
-            errorData: error.message
-        }
-        res.send(response_payload)
+        const response_payload = generateResponsePayload(null, error?.name, error?.message);
+        return res.send(response_payload)
     }
 }
 
 const UpdateProduct = async(req, res) =>{
     try{
-        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
-        let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await Connections.connectToGateway(org, userName);
-        const network = await gateway.getNetwork(channelName);
-        const contract = network.getContract(chaincodeName);
-        let result = await contract.submitTransaction('ProductContract:UpdateProduct', data.productId,  data.rawMaterialIds, data.productName, data.productDescription, data.productCategory, data.productManufacturingLocation, data.productQuantity, data.productManufacturingPrice, data.productManufacturingDate, data.productExpiryDate, data.productIngredients, data.productSKU, data.productGTIN, data.productImage);
-        await Connections.connectToMongoDB(org);
+        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req?.body;
+        const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        let options = setOrgChannel(networkAccess?.org, channelName);
+        if(!networkAccess?.status){
+            const response_payload = generateResponsePayload(null, error?.name, error?.message);
+            return res.send(response_payload);
+        }
+        let result = await networkAccess?.contract.submitTransaction('ProductContract:UpdateProduct', data?.productId,  data?.rawMaterialIds, data?.productName, data?.productDescription, data?.productCategory, data?.productManufacturingLocation, data?.productQuantity, data?.productManufacturingPrice, data?.productManufacturingDate, data?.productExpiryDate, data?.productIngredients, data?.productSKU, data?.productGTIN, data?.productImage);
+        await runOffchainScript("node",options);
+        await connectToMongoDB(networkAccess?.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
-        const obj = await ProductModel.findOne({productId:data.productId});
-        console.log(obj);
+        const obj = await ProductModel.findOne({productId:data?.productId});
         if (obj.toString()) {
             
             obj.orgMSP= orgMSP;
@@ -106,8 +106,8 @@ const UpdateProduct = async(req, res) =>{
             obj.channelName= channelName;
             obj.chaincodeName= chaincodeName;
 
-            obj.productNotes=data.productNotes;
-            obj.productStatus=data.productStatus;
+            obj.productNotes=data?.productNotes;
+            obj.productStatus=data?.productStatus;
             // Save the modified document back to the database
             await obj.save();
             console.log('Document updated successfully.');
@@ -116,143 +116,136 @@ const UpdateProduct = async(req, res) =>{
             console.log('Document not found.');
         }
         
-        
-        const response_payload = {
-            result: result.toString(),
-            error: null,
-            errorData: null
+        await stopOffchainScript();
+        if(result) {
+            const responsePayload = generateResponsePayload(result.toString(), null, null);
+            await networkAccess?.gateway.disconnect();
+            return res.send(responsePayload);
         }
-        await gateway.disconnect();
-        res.send(response_payload);
+
+        const responsePayload = generateResponsePayload(null, "Oops!", "Something went wrong. Please try again.");
+        return res.send(responsePayload);
     }
     catch (error){
-        const response_payload = {
-            result: null,
-            error: error.name,
-            errorData: error.message
-        }
-        res.send(response_payload)
+        const response_payload = generateResponsePayload(null, error?.name, error?.message);
+        return res.send(response_payload);
     }
 }
 
 const GetProductById = async(req, res) => {
     try{
-        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
-        let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await Connections.connectToGateway(org, userName);
-        const network = await gateway.getNetwork(channelName);
-        const contract = network.getContract(chaincodeName);
-        let result = await contract.evaluateTransaction("ProductContract:GetProductById", data.productId);
-        const response_payload = {
-            result: result.toString(),
-            error: null,
-            errorData: null
+        const {userName, orgMSP ,channelName, chaincodeName, data} = req?.body;
+        const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        if(!networkAccess?.status){
+            const response_payload = generateResponsePayload(null, error?.name, error?.message);
+            return res.send(response_payload);
         }
-        await gateway.disconnect();
-        res.send(response_payload);
+        let result = await networkAccess?.contract.evaluateTransaction("ProductContract:GetProductById", data?.productId);
+        if(result) {
+            const responsePayload = generateResponsePayload(result.toString(), null, null);
+            await networkAccess?.gateway.disconnect();
+            return res.send(responsePayload);
+        }
+
+        const responsePayload = generateResponsePayload(null, "Oops!", "Something went wrong. Please try again.");
+        return res.send(responsePayload);
     }
     catch (error){
-        const response_payload = {
-            result: null,
-            error: error.name,
-            errorData: error.message
-        }
-        res.send(response_payload)
+        const response_payload = generateResponsePayload(null, error?.name, error?.message);
+        return res.send(response_payload);
     }
 }
 
 const DeleteProduct = async(req, res) =>{
     try{
-        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
-        let org = commonUtils.getOrgNameFromMSP(orgMSP);
-        let gateway = await Connections.connectToGateway(org, userName);
-        const network = await gateway.getNetwork(channelName);
-        const contract = network.getContract(chaincodeName);
-        let result = await contract.submitTransaction("ProductContract:DeleteProduct", data.productId);
-        const response_payload = {
-            result: result.toString(),
-            error: null,
-            errorData: null
+        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req?.body;
+        const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        let options = setOrgChannel(networkAccess?.org, channelName);
+        if(!networkAccess?.status){
+            const response_payload = generateResponsePayload(null, error?.name, error?.message);
+            return res.send(response_payload);
         }
-        await gateway.disconnect();
-        res.send(response_payload);
+        let result = await networkAccess?.contract.submitTransaction("ProductContract:DeleteProduct", data?.productId);
+        await runOffchainScript("node",options);
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        await stopOffchainScript();
+        if(result) {
+            const responsePayload = generateResponsePayload(result.toString(), null, null);
+            await networkAccess?.gateway.disconnect();
+            return res.send(responsePayload);
+        }
+        
+        const responsePayload = generateResponsePayload(null, "Oops!", "Something went wrong. Please try again.");
+        return res.send(responsePayload);
     }
     catch (error){
-        const response_payload = {
-            result: null,
-            error: error.name,
-            errorData: error.message
-        }
-        res.send(response_payload)
+        const response_payload = generateResponsePayload(null, error?.name, error?.message);
+        return res.send(response_payload);
     }
 }
 
 const CheckProductAvailability = async(req, res)=>{
     try{
-        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
+        const {data} = req?.body;
         
-        const productObj = await ProductModel.find({productName: data.productName});
+        const productObj = await ProductModel.find({productName: data?.productName});
 
         if(productObj.toString()){
-            const obj=await ProductModel.find({ $and: [{productName: data.productName},{productQuantity: {$gte:data.productQuantity}}]});                
+            const obj=await ProductModel.find({ $and: [{productName: data?.productName},{productQuantity: {$gte:data?.productQuantity}}]});                
             if(obj.toString()){
                     // return "Raw material is available in required quantity : "+ JSON.stringify(result);
-                res.status(200).json({
+                return res.status(200).json({
                     status: true,
                     result: "This "+ JSON.stringify(productObj) + "product is available in required quantity"
                 });
             }
             else{
-                res.status(500).json({
+                return res.status(500).json({
                     status: false,
                     message: "Product is not available in required quantity"
                 })
             }
         }
         else{
-            res.status(500).json({
+            return res.status(500).json({
                 status: false,
                 message: "Product is not available"
             })
         }
     }
     catch (error){
-        const response_payload = {
-            result: null,
-            error: error.name,
-            errorData: error.message
-        }
-        res.send(response_payload)
+        const response_payload = generateResponsePayload(null, error?.name, error?.message);
+        return res.send(response_payload);
     }
 }
 
 const ConfirmProductAvailability = async(req, res)=>{
     try{
-        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
+        const {orgMSP, data} = req?.body;
         if (orgMSP != "Org2MSP"){
             
             return res.status(400).json({ message: `Caller with MSP ID ${orgMSP} is not authorized to confirm product availability` });
         }
 
-        const prodObj = await ProductModel.find({productName: data.productName});
+        const prodObj = await ProductModel.find({productName: data?.productName});
         if(prodObj.toString()){
-            const obj=await ProductModel.find({ $and: [{productName: data.productName},{productQuantity: {$gte:data.productQuantity}},{productManufacturingPrice: { $eq: data.productManufacturingPrice }}]});                
+            const obj=await ProductModel.find({ $and: [{productName: data?.productName},{productQuantity: {$gte:data?.productQuantity}},{productManufacturingPrice: { $eq: data?.productManufacturingPrice }}]});                
             if(obj.toString()){
                     // return "Raw material is available in required quantity : "+ JSON.stringify(result);
-                res.status(500).json({
+                return res.status(500).json({
                     status: false,
                     message: "Confirmed Prouct is  available in this required quantity and price."
                 })                  
             }
             else{
-                res.status(200).json({
+                return res.status(200).json({
                     status: true,
                     result: "Please"+ JSON.stringify(prodObj) + " provide  this Product detail with availabile quantity and its mentioned price. "
                 });
             }
         }
         else{
-            res.status(500).json({
+            return res.status(500).json({
                 status: false,
                 message: "Product is not available."
             })
@@ -264,12 +257,8 @@ const ConfirmProductAvailability = async(req, res)=>{
         // estDeliveryDateTime: data.estDeliveryDateTime        
     }
     catch (error){
-        const response_payload = {
-            result: null,
-            error: error.name,
-            errorData: error.message
-        }
-        res.send(response_payload)
+        const response_payload = generateResponsePayload(null, error?.name, error?.message);
+        return res.send(response_payload);
     }
 }
 
