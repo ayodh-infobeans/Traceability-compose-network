@@ -54,14 +54,14 @@ class Payment extends Contract {
         // update the Purchase Order status to 'Paid'
         if (paymentStatus == 'Paid')
         {
-            await ctx.stub.putState(paymentRefrenceNumber, Buffer.from(JSON.stringify(payment)));
+            let result = await ctx.stub.putState(paymentRefrenceNumber, Buffer.from(JSON.stringify(payment)));
         }
         else{
             throw new Error(`Please Do Complete Payment for ${poNumber} `);
         }
         
         // return the updated Purchase Order object
-        return JSON.stringify(payment);
+        return JSON.stringify(result);
     }
 
 

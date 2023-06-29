@@ -53,9 +53,6 @@ export default{
 }
 
 
-
-
-
 // // Set the desired working directory
 
 // // Call the function with the terminal command and options

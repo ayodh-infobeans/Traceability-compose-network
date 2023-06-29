@@ -49,6 +49,10 @@ const ProductSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  productTemprature:{
+    type: String,
+    required: true
+  },
   type: {
     type: String,
     required: true

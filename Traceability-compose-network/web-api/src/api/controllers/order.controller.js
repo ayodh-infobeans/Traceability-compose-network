@@ -35,7 +35,8 @@ const CreatePurchaseOrder = async(req, res) =>{
         await connectToMongoDB(networkAccess?.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await PurchaseOrderModel.findOne({poNumber:data?.poNumber});
-        if (obj.toString()) {
+        console.log("obj testing ==",obj);
+        if (obj) {
 
             obj.orgMSP= orgMSP;
             obj.userName= userName;
@@ -77,32 +78,46 @@ const InsertPackageDetail = async(req, res) =>{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req?.body;
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
         let options = setOrgChannel(networkAccess?.org, channelName);
+        console.log("options ==",options);
+        console.log("networkAccess?.status ==",networkAccess?.status);
 
         if(!networkAccess?.status){
+            
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
+
         }
+
         var barCodePath=null;
-        let assetDetail = await networkAccess?.contract.evaluateTransaction("ProductContract:GetProductById", data?.assetId);
+
+        let assetDetail = await networkAccess?.contract.evaluateTransaction("ProductContract:GetProductById", data?.assetID);
+        console.log("assetDetail ==",assetDetail);
+        // let link = ``;
         
         barcode.generateBarcode(assetDetail, function (barcodeImageBuffer) {
             fs.writeFile(`./barcode_images/${data?.packageId}.png`, barcodeImageBuffer, function (err) {
-              if (err) {
+              
+             if (err) {
                 console.error(err);
                 return;
               }
-              barCodePath = `./barcode_images/${data?.packageId}.png`;
               console.log(`Barcode generated and saved as ${data?.packageId}.png in barcode_images directory.`);
-            });
-          });
 
-        let result = await contract.submitTransaction('OrderContract:InsertPackagingDetails', data?.packageId, data?.assetId,  barCodePath);
+            });
+        });
+
+        barCodePath = `./barcode_images/${data?.packageId}.png`;
+        let result = await networkAccess?.contract?.submitTransaction('OrderContract:InsertPackagingDetails', data?.packageId, data?.assetID,  barCodePath);
+        console.log("result ==",result);
         await runOffchainScript("node",options);
+
         await connectToMongoDB(networkAccess?.org);
+
         await new Promise(resolve => setTimeout(resolve, 5000));
+
         const obj = await PackageDetailModel.findOne({packageId:data?.packageId});
         console.log(obj);
-        if (obj.toString()) {
+        if (obj) {
 
             obj.orgMSP= orgMSP;
             obj.userName= userName;
@@ -143,17 +158,19 @@ const CreateBatch = async(req, res) =>{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req?.body;
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
         let options = setOrgChannel(networkAccess?.org, channelName);
-
+        
         if(!networkAccess?.status){
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
-        let result = await networkAccess?.contract.submitTransaction('OrderContract:CreateBatch', data?.batchId, data?.assetId, data?.packageInBatch, data?.totalQuantity, data?.carrierInfo, data?.poNumber, data?.transportMode, data?.startLocation, data?.endLocation);
+        
+        let result = await networkAccess?.contract.submitTransaction('OrderContract:CreateBatch', data?.batchId, data?.assetId, data?.packageInBatch, data?.poNumber, data?.startLocation, data?.endLocation);
+        console.log('result found. =',result);
         await runOffchainScript("node",options);
         await connectToMongoDB(networkAccess?.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await BatchModel.findOne({packageId:data?.packageId});
-        if (obj.toString()) {
+        if (obj) {
 
             obj.orgMSP= orgMSP;
             obj.userName= userName;
@@ -164,8 +181,10 @@ const CreateBatch = async(req, res) =>{
             obj.totalQuantity=data?.totalQuantity;
             obj.carrierInfo=data?.carrierInfo;
             obj.transportMode=data?.transportMode;
+
             // Save the modified document back to the database
             await obj.save();
+
             console.log('Document updated successfully.');
 
           } else {
@@ -183,6 +202,7 @@ const CreateBatch = async(req, res) =>{
     }
     catch (error){
         const response_payload = generateResponsePayload(null, error?.name, error?.message);
+    
         return res.send(response_payload);
     }
 }
@@ -197,13 +217,13 @@ const OrderShipment = async(req, res) =>{
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
-        let result = await networkAccess?.contract.submitTransaction('OrderContract:OrderShipment', data?.purchaseOrderId, data?.senderId, data.batchIds, data.packageUnitPrice, data.shipStartLocation, data.shipEndLocation, data.estDeliveryDateTime, data.gpsCoordinates, data.notes, data.status, data.weighbridgeSlipImage, data.weighbridgeSlipNumber, data.weighbridgeDate, data.tbwImage);
+        let result = await networkAccess?.contract.submitTransaction('OrderContract:OrderShipment', data?.purchaseOrderId, data?.senderId, data.batchIds, data.packageUnitPrice, data.shipStartLocation, data.shipEndLocation, data.estDeliveryDateTime, data.gpsCoordinates, data.notes, data.weighbridgeSlipImage, data.weighbridgeSlipNumber, data.weighbridgeDate, data.tbwImage);
         await runOffchainScript("node",options);
         await connectToMongoDB(networkAccess?.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await OrderShipmentModel.findOne({purchaseOrderId:data?.purchaseOrderId});
         console.log(obj);
-        if (obj.toString()) {
+        if (obj) {
 
             obj.orgMSP= orgMSP;
             obj.userName= userName;
@@ -241,7 +261,8 @@ const OrderShipment = async(req, res) =>{
 const PurchaseOrderInspection = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req?.body;
-        await connectToMongoDB(getOrgNameFromMSP(orgMSP));
+        const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        await connectToMongoDB(networkAccess?.org);
         const obj = new OrderInspectionModel(data);
         obj.orgMSP= orgMSP;
         obj.userName= userName;
@@ -268,7 +289,7 @@ const ConfirmDeliveredOrder = async(req, res) =>{
         const {data} = req?.body;
         
         const obj = await BatchModel.find({batchId: data?.batchId});
-        if(obj.toString()){
+        if(obj){
             return res.status(500).json({
                 status: false,
                 message: "Batch "+ JSON.stringify(obj)+ "is Delivered."

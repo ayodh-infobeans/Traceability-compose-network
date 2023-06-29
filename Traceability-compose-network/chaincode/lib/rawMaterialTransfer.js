@@ -85,8 +85,8 @@ class RawMaterialTransfer extends Contract {
             rawMaterialOwner: ctx.clientIdentity.getID()
         };
         // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
-        await ctx.stub.putState("RM_"+rawId, Buffer.from(stringify(sortKeysRecursive(rawMaterial))));
-        return JSON.stringify(rawMaterial);
+        let result = await ctx.stub.putState("RM_"+rawId, Buffer.from(stringify(sortKeysRecursive(rawMaterial))));
+        return JSON.stringify(result);
     }
 
     // GetRawMaterialById returns the raw material stored in the world state with given id.
@@ -131,7 +131,8 @@ class RawMaterialTransfer extends Contract {
             rawMaterialOwner: ctx.clientIdentity.getID()
         };
         // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
-        return ctx.stub.putState("RM_"+rawId, Buffer.from(stringify(sortKeysRecursive(updatedRawMaterial))));
+        let result= ctx.stub.putState("RM_"+rawId, Buffer.from(stringify(sortKeysRecursive(updatedRawMaterial))));
+        return JSON.stringify(result);
     }
 
     // DeleteRawMaterial deletes an given raw material from the world state.

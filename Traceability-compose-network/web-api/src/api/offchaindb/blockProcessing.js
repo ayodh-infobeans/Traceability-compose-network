@@ -6,59 +6,17 @@ import fs from 'fs';
 import path from 'path';
 import mongodbutil  from './mongodbutil.js';
 
-// import RawModel from './../../models/rawmodel.js';
-// import ProductModel from './../../models/productmodel.js';
-// import HistoryModel from './../../models/historymodel.js';
-// import PurchaseOrderModel from './../../models/purchaseordermodel.js';
-// import PackageDetailModel from './../../models/packagedetailmodel.js';
-// import BatchModel from './../../models/batchmodel.js';
-// import OrderShipmentModel from './../../models/ordershipmentmodel.js';
-// import PaymentModel from './../../models/paymentmodel.js';
-
-// import OrderInspectionModel from '../../models/purchaseorderinspectionmodel.js';
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const configPath = path.resolve(__dirname, 'nextblock.txt');
-
-// var keyToDbname = {
-//     "RM": RawModel,
-//     "prod": ProductModel,
-//     "poNumber": PurchaseOrderModel,
-//     "packageId": PackageDetailModel,
-//     "batchId": BatchModel,
-//     "purchaseOrderId": OrderShipmentModel,
-//     "PAYID": PaymentModel
-//   };
 
 
 const configPathi = path.resolve(__dirname, 'config.json');
 const configData = fs.readFileSync(configPathi, 'utf-8');
 const config = JSON.parse(configData);
 
-// const mongodb_address = config.mongodb_address;
-
-
-// const keyToDbname = {
-//     "RM": "RawModel",
-//     "prod": "ProductModel",
-//     "poNumber": "PurchaseOrderModel",
-//     "packageId":"PackageDetailModel",
-//     "batchId": "BatchModel",
-//     "purchaseOrderId": "OrderShipmentModel",
-//     "PAYID": "PaymentModel"
-//   };
-
 const keyToDbname = config.keyToDbname;
 const orgMSPToMongoDB = config.orgMSPToMongoDB;
-
-// var orgMSPToMongoDB = {
-//     "Org1MSP": mongodb_address.org1Mongodb,
-//     "Org2MSP": mongodb_address.org2Mongodb,
-//     "Org3MSP": mongodb_address.org3Mongodb,
-//     "Org4MSP": mongodb_address.org4Mongodb
-// };
-  
 
 export default async function processBlockEvent(channelname, block, use_mongodb) {
 

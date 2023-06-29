@@ -51,7 +51,8 @@ const CreateRawMaterial = async(req, res) =>{
 
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await RawModel.findOne({rawID:data?.rawID});
-        if (obj.toString()) {
+        console.log("obj output check =",obj);
+        if (obj) {
             
             obj.rawMaterialStatus=data?.rawMaterialStatus;
 
@@ -99,7 +100,7 @@ const UpdateRawMaterial = async(req, res) =>{
         await connectToMongoDB(networkAccess?.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await RawModel.findOne({rawID:data?.rawID});
-        if (obj.toString()) {
+        if (obj) {
 
             obj.orgMSP= orgMSP;
             obj.userName= userName;
@@ -191,9 +192,9 @@ const CheckRawMaterialAvailability = async(req, res)=>{
         
         const rawObj = await RawModel.find({rawMaterialName: data?.rawMaterialName});
 
-        if(rawObj.toString()){
+        if(rawObj){
             const obj=await RawModel.find({ $and: [{rawMaterialName: data?.rawMaterialName},{rawMaterialQuantity: {$gte:data?.rawMaterialQuantity}}]});                
-            if(obj.toString()){
+            if(obj){
                     // return "Raw material is available in required quantity : "+ JSON.stringify(result);
                 return res.status(200).json({
                     status: true,
@@ -231,9 +232,9 @@ const ConfirmRawMaterialAvailability = async(req, res)=>{
         }
 
         const rawObj = await RawModel.find({rawMaterialName: data?.rawMaterialName});
-        if(rawObj.toString()){
+        if(rawObj){
             const obj=await RawModel.find({ $and: [{rawMaterialName: data?.rawMaterialName},{rawMaterialQuantity: {$gte:data?.rawMaterialQuantity}},{rawMaterialPrice: { $eq: data?.rawMaterialPrice }}]});                
-            if(obj.toString()){
+            if(obj){
                     // return "Raw material is available in required quantity : "+ JSON.stringify(result);
                 return res.status(500).json({
                     status: false,

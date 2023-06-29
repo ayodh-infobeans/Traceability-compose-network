@@ -19,16 +19,6 @@ const channelid = config.channelid;
 const use_mongodb = config.use_mongodb;
 const configPath = path.resolve(__dirname, 'nextblock.txt');
 const segment =config.segment;
-// const segment = {
-//     org1: {
-//       walletSegments: ['..', 'web-api', 'src', 'org1-wallet'],
-//       pathSegments: ['..', '..', '..', '..', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json']
-//     },
-//     org2: {
-//       walletSegments: ['..', 'web-api', 'src', 'org2-wallet'],
-//       pathSegments: ['..', '..', '..', '..', 'organizations', 'peerOrganizations', 'org2.example.com', 'connection-org2.json']
-//     }
-//   };
 
 class BlockMap {
     constructor() {
@@ -54,19 +44,7 @@ async function main() {
          // initialize the next block to be 0
         let nextBlock = 0;
         const { walletSegments, pathSegments } = segment[process.argv[2]];
-
-        // if (process.argv[2]==='org1'){
-        //     var walletSegments = ['..', 'web-api', 'src', 'org1-wallet'];
-        //     var pathSegments = ['..','..','..','..', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json'];
-           
-        // }
-
-        // if (process.argv[2]==='org2'){
-        //     var walletSegments = ['..', 'web-api', 'src', 'org2-wallet'];
-        //     var pathSegments = ['..','..','..','..', 'organizations', 'peerOrganizations', 'org2.example.com', 'connection-org2.json'];
-            
-        // }
-
+ 
     
         // check to see if there is a next block already defined
         if (fs.existsSync(configPath)) {

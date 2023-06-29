@@ -1,9 +1,11 @@
 import Connections from '../utils/connections.util.js';
 import commonUtils from '../utils/common.util.js';
 import paymentUtils from '../utils/payment.util.js';
+import offchainUtil from '../utils/offchain.util.js';
 
 const { connectToFabricNetwork, connectToMongoDB } = Connections;
 const { generateResponsePayload } = commonUtils;
+const {setOrgChannel,runOffchainScript,stopOffchainScript } = offchainUtil;
 
 const makePayment = async(req, res) =>{
     try{

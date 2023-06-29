@@ -1,15 +1,16 @@
 import express from 'express';
 import rawMaterialController from '../controllers/rawMaterial.controller.js';
+import { verifyToken } from '../middleware/jwtAuthent.js';
 
 const router = express.Router();
 
-router.get('/',rawMaterialController.GetAllRawMaterial);
-router.route('/create').post(rawMaterialController.CreateRawMaterial);
-router.route('/update').post(rawMaterialController.UpdateRawMaterial);
-router.route('/viewRawMaterial').get(rawMaterialController.GetRawMaterialById);
-router.route('/remove').post(rawMaterialController.DeleteRawMaterial);
-router.route('/checkAvailability').get(rawMaterialController.CheckRawMaterialAvailability);
-router.route('/confirmAvailability').post(rawMaterialController.ConfirmRawMaterialAvailability);
+router.get('/',verifyToken ,rawMaterialController.GetAllRawMaterial);
+router.route('/create').post(verifyToken ,rawMaterialController.CreateRawMaterial);
+router.route('/update').post(verifyToken ,rawMaterialController.UpdateRawMaterial);
+router.route('/viewRawMaterial').get(verifyToken ,rawMaterialController.GetRawMaterialById);
+router.route('/remove').post(verifyToken ,rawMaterialController.DeleteRawMaterial);
+router.route('/checkAvailability').get(verifyToken ,rawMaterialController.CheckRawMaterialAvailability);
+router.route('/confirmAvailability').post(verifyToken ,rawMaterialController.ConfirmRawMaterialAvailability);
 
 router.get('/status', (req, res) => {
 	res.json({

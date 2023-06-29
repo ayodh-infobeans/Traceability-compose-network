@@ -4,7 +4,6 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-
 import RawModel from './../../models/rawmodel.js';
 import ProductModel from './../../models/productmodel.js';
 import HistoryModel from './../../models/historymodel.js';
@@ -13,8 +12,6 @@ import PackageDetailModel from './../../models/packagedetailmodel.js';
 import BatchModel from './../../models/batchmodel.js';
 import OrderShipmentModel from './../../models/ordershipmentmodel.js';
 import PaymentModel from './../../models/paymentmodel.js';
-
-
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -37,36 +34,6 @@ const modelToModel = {
 
 }
 
-// const modelToID = {
-//   "RawModel": "rawID",
-//   "ProductModel": "productId",
-//   "PurchaseOrderModel": "poNumber",
-//   "PackageDetailModel": "packageId",
-//   "BatchModel": "batchId",
-//   "OrderShipmentModel": "purchaseOrderId",
-//   "HistoryModel": "key",
-//   "PaymentModel": "paymentRefrenceNumber"
-// };
-
-
-
-// const getID = (model) => {
-//   let ID;
-//   switch (model) {
-//       case 'org1':
-//           ccp = appUtils.buildCCPOrg1();
-//           break;
-//       case 'org2':
-//           ccp = appUtils.buildCCPOrg2();
-//           break;
-//       case 'org3':
-//           ccp = appUtils.buildCCPOrg3();
-//           break;
-//   }
-//   return ID;
-// }
-
-
 
 export default {
   writeToMongoDB: async function(uri, modelStr, key, value) {
@@ -86,16 +53,11 @@ export default {
       
       let ID = modelToID[modelStr];
       let model =  modelToModel[modelStr]
-      console.log("ID ==",ID);
-      console.log("key ==",key);
-      console.log("model ==",model);
-
+  
       const existingRecord = await model.findOne({[ID]: key });
-      console.log("existingRecord ==",existingRecord);
      
       if (existingRecord) {
           // await RaBatchModelwModel.replaceOne({rawID: key }, value);
-          console.log("at update product");
           await model.updateOne({[ID]: key }, value)
             .then(result => {
               console.log('Document updated:', result);

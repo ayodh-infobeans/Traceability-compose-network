@@ -70,9 +70,9 @@ class OrderContract extends Contract {
             };
 
             // add the Package to the world state
-            await ctx.stub.putState( "packageId_"+packageId, Buffer.from(stringify(sortKeysRecursive(packageData))));
+            let result = await ctx.stub.putState( "packageId_"+packageId, Buffer.from(stringify(sortKeysRecursive(packageData))));
             // return the Package object
-            return JSON.stringify(packageData);
+            return JSON.stringify(result);
         }
         catch(error){
             return error;
@@ -80,13 +80,13 @@ class OrderContract extends Contract {
 
     }
 
-    async CreateBatch(ctx, batchId,assetId, packageInBatch,totalQuantity,carrierInfo,poNumber,transportMode,startLocation,endLocation) {
+    async CreateBatch(ctx, batchId,assetId, packageInBatch,poNumber,startLocation,endLocation) {
     
         // create a new Batch object
         try{
 
             const mspid = ctx.clientIdentity.getMSPID();
-            const purchaseOrderBytes = await ctx.stub.getState(poNumber);
+            const purchaseOrderBytes = await ctx.stub.getState(`poNumber_${poNumber}`);
 
             if (!purchaseOrderBytes || purchaseOrderBytes.length === 0) {
                 throw new Error(`Purchase Order ${poNumber} does not exist, Let Purchase Order arrive First.`);
@@ -108,9 +108,10 @@ class OrderContract extends Contract {
             };
 
             // add the Batch to the world state
-            await ctx.stub.putState( "batchId_"+batchId, Buffer.from(stringify(sortKeysRecursive(batch))));
+            
+            let result = await ctx.stub.putState( "batchId_"+batchId , Buffer.from(stringify(sortKeysRecursive(batch))));
             // return the Batch object
-            return JSON.stringify(batch);
+            return JSON.stringify(result);
         }
         catch(error){
             return error;
@@ -118,7 +119,7 @@ class OrderContract extends Contract {
 
     }
 
-    async OrderShipment(ctx, purchaseOrderId,senderId,batchIds,packageUnitPrice,shipStartLocation,shipEndLocation,estDeliveryDateTime,gpsCoordinates,notes,status,weighbridgeSlipImage,weighbridgeSlipNumber,weighbridgeDate,tbwImage) {
+    async OrderShipment(ctx, purchaseOrderId,senderId,batchIds,packageUnitPrice,shipStartLocation,shipEndLocation,estDeliveryDateTime,gpsCoordinates,notes,weighbridgeSlipImage,weighbridgeSlipNumber,weighbridgeDate,tbwImage) {
        // create a new Shipment
         try{
             const mspid = ctx.clientIdentity.getMSPID();
@@ -147,9 +148,9 @@ class OrderContract extends Contract {
         };
 
             // add the Shipment to the world state
-            await ctx.stub.putState("purchaseOrderId_"+purchaseOrderId, Buffer.from(stringify(sortKeysRecursive(shipment))));
+            let result = await ctx.stub.putState("purchaseOrderId_"+purchaseOrderId, Buffer.from(stringify(sortKeysRecursive(shipment))));
             // return the Shipment
-            return JSON.stringify(shipment);
+            return JSON.stringify(result);
         }
         catch(error){
             return error;

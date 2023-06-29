@@ -41,7 +41,7 @@ const CreateProduct = async(req, res) =>{
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
-        let result = await networkAccess?.contract.submitTransaction('ProductContract:CreateProduct', data?.productId, data?.rawMaterialIds, data?.productName, data?.productDescription, data?.productCategory, data?.productManufacturingLocation, data?.productQuantity, data?.productManufacturingPrice, data?.productManufacturingDate, data?.productExpiryDate, data?.productIngredients, data?.productSKU, data?.productGTIN,  data?.productImage);
+        let result = await networkAccess?.contract.submitTransaction('ProductContract:CreateProduct', data?.productId, data?.rawMaterialIds, data?.productName, data?.productDescription, data?.productCategory, data?.productManufacturingLocation, data?.productQuantity, data?.productManufacturingPrice, data?.productManufacturingDate, data?.productExpiryDate, data?.productIngredients, data?.productTemprature, data?.productSKU, data?.productGTIN,  data?.productImage);
         
         
         await runOffchainScript("node",options);
@@ -50,7 +50,7 @@ const CreateProduct = async(req, res) =>{
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await ProductModel.findOne({productId:data?.productId});
         console.log(obj);
-        if (obj.toString()) {
+        if (obj) {
 
             obj.orgMSP= orgMSP;
             obj.userName= userName;
@@ -93,12 +93,12 @@ const UpdateProduct = async(req, res) =>{
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
-        let result = await networkAccess?.contract.submitTransaction('ProductContract:UpdateProduct', data?.productId,  data?.rawMaterialIds, data?.productName, data?.productDescription, data?.productCategory, data?.productManufacturingLocation, data?.productQuantity, data?.productManufacturingPrice, data?.productManufacturingDate, data?.productExpiryDate, data?.productIngredients, data?.productSKU, data?.productGTIN, data?.productImage);
+        let result = await networkAccess?.contract.submitTransaction('ProductContract:UpdateProduct', data?.productId,  data?.rawMaterialIds, data?.productName, data?.productDescription, data?.productCategory, data?.productManufacturingLocation, data?.productQuantity, data?.productManufacturingPrice, data?.productManufacturingDate, data?.productExpiryDate, data?.productIngredients,data?.productTemprature, data?.productSKU, data?.productGTIN, data?.productImage);
         await runOffchainScript("node",options);
         await connectToMongoDB(networkAccess?.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await ProductModel.findOne({productId:data?.productId});
-        if (obj.toString()) {
+        if (obj) {
             
             obj.orgMSP= orgMSP;
             obj.userName= userName;
@@ -141,6 +141,7 @@ const GetProductById = async(req, res) => {
             return res.send(response_payload);
         }
         let result = await networkAccess?.contract.evaluateTransaction("ProductContract:GetProductById", data?.productId);
+        console.log("abhi,abhi")
         if(result) {
             const responsePayload = generateResponsePayload(result.toString(), null, null);
             await networkAccess?.gateway.disconnect();
@@ -190,9 +191,9 @@ const CheckProductAvailability = async(req, res)=>{
         
         const productObj = await ProductModel.find({productName: data?.productName});
 
-        if(productObj.toString()){
+        if(productObj){
             const obj=await ProductModel.find({ $and: [{productName: data?.productName},{productQuantity: {$gte:data?.productQuantity}}]});                
-            if(obj.toString()){
+            if(obj){
                     // return "Raw material is available in required quantity : "+ JSON.stringify(result);
                 return res.status(200).json({
                     status: true,
@@ -228,9 +229,9 @@ const ConfirmProductAvailability = async(req, res)=>{
         }
 
         const prodObj = await ProductModel.find({productName: data?.productName});
-        if(prodObj.toString()){
+        if(prodObj){
             const obj=await ProductModel.find({ $and: [{productName: data?.productName},{productQuantity: {$gte:data?.productQuantity}},{productManufacturingPrice: { $eq: data?.productManufacturingPrice }}]});                
-            if(obj.toString()){
+            if(obj){
                     // return "Raw material is available in required quantity : "+ JSON.stringify(result);
                 return res.status(500).json({
                     status: false,

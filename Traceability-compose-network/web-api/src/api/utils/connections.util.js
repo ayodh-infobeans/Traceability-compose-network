@@ -39,8 +39,10 @@ const connectToMongoDB = async (org = null) =>{
         const username = buildCCP.getMongoDetails(org).username;
         const password = buildCCP.getMongoDetails(org).password;
         const connectionString = `mongodb://${username}:${password}@localhost:${port}/?authMechanism=DEFAULT`;
+        console.log(connectionString);
         if(connectionString){
           await mongoose.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true });
+          console.log("connected");
           return { status: true, mongoose };
         }
       }
@@ -59,7 +61,7 @@ const connectToFabricNetwork = async (userName = null, orgMSP = null, channelNam
         const network = await gatewayAccess?.gateway.getNetwork(channelName);
         if(network) {
           const contract = network.getContract(chaincodeName);
-          return { status: true, gateway: gatewayAccess.gateway, contract, org};
+          return { status: true, gateway: gatewayAccess.gateway, contract, org, network: network};
         }
       }
     }

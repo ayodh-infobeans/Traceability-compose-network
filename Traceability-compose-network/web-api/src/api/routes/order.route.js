@@ -1,15 +1,22 @@
 import express from 'express';
 import orderController from '../controllers/order.controller.js';
-
+import { verifyToken } from '../middleware/jwtAuthent.js';
 const router = express.Router();
 
 
-router.route('/createPurchaseOrder').post(orderController.CreatePurchaseOrder);
-router.route('/insertPackageDetail').post(orderController.InsertPackageDetail);
-router.route('/createBatch').post(orderController.CreateBatch);
-router.route('/orderShipment').post(orderController.OrderShipment);
-router.route('/confirmDeliverOrder').post(orderController.ConfirmDeliveredOrder);
-router.route('/getkeyhistory').get(orderController.getKeyHistory);
+// Apply the verifyToken middleware to the routes
+// router.route('/createPurchaseOrder').post(verifyToken, orderController.CreatePurchaseOrder);
+// router.route('/insertPackageDetail').post(verifyToken, orderController.InsertPackageDetail);
+
+
+
+router.route('/createPurchaseOrder').post(verifyToken, orderController.CreatePurchaseOrder);
+router.route('/insertPackageDetail').post(verifyToken,orderController.InsertPackageDetail);
+router.route('/createBatch').post(verifyToken,orderController.CreateBatch);
+router.route('/orderShipment').post(verifyToken,orderController.OrderShipment);
+router.route('/purchaseOrderInspection').post(verifyToken,orderController.PurchaseOrderInspection);
+router.route('/confirmDeliverOrder').post(verifyToken,orderController.ConfirmDeliveredOrder);
+router.route('/getkeyhistory').get(verifyToken,orderController.getKeyHistory);
 
 router.get('/status', (req, res) => {
 	res.json({

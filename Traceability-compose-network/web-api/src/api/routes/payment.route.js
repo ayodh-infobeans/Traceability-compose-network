@@ -1,12 +1,13 @@
 import express from 'express';
 import paymentController from '../controllers/payment.controller.js';
+import { verifyToken } from '../middleware/jwtAuthent.js';
 
 const router = express.Router();
 
 
-router.route('/makePayment').post(paymentController.makePayment);
-router.route('/getTransactionById').get(paymentController.GetTransactionById);
-router.route('/getAllTransactions').get(paymentController.GetAllTransactions);
+router.route('/makePayment').post(verifyToken,paymentController.makePayment);
+router.route('/getTransactionById').get(verifyToken,paymentController.GetTransactionById);
+router.route('/getAllTransactions').get(verifyToken,paymentController.GetAllTransactions);
 
 
 // router.route('/orderShipment').post(orderController.OrderShipment);

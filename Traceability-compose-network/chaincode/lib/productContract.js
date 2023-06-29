@@ -38,6 +38,7 @@ class ProductContract extends Contract {
                 productManufacturingDate: "2023-04-25",
                 productExpiryDate: "2023-08-22",
                 productIngredients: "awaited Data",
+                productTemprature:"27",
                 type: "product",
                 productSKU: "uniqueXYZ",
                 productGTIN: "GTINXYZ",
@@ -53,7 +54,7 @@ class ProductContract extends Contract {
     }
 
     // CreateProduct issues a new product to the world state with given details.
-    async CreateProduct(ctx, productId,rawMaterialIds, productName, productDescription, productCategory, productManufacturingLocation, productQuantity, productManufacturingPrice, productManufacturingDate, productExpiryDate, productIngredients, productSKU, productGTIN, productImage) {
+    async CreateProduct(ctx, productId,rawMaterialIds, productName, productDescription, productCategory, productManufacturingLocation, productQuantity, productManufacturingPrice, productManufacturingDate, productExpiryDate, productIngredients,productTemprature, productSKU, productGTIN, productImage) {
         // Only Manufacturer Organization can create new product
         const mspid = ctx.clientIdentity.getMSPID();
         if (mspid !== 'Org2MSP') {
@@ -95,6 +96,7 @@ class ProductContract extends Contract {
             productManufacturingDate: productManufacturingDate,
             productExpiryDate: productExpiryDate,
             productIngredients: productIngredients,
+            productTemprature:productTemprature,
             type: "product",
             productSKU: productSKU,
             productGTIN: productGTIN,
@@ -102,11 +104,11 @@ class ProductContract extends Contract {
         };
         
         // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
-        await ctx.stub.putState("prod_"+productId, Buffer.from(stringify(sortKeysRecursive(product))));
-        return JSON.stringify(product);
+        let result = await ctx.stub.putState("prod_"+productId, Buffer.from(stringify(sortKeysRecursive(product))));
+        return JSON.stringify(result);
     }
 
-    async UpdateProduct(ctx, productId,rawMaterialIds, productName, productDescription, productCategory, productManufacturingLocation, productQuantity, productManufacturingPrice, productManufacturingDate,productExpiryDate, productIngredients, productSKU, productGTIN,productImage){
+    async UpdateProduct(ctx, productId,rawMaterialIds, productName, productDescription, productCategory, productManufacturingLocation, productQuantity, productManufacturingPrice, productManufacturingDate,productExpiryDate, productIngredients,productTemprature, productSKU, productGTIN,productImage){
         // Only Manufacturer Organization can update product
         const mspid = ctx.clientIdentity.getMSPID();
         if (mspid !== 'Org2MSP') {
@@ -132,13 +134,15 @@ class ProductContract extends Contract {
             productManufacturingDate: productManufacturingDate,
             productExpiryDate: productExpiryDate,
             productIngredients: productIngredients,
+            productTemprature:productTemprature,
             type: "product",
             productSKU: productSKU,
             productGTIN: productGTIN,
             productImage: productImage
         };
         // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
-        return ctx.stub.putState("prod_"+productId, Buffer.from(stringify(sortKeysRecursive(updateProduct))));
+        let result = ctx.stub.putState("prod_"+productId, Buffer.from(stringify(sortKeysRecursive(updateProduct))));
+        return JSON.stringify(result);
     }
 
     // GetProductById returns the product stored in the world state with given id.
