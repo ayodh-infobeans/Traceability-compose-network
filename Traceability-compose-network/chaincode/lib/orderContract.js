@@ -86,7 +86,7 @@ class OrderContract extends Contract {
         try{
 
             const mspid = ctx.clientIdentity.getMSPID();
-            const purchaseOrderBytes = await ctx.stub.getState(poNumber);
+            const purchaseOrderBytes = await ctx.stub.getState("poNumber_"+poNumber);
 
             if (!purchaseOrderBytes || purchaseOrderBytes.length === 0) {
                 throw new Error(`Purchase Order ${poNumber} does not exist, Let Purchase Order arrive First.`);

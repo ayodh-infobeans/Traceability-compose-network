@@ -61,16 +61,13 @@ const PurchaseOrderSchema = new mongoose.Schema({
         required: true
       },
       contactPersonName: {
-        type: String,
-        required: true
+        type: String
       },
       contactPhoneNumber: {
-        type: String,
-        required: true
+        type: String
       },
       contactEmail: {
-        type: String,
-        required: true
+        type: String
       }
   });
 

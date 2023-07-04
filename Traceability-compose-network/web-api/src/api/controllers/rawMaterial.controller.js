@@ -1,14 +1,17 @@
 import Connections from '../utils/connections.util.js';
 import commonUtils from '../utils/common.util.js';
+import offchainUtil from '../utils/offchain.util.js';
 import RawModel from '../../models/rawmodel.js';
 
 const { connectToFabricNetwork, connectToMongoDB } = Connections;
 const { generateResponsePayload } = commonUtils;
+const { setOrgChannel,runOffchainScript,stopOffchainScript } = offchainUtil;
 
 const GetAllRawMaterial = async(req, res) =>{
     try{
         const { userName, orgMSP ,channelName, chaincodeName } = req?.body;
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        
         if(!networkAccess?.status){
             const responsePayload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(responsePayload);
@@ -34,12 +37,17 @@ const CreateRawMaterial = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req?.body;
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        let options = setOrgChannel(networkAccess?.org, channelName);
+
         if(!networkAccess?.status){
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
         let result = await networkAccess?.contract?.submitTransaction("RawMaterialTransfer:CreateRawMaterial", data?.rawID, data?.rawMaterialName, data?.rawMaterialCategory, data?.rawMaterialLocation, data?.rawMaterialQuantity, data?.rawMaterialPrice, data?.rawMaterialDescription, data?.rawMaterialProductionDate, data?.rawMaterialExpiryDate, data?.rawMaterialSpecifications, data?.rawMaterialCultivationMethod, data?.rawMaterialFertilizers, data?.rawMaterialImage);
+        
+        await runOffchainScript("node",options);
         await connectToMongoDB(networkAccess?.org);
+
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await RawModel.findOne({rawID:data?.rawID});
         if (obj.toString()) {
@@ -52,7 +60,6 @@ const CreateRawMaterial = async(req, res) =>{
             obj.channelName= channelName;
             obj.chaincodeName= chaincodeName;
 
-            
             // Save the modified document back to the database
             await obj.save();
             console.log('Document updated successfully.');
@@ -60,6 +67,7 @@ const CreateRawMaterial = async(req, res) =>{
           } else {
             console.log('Document not found.');
         }
+        await stopOffchainScript();
 
         if(result) {
             const responsePayload = generateResponsePayload(result?.toString(), null, null);
@@ -80,11 +88,13 @@ const UpdateRawMaterial = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req?.body;
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        let options = setOrgChannel(networkAccess?.org, channelName);
         if(!networkAccess?.status){
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
-        let result = await networkAccess?.contract?.submitTransaction('RawMaterialTransfer:UpdateRawMaterial', data?.rawID, data?.rawMaterialName, data?.rawMaterialCategory, data?.rawMaterialLocation, data?.rawMaterialQuantity, data?.rawMaterialPrice, data?.rawMaterialDescription, data?.rawMaterialProductionDate, data?.rawMaterialExpiryDate, data?.rawMaterialSpecifications, data?.rawMaterialCultivationMethod, data?.rawMaterialFertilizers,  data?.rawMaterialImage);
+        let result = await networkAccess?.contract.submitTransaction('RawMaterialTransfer:UpdateRawMaterial', data?.rawID, data?.rawMaterialName, data?.rawMaterialCategory, data?.rawMaterialLocation, data?.rawMaterialQuantity, data?.rawMaterialPrice, data?.rawMaterialDescription, data?.rawMaterialProductionDate, data?.rawMaterialExpiryDate, data?.rawMaterialSpecifications, data?.rawMaterialCultivationMethod, data?.rawMaterialFertilizers,  data?.rawMaterialImage);
+        await runOffchainScript("node",options);
         await connectToMongoDB(networkAccess?.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await RawModel.findOne({rawID:data?.rawID});
@@ -104,7 +114,7 @@ const UpdateRawMaterial = async(req, res) =>{
           } else {
             console.log('Document not found.');
         }
-
+        await stopOffchainScript();
         if(result) {
             const responsePayload = generateResponsePayload(result?.toString(), null, null);
             await networkAccess?.gateway?.disconnect();
@@ -148,20 +158,25 @@ const DeleteRawMaterial = async(req, res) =>{
     try{
         const {userName, orgMSP, channelName, chaincodeName, data} = req?.body;
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        let options = setOrgChannel(networkAccess?.org, channelName);
         if(!networkAccess?.status){
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
         let result = await networkAccess?.contract?.submitTransaction("RawMaterialTransfer:DeleteRawMaterial", data?.rawID);
+        await runOffchainScript("node",options);
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        await stopOffchainScript();
         if(result) {
             const responsePayload = generateResponsePayload(result?.toString(), null, null);
             await networkAccess?.gateway?.disconnect();
             return res.send(responsePayload);
         }
-
+        
         const responsePayload = generateResponsePayload(null, "Oops!", "Something went wrong. Please try again.");
         return res.send(responsePayload);
     }
+
     catch (error){
         const response_payload = generateResponsePayload(null, error?.name, error?.message);
         return res.send(response_payload);

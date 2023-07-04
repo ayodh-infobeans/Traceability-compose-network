@@ -12,6 +12,8 @@ const makePayment = async(req, res) =>{
         let payID;
         const {userName, orgMSP, channelName, chaincodeName, data} = req?.body;
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        let options = setOrgChannel(networkAccess?.org, channelName);
+
         if(!networkAccess?.status){
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
@@ -27,6 +29,8 @@ const makePayment = async(req, res) =>{
           
         await new Promise(resolve => setTimeout(resolve, 5000));
         let result = await networkAccess?.contract?.submitTransaction("Payment:makePayment", data?.poNumber, payID, data?.vendorName,data?.invoiceNumber,data?.invoiceDate,data?.invoiceAmount,data?.paymentAmount,data?.paymentDate,data?.paymentMethod ,data?.description,payStatus,data?.notes);
+        await runOffchainScript("node",options);
+        await stopOffchainScript();
         if(result) {
             const responsePayload = generateResponsePayload(result?.toString(), null, null);
             await networkAccess?.gateway?.disconnect();

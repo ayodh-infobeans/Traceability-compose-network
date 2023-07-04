@@ -8,19 +8,22 @@ import commonUtils from './common.util.js';
 
 const { Gateway, Wallets } = pkg;
 const { getOrgNameFromMSP } = commonUtils;
+const { GetWalletPath } = constants;
+const { getCCP, getMongoDetails } = buildCCP;
+const { buildWallet } = appUtils;
 
 const connectToGateway = async (org = null, userName = null) =>{
     try{
       if(org){
-        const ccp = buildCCP.getCCP(org);
-        const walletPath = constants.GetWalletPath(org);
+        const ccp = getCCP(org);
+        const walletPath = GetWalletPath(org);
         if(walletPath){
-          const wallet = await appUtils.buildWallet(Wallets, walletPath);
+          const wallet = await buildWallet(Wallets, walletPath);
           if(wallet){
-            const userIdentity = await wallet.get(userName);
+            const userIdentity = await wallet?.get(userName);
             const gateway = new Gateway();
             if(ccp && userIdentity){
-              await gateway.connect(ccp, {wallet, identity: userIdentity, discovery: {enabled: true, asLocalhost: true}});
+              await gateway?.connect(ccp, {wallet, identity: userIdentity, discovery: {enabled: true, asLocalhost: true}});
               return { status: true, gateway };
             }
           }
@@ -35,12 +38,14 @@ const connectToGateway = async (org = null, userName = null) =>{
 const connectToMongoDB = async (org = null) =>{
     try {
       if(org){
-        const port = buildCCP.getMongoDetails(org).mongoPort;
-        const username = buildCCP.getMongoDetails(org).username;
-        const password = buildCCP.getMongoDetails(org).password;
-        const connectionString = `mongodb://${username}:${password}@localhost:${port}/?authMechanism=DEFAULT`;
+        const { mongoPort, username, password} = getMongoDetails(org);
+        console.log(mongoPort,username,password);
+        const connectionString = `mongodb://${username}:${password}@localhost:${mongoPort}/?authMechanism=DEFAULT`;
+        console.log(connectionString);
         if(connectionString){
+          console.log(connectionString);
           await mongoose.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true });
+          console.log("Mongodb connected");
           return { status: true, mongoose };
         }
       }
@@ -56,10 +61,10 @@ const connectToFabricNetwork = async (userName = null, orgMSP = null, channelNam
     if(org) {
       const gatewayAccess = await connectToGateway(org, userName);
       if(gatewayAccess?.status) {
-        const network = await gatewayAccess?.gateway.getNetwork(channelName);
+        const network = await gatewayAccess?.gateway?.getNetwork(channelName);
         if(network) {
-          const contract = network.getContract(chaincodeName);
-          return { status: true, gateway: gatewayAccess.gateway, contract, org};
+          const contract = network?.getContract(chaincodeName);
+          return { status: true, gateway: gatewayAccess?.gateway, contract, org, network};
         }
       }
     }

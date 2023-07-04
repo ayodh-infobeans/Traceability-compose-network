@@ -7,16 +7,20 @@ import BatchModel from '../../models/batchmodel.js';
 import OrderShipmentModel from '../../models/ordershipmentmodel.js';
 import OrderInspectionModel from '../../models/purchaseorderinspectionmodel.js';
 import barcode from '../utils/barcode.util.js';
+import offchainUtil from '../utils/offchain.util.js';
 
 const { connectToFabricNetwork, connectToMongoDB } = Connections;
 const { generateResponsePayload } = commonUtils;
 const { generateBarcode } = barcode;
+const {setOrgChannel,runOffchainScript,stopOffchainScript } = offchainUtil;
 
 const CreatePurchaseOrder = async(req, res) =>{
     
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName,data} = req?.body;
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        let options = setOrgChannel(networkAccess?.org, channelName);
+
         if(!networkAccess?.status){
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
@@ -28,6 +32,7 @@ const CreatePurchaseOrder = async(req, res) =>{
             });
         }
         let result = await networkAccess?.contract?.submitTransaction("OrderContract:createPurchaseOrder", data?.poNumber, data?.sellerID, data?.fromCountry, data?.fromState, data?.fromCity, data?.toCountry, data?.toState, data?.toCity, data?.poDateTime, data?.productName, data?.productQuantity, data?.unitProductCost, data?.expDeliveryDateTime);
+        await runOffchainScript("node",options);
         await connectToMongoDB(networkAccess?.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await PurchaseOrderModel.findOne({poNumber:data?.poNumber});
@@ -52,7 +57,7 @@ const CreatePurchaseOrder = async(req, res) =>{
           } else {
             console.log('Document not found.');
         }
-        
+        await stopOffchainScript();
         if(result) {
             const responsePayload = generateResponsePayload(result?.toString(), null, null);
             await networkAccess?.gateway?.disconnect();
@@ -72,29 +77,33 @@ const InsertPackageDetail = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req?.body;
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        let options = setOrgChannel(networkAccess?.org, channelName);
+
         if(!networkAccess?.status){
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
-        var barCodePath=null;
-        let assetDetail = await networkAccess?.contract?.evaluateTransaction("ProductContract:GetProductById", data?.assetId);
-        
+        let barCodePath=null;
+        console.log("===============1", data?.assetId);
+        let assetDetail = await networkAccess?.contract?.evaluateTransaction("ProductContract:GetProductById", data?.assetID);
+        console.log("===============2");
         generateBarcode(assetDetail, function (barcodeImageBuffer) {
             fs.writeFile(`./barcode_images/${data?.packageId}.png`, barcodeImageBuffer, function (err) {
               if (err) {
                 console.error(err);
                 return;
               }
-              barCodePath = `./barcode_images/${data?.packageId}.png`;
               console.log(`Barcode generated and saved as ${data?.packageId}.png in barcode_images directory.`);
             });
-          });
-
-        let result = await contract?.submitTransaction('OrderContract:InsertPackagingDetails', data?.packageId, data?.assetId,  barCodePath);
+        });
+        barCodePath = `../barcode_images/${data?.packageId}.png`;
+        console.log(data?.packageId, data?.assetID,  barCodePath);
+        let result = await networkAccess?.contract?.submitTransaction('OrderContract:InsertPackagingDetails', data?.packageId, data?.assetID,  barCodePath);
+        await runOffchainScript("node",options);
         await connectToMongoDB(networkAccess?.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await PackageDetailModel.findOne({packageId:data?.packageId});
-        if (obj.toString()) {
+        if (obj) {
 
             obj.orgMSP= orgMSP;
             obj.userName= userName;
@@ -114,7 +123,7 @@ const InsertPackageDetail = async(req, res) =>{
           } else {
             console.log('Document not found.');
         }
-        
+        await stopOffchainScript();
         if(result) {
             const responsePayload = generateResponsePayload(result?.toString(), null, null);
             await networkAccess?.gateway?.disconnect();
@@ -134,15 +143,19 @@ const CreateBatch = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req?.body;
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        let options = setOrgChannel(networkAccess?.org, channelName);
+
         if(!networkAccess?.status){
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
         let result = await networkAccess?.contract?.submitTransaction('OrderContract:CreateBatch', data?.batchId, data?.assetId, data?.packageInBatch, data?.totalQuantity, data?.carrierInfo, data?.poNumber, data?.transportMode, data?.startLocation, data?.endLocation);
+        console.log("=============",result);
+        await runOffchainScript("node",options);
         await connectToMongoDB(networkAccess?.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await BatchModel.findOne({packageId:data?.packageId});
-        if (obj.toString()) {
+        if (obj) {
 
             obj.orgMSP= orgMSP;
             obj.userName= userName;
@@ -160,7 +173,7 @@ const CreateBatch = async(req, res) =>{
           } else {
             console.log('Document not found.');
         }
-        
+        await stopOffchainScript();
         if(result) {
             const responsePayload = generateResponsePayload(result?.toString(), null, null);
             await networkAccess?.gateway?.disconnect();
@@ -180,11 +193,14 @@ const OrderShipment = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req?.body;
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
+        let options = setOrgChannel(networkAccess?.org, channelName);
+
         if(!networkAccess?.status){
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
         let result = await networkAccess?.contract?.submitTransaction('OrderContract:OrderShipment', data?.purchaseOrderId, data?.senderId, data.batchIds, data.packageUnitPrice, data.shipStartLocation, data.shipEndLocation, data.estDeliveryDateTime, data.gpsCoordinates, data.notes, data.status, data.weighbridgeSlipImage, data.weighbridgeSlipNumber, data.weighbridgeDate, data.tbwImage);
+        await runOffchainScript("node",options);
         await connectToMongoDB(networkAccess?.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await OrderShipmentModel.findOne({purchaseOrderId:data?.purchaseOrderId});
@@ -208,7 +224,7 @@ const OrderShipment = async(req, res) =>{
           } else {
             console.log('Document not found.');
         }
-        
+        await stopOffchainScript();
         if(result) {
             const responsePayload = generateResponsePayload(result?.toString(), null, null);
             await networkAccess?.gateway?.disconnect();
@@ -273,32 +289,36 @@ const ConfirmDeliveredOrder = async(req, res) =>{
     }
 }
 
+
 const getKeyHistory = async(req, res) =>{
     try{
-        const {userName, orgMSP, channelName, chaincodeName, data} = req?.body;
-        const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
-        if(!networkAccess?.status){
-            const response_payload = generateResponsePayload(null, error?.name, error?.message);
-            return res.send(response_payload);
-        }
+        const {userName, orgMSP, userType,channelName, chaincodeName, data} = req.body;
+        let org = commonUtils.getOrgNameFromMSP(orgMSP);
+        let gateway = await Connections.connectToGateway(org, userName);
+        const network = await gateway.getNetwork(channelName);
+        const contract = network.getContract(chaincodeName);
         console.log("result ==");
+        
+        const key = (data.typeSelector === "rawMaterial") ? `RM_${data?.key}` : `prod_${data?.key}`;
 
-        let key = data?.key || '';
-        key = data?.typeSelector === "rawMaterial" ? `RM_${key}` : `prod_${key}`;
+        const result = await contract.evaluateTransaction('OrderContract:getKeyHistory', key);
 
-        const result = await contract?.evaluateTransaction('OrderContract:getKeyHistory', key);
-
-        if(result) {
-            const responsePayload = generateResponsePayload(result?.toString(), null, null);
-            await networkAccess?.gateway?.disconnect();
-            return res.send(responsePayload);
+        console.log("result ==",result);
+        const response_payload = {
+            result: result.toString(),
+            error: null,
+            errorData: null
         }
-
-        const responsePayload = generateResponsePayload(null, "Oops!", "Something went wrong. Please try again.");
-        return res.send(responsePayload);
-    } catch (error){
-        const response_payload = generateResponsePayload(null, error?.name, error?.message);
-        return res.send(response_payload);
+        await gateway.disconnect();
+        res.send(response_payload);
+    }
+    catch (error){
+        const response_payload = {
+            result: null,
+            error: error.name,
+            errorData: error.message
+        }
+        res.send(response_payload)
     }
 }
 
