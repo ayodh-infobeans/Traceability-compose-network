@@ -24,8 +24,9 @@ class OrderContract extends Contract {
                 toCity: toCity,
 
                 // paymentTerms: paymentTerms,
+
                 poDateTime: poDateTime,
-                // poStatus: 'Pending',
+                poStatus: 'created',
 
                 productName: productName,
                 productQuantity: productQuantity,
@@ -35,10 +36,35 @@ class OrderContract extends Contract {
                 // contactPersonName: contactPersonName,
                 // contactPhoneNumber: contactPhoneNumber,
                 // contactEmail: contactEmail,
+
             };
 
             // add the Purchase Order to the world state
             let result = await ctx.stub.putState("poNumber_"+poNumber, Buffer.from(stringify(sortKeysRecursive(purchaseOrder))));
+
+            // return the Purchase Order object
+            return JSON.stringify(result);
+        }
+        catch(error){
+            return error;
+        }
+    }
+
+    async updatePurchaseOrderStatus(ctx, poNumber, poStatus) {
+
+        const existingOrderBuffer = await ctx.stub.getState("poNumber_" + poNumber);
+          if (!existingOrderBuffer || existingOrderBuffer.length === 0) {
+            throw new Error(`Purchase order ${poNumber} does not exist.`);
+          }
+
+        try{
+            const mspid = ctx.clientIdentity.getMSPID();
+            const existingOrder = JSON.parse(existingOrderBuffer.toString());
+            existingOrder["poStatus"] = poStatus;
+
+            // add the Purchase Order to the world state
+
+            let result = await ctx.stub.putState("poNumber_"+poNumber, Buffer.from(stringify(sortKeysRecursive(existingOrder))));
 
             // return the Purchase Order object
             return JSON.stringify(result);
@@ -121,9 +147,11 @@ class OrderContract extends Contract {
 
     async OrderShipment(ctx, purchaseOrderId,senderId,batchIds,packageUnitPrice,shipStartLocation,shipEndLocation,estDeliveryDateTime,gpsCoordinates,notes,weighbridgeSlipImage,weighbridgeSlipNumber,weighbridgeDate,tbwImage) {
        // create a new Shipment
-        try{
+        
+       try{
             const mspid = ctx.clientIdentity.getMSPID();
             const shipment = {
+                
                 orgMSP:mspid,
                 purchaseOrderId: purchaseOrderId,
                 senderId: senderId,
@@ -134,7 +162,7 @@ class OrderContract extends Contract {
                 estDeliveryDateTime: estDeliveryDateTime,
                 gpsCoordinates: gpsCoordinates,
                 notes: notes,
-                status: "Delivered",
+                status: "In Transit",
                 weighbridgeSlipImage: weighbridgeSlipImage,
                 weighbridgeSlipNumber: weighbridgeSlipNumber,
                 weighbridgeDate: weighbridgeDate,
@@ -156,6 +184,11 @@ class OrderContract extends Contract {
             return error;
         }
     }
+    
+    async PurchaseOrderExists(ctx, poNumber) {
+        const purchaseOrderJSON = await ctx.stub.getState("poNumber_"+poNumber);
+        return purchaseOrderJSON && purchaseOrderJSON.length > 0;
+    }
 
     async getKeyHistory(ctx, key) {
         
@@ -168,12 +201,39 @@ class OrderContract extends Contract {
           if (historyRecord.value && historyRecord.value.value.toString()) {
             history.push(historyRecord.value.value.toString());
           }
-      
+          
           if (historyRecord.done) {
             await historyIterator.close();
             return JSON.stringify(history);
           }
         }
+    }
+
+    async getSummary(ctx, poNumber, purchaseOrderId, paymentRefrenceNumber){
+
+        const purchaseOrderJSON = await ctx.stub.getState("poNumber_"+poNumber);
+        if (!purchaseOrderJSON || purchaseOrderJSON.length === 0) {
+            throw new Error(`Purchase order ${poNumber} does not exist.`);
+        }
+
+        const purchaseOrderIdJSON = await ctx.stub.getState("purchaseOrderId_"+purchaseOrderId);
+        if (!purchaseOrderIdJSON || purchaseOrderIdJSON.length === 0) {
+            throw new Error(`Purchase order ID ${purchaseOrderId} does not exist.`);
+        }
+
+        const paymentRefrenceJSON = await ctx.stub.getState(paymentRefrenceNumber);
+        if (!paymentRefrenceJSON || paymentRefrenceJSON.length === 0) {
+            throw new Error(`Purchase order ${paymentRefrenceNumber} does not exist.`);
+        }
+
+        const poJSON = JSON.parse(purchaseOrderJSON.toString());
+        const pOrderIdJSON = JSON.parse(purchaseOrderIdJSON.toString());
+        const paymentJSON = JSON.parse(paymentRefrenceJSON.toString());
+        
+        
+        const summary = { ...poJSON, ...pOrderIdJSON, ...paymentJSON };
+
+        return JSON.stringify(summary);
     }
       
 }
@@ -379,3 +439,33 @@ module.exports = OrderContract;
     //     return JSON.stringify(qrCode);
 
     // }
+
+
+    // async updatePurchaseOrder(ctx, poNumber, updatedAttributes) {
+    //     try {
+    //       // Retrieve the existing purchase order from the world state
+    //       const existingOrderBuffer = await ctx.stub.getState("poNumber_" + poNumber);
+    //       if (!existingOrderBuffer || existingOrderBuffer.length === 0) {
+    //         throw new Error(`Purchase order ${poNumber} does not exist.`);
+    //       }
+      
+    //       // Parse the existing purchase order
+    //       const existingOrder = JSON.parse(existingOrderBuffer.toString());
+      
+    //       // Update the specified attributes
+    //       for (const attr in updatedAttributes) {
+    //         if (Object.prototype.hasOwnProperty.call(updatedAttributes, attr)) {
+    //           existingOrder[attr] = updatedAttributes[attr];
+    //         }
+    //       }
+      
+    //       // Update the purchase order in the world state
+    //       await ctx.stub.putState("poNumber_" + poNumber, Buffer.from(JSON.stringify(existingOrder)));
+      
+    //       // Return the updated purchase order object
+    //       return JSON.stringify(existingOrder);
+    //     } catch (error) {
+    //       return error;
+    //     }
+    //   }
+      

@@ -22,7 +22,7 @@ class Payment extends Contract {
     async makePayment(ctx, poNumber, paymentRefrenceNumber, vendorName, invoiceNumber, invoiceDate, invoiceAmount, paymentAmount,paymentDate,paymentMethod ,description,paymentStatus,notes) {
         // get the Purchase Order from the world state
 
-        const purchaseOrderBytes = await ctx.stub.getState(poNumber);
+        const purchaseOrderBytes = await ctx.stub.getState("poNumber_"+poNumber);
         if (!purchaseOrderBytes || purchaseOrderBytes.length === 0) {
             throw new Error(`Purchase Order ${poNumber} does not exist`);
         }
@@ -55,13 +55,14 @@ class Payment extends Contract {
         if (paymentStatus == 'Paid')
         {
             let result = await ctx.stub.putState(paymentRefrenceNumber, Buffer.from(JSON.stringify(payment)));
+            return JSON.stringify(result);
         }
         else{
             throw new Error(`Please Do Complete Payment for ${poNumber} `);
         }
         
         // return the updated Purchase Order object
-        return JSON.stringify(result);
+        
     }
 
 

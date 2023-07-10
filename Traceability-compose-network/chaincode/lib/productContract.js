@@ -66,22 +66,7 @@ class ProductContract extends Contract {
             throw new Error(`This product ${productId} already exists`);
         }
 
-        // for (const rawMaterialId of rawMaterialIds) {
-            
-        //     const exists = await this.RawMaterialExists(ctx, rawMaterialId);
-        //     if (!exists) {
-        //         throw new Error(`This Raw Material ${rawId} not exists in the network`);
-        //     }
-            
-        //     rawMaterial.docType = 'rawMaterial';
-        //     // example of how to write to world state deterministically
-        //     // use convetion of alphabetic order
-        //     // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
-        //     // when retrieving data, in any lang, the order of data will be the same and consequently also the corresonding hash
-        //     await ctx.stub.putState("RM"+rawMaterial.rawID, Buffer.from(stringify(sortKeysRecursive(rawMaterial))));
-        //     console.info(`RawMaterial ${rawMaterial.rawID} initialized`);
-        // }
-        
+      
         const product = {
             orgMSP:mspid,
             productId : productId,
@@ -154,6 +139,30 @@ class ProductContract extends Contract {
         return productJSON.toString();
     }
 
+    async updateProductQuantity(ctx, productId, reduceQuantityBy) {
+
+        const existingOrderBuffer = await ctx.stub.getState("prod_"+productId);
+          if (!existingOrderBuffer || existingOrderBuffer.length === 0) {
+            throw new Error(`The product ${productId} does not exist`);
+          }
+
+        try{
+            const mspid = ctx.clientIdentity.getMSPID();
+            const existingOrder = JSON.parse(existingOrderBuffer.toString());
+            existingOrder["productQuantity"] = existingOrder["productQuantity"] - reduceQuantityBy;
+
+            // add the Purchase Order to the world state
+
+            let result = await ctx.stub.putState("prod_"+productId, Buffer.from(stringify(sortKeysRecursive(existingOrder))));
+
+            // return the Purchase Order object
+            return JSON.stringify(result);
+        }
+        catch(error){
+            return error;
+        }
+    }
+
     // DeleteProduct deletes a given product from the world state.
     async DeleteProduct(ctx, productId) {
         
@@ -167,6 +176,7 @@ class ProductContract extends Contract {
             throw new Error(`The product ${productId} does not exist`);
         }
         return ctx.stub.deleteState("prod_"+productId);
+        
     }
 
     // RawMaterialExists returns true when raw material with given ID exists in world state.
@@ -180,7 +190,7 @@ class ProductContract extends Contract {
         const query = {
             "selector":{
                 "type": "product"
-            }
+            } 
           };
           const queryResults = await ctx.stub.getQueryResult(JSON.stringify(query));
         
