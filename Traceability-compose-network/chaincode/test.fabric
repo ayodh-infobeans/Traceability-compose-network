@@ -29,7 +29,7 @@
     },
     {
         "invoke":"ProductContract:CreateProduct",
-        "args":["Prod2","5",["raw1"],"Sprite","Sprite","Food","Mumbai",100,"30","2023-05-22","2023-08-22", "awaited", "awaited", "awaited", "awaited", "created", "Sprite"]
+        "args":["Prod4",["raw1"],"Sprite","Sprite","5","Food","Mumbai",100,"30","2023-05-22","2023-08-22", "awaited", "awaited", "created", "Sprite"]
     },
     {
         "invoke":"ProductContract:UpdateProduct",

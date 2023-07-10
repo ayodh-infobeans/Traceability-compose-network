@@ -62,12 +62,15 @@ const PurchaseOrderSchema = new mongoose.Schema({
       },
       contactPersonName: {
         type: String
+        
       },
       contactPhoneNumber: {
         type: String
+        
       },
       contactEmail: {
         type: String
+        
       }
   });
 

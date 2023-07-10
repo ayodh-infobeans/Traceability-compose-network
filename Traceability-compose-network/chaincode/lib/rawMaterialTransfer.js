@@ -23,138 +23,168 @@ class RawMaterialTransfer extends Contract {
         const rawMaterials = [
             {
                 orgMSP:mspid,
-                rawID: 'RM0',
-                rawMaterialName: 'Tomato',
-                rawMaterialCategory: 'Vegetable',
-                rawMaterialLocation: 'Indore',
-                rawMaterialQuantity: 22,
-                rawMaterialPrice: 200,
+                id: uuidv4(),
+                name: 'Tomato',
+                category: 'Vegetable',
+                location: 'Indore',
+                quantity: 22,
+                price: 200,
                 type: 'rawMaterial',
-                rawMaterialDescription: 'Tomato',
-                rawMaterialProductionDate: '2023-04-21',
-                rawMaterialExpiryDate: '2023-09-01',
-                rawMaterialSpecifications: 'Data to be awaited',
-                rawMaterialCultivationMethod: 'Data to be awaited',
-                rawMaterialFertilizers: 'Data to be awaited',
-                rawMaterialStatus: 'In Stock',
-                rawMaterialImage: 'Tomato',
-                rawMaterialOwner: 'Ayodh'
+                description: 'Tomato',
+                productionDate: '2023-04-21',
+                expiryDate: '2023-09-01',
+                specifications: 'Data to be awaited',
+                cultivationMethod: 'Data to be awaited',
+                fertilizers: 'Data to be awaited',
+                status: 'In Stock',
+                image: 'Tomato',
+                owner: 'Ayodh'
             },
         ];
 
         for (const rawMaterial of rawMaterials) {
             rawMaterial.docType = 'rawMaterial';
-            // example of how to write to world state deterministically
-            // use convetion of alphabetic order
-            // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
-            // when retrieving data, in any lang, the order of data will be the same and consequently also the corresonding hash
-            await ctx.stub.putState("RM_"+rawMaterial.rawID, Buffer.from(stringify(sortKeysRecursive(rawMaterial))));
-            console.info(`RawMaterial ${rawMaterial.rawID} initialized`);
+            await ctx.stub.putState("RM_"+rawMaterial.id, Buffer.from(stringify(sortKeysRecursive(rawMaterial))));
+            console.info(`RawMaterial ${rawMaterial.id} initialized`);
         }
     }
 
     // CreateRawMaterial issues a new raw material to the world state with given details.
-    async CreateRawMaterial(ctx, rawId, rawMaterialName, rawMaterialCategory, rawMaterialLocation, rawMaterialQuantity, rawMaterialPrice, rawMaterialDescription, rawMaterialProductionDate, rawMaterialExpiryDate, rawMaterialSpecifications, rawMaterialCultivationMethod, rawMaterialFertilizers, rawMaterialImage) {
+    async CreateRawMaterial(ctx, id, name, category, location, quantity, price, description, productionDate, expiryDate, specifications, cultivationMethod, fertilizers, image) {
         // Only Grower Organization can create new raw material
         const mspid = ctx.clientIdentity.getMSPID();
         if (mspid !== 'Org1MSP') {
             throw new Error(`Caller with MSP ID ${mspid} is not authorized to create raw materials`);
         }
         // check for already existing raw materials
-        const exists = await this.RawMaterialExists(ctx, rawId);
+        // const id = uuidv4();
+        const exists = await this.RawMaterialExists(ctx, id);
         if (exists) {
-            throw new Error(`This Raw Material ${rawId} already exists`);
+            throw new Error(`This Raw Material ${id} already exists`);
         }
         
+        // const assetExists = await this.assetExistsByName(ctx, "rawMaterial" ,name);
+        // if(assetExists){
+        //     throw new Error(`This Raw Material ${id} already exists`);
+        // }
         const rawMaterial = {
             orgMSP:mspid,
-            rawID: rawId,
-            rawMaterialName: rawMaterialName,
-            rawMaterialCategory: rawMaterialCategory,
-            rawMaterialLocation: rawMaterialLocation,
-            rawMaterialQuantity: rawMaterialQuantity,
-            rawMaterialPrice: rawMaterialPrice,
+            id: id,
+            name: name,
+            category: category,
+            location: location,
+            quantity: quantity,
+            price: price,
             type: 'rawMaterial',
-            rawMaterialDescription: rawMaterialDescription,
-            rawMaterialProductionDate: rawMaterialProductionDate,
-            rawMaterialExpiryDate: rawMaterialExpiryDate,
-            rawMaterialSpecifications: rawMaterialSpecifications,
-            rawMaterialCultivationMethod: rawMaterialCultivationMethod,
-            rawMaterialFertilizers: rawMaterialFertilizers,
-            rawMaterialImage: rawMaterialImage,
-            rawMaterialOwner: ctx.clientIdentity.getID()
+            description: description,
+            productionDate: productionDate,
+            expiryDate: expiryDate,
+            specifications: specifications,
+            cultivationMethod: cultivationMethod,
+            fertilizers: fertilizers,
+            image: image,
+            owner: ctx.clientIdentity.getID()
         };
         // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
-        await ctx.stub.putState("RM_"+rawId, Buffer.from(stringify(sortKeysRecursive(rawMaterial))));
-        return JSON.stringify(rawMaterial);
+        let result = await ctx.stub.putState("RM_"+rawMaterial.id, Buffer.from(stringify(sortKeysRecursive(rawMaterial))));
+        return JSON.stringify(result);
     }
 
     // GetRawMaterialById returns the raw material stored in the world state with given id.
-    async GetRawMaterialById(ctx, rawId) {
-        const rawMaterialJSON = await ctx.stub.getState("RM_"+rawId); // get the asset from chaincode state
-        if (!rawMaterialJSON || rawMaterialJSON.length === 0) {
-            throw new Error(`The raw material ${rawId} does not exist`);
+    async GetRawMaterialById(ctx, id) {
+        const resultantJSON = await ctx.stub.getState("RM_"+id); // get the asset from chaincode state
+        if (!resultantJSON || resultantJSON.length === 0) {
+            throw new Error(`The raw material ${id} does not exist`);
         }
-        return rawMaterialJSON.toString();
+        return resultantJSON.toString();
     }
 
     // UpdateRawMaterial updates an existing raw material in the world state with provided parameters.
-    async UpdateRawMaterial(ctx, rawId, rawMaterialName, rawMaterialCategory, rawMaterialLocation, rawMaterialQuantity, rawMaterialPrice, rawMaterialDescription, rawMaterialProductionDate, rawMaterialExpiryDate, rawMaterialSpecifications, rawMaterialCultivationMethod, rawMaterialFertilizers, rawMaterialImage) {
+    async UpdateRawMaterial(ctx, id, name, category, location, quantity, price, description, productionDate, expiryDate, specifications, cultivationMethod, fertilizers, image) {
         // Only Grower organizations are allowed to update raw materials
         const mspid = ctx.clientIdentity.getMSPID();
         if (mspid !== 'Org1MSP') {
         throw new Error(`Caller with MSP ID ${mspid} is not authorized to update raw materials`);
         }
         
-        const exists = await this.RawMaterialExists(ctx, rawId);
+        const exists = await this.RawMaterialExists(ctx, id);
         if (!exists) {
-            throw new Error(`This raw material ${rawId} does not exist`);
+            throw new Error(`This raw material ${id} does not exist`);
         }
 
         // overwriting original raw material with new raw material
         const updatedRawMaterial = {
             orgMSP:mspid,
-            rawID: rawId,
-            rawMaterialName: rawMaterialName,
-            rawMaterialCategory: rawMaterialCategory,
-            rawMaterialLocation: rawMaterialLocation,
-            rawMaterialQuantity: rawMaterialQuantity,
-            rawMaterialPrice: rawMaterialPrice,
+            id: id,
+            name: name,
+            category: category,
+            location: location,
+            quantity: quantity,
+            price: price,
             type: 'rawMaterial',
-            rawMaterialDescription: rawMaterialDescription,
-            rawMaterialProductionDate: rawMaterialProductionDate,
-            rawMaterialExpiryDate: rawMaterialExpiryDate,
-            rawMaterialSpecifications: rawMaterialSpecifications,
-            rawMaterialCultivationMethod: rawMaterialCultivationMethod,
-            rawMaterialFertilizers: rawMaterialFertilizers,
-            rawMaterialImage: rawMaterialImage,
-            rawMaterialOwner: ctx.clientIdentity.getID()
+            description: description,
+            productionDate: productionDate,
+            expiryDate: expiryDate,
+            specifications: specifications,
+            cultivationMethod: cultivationMethod,
+            fertilizers: fertilizers,
+            image: image,
+            owner: ctx.clientIdentity.getID()
         };
         // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
-        return ctx.stub.putState("RM_"+rawId, Buffer.from(stringify(sortKeysRecursive(updatedRawMaterial))));
+        let result= ctx.stub.putState("RM_"+id, Buffer.from(stringify(sortKeysRecursive(updatedRawMaterial))));
+        return JSON.stringify(result);
     }
 
     // DeleteRawMaterial deletes an given raw material from the world state.
-    async DeleteRawMaterial(ctx, rawID) {
+    async DeleteRawMaterial(ctx, id) {
         
         const mspid = ctx.clientIdentity.getMSPID();
         if (mspid !== 'Org1MSP') {
             throw new Error(`Caller with MSP ID ${mspid} is not authorized to delete raw material`);
         }
         
-        const exists = await this.RawMaterialExists(ctx,rawID);
+        const exists = await this.RawMaterialExists(ctx,id);
         if (!exists) {
-            throw new Error(`The raw material ${rawID} does not exist`);
+            throw new Error(`The raw material ${id} does not exist`);
         }
-        return ctx.stub.deleteState("RM_"+rawID);
+        return ctx.stub.deleteState("RM_"+id);
     }
 
     // RawMaterialExists returns true when raw material with given ID exists in world state.
-    async RawMaterialExists(ctx, rawID) {
-        const rawMaterialJSON = await ctx.stub.getState("RM_"+rawID);
-        return rawMaterialJSON && rawMaterialJSON.length > 0;
+    async RawMaterialExists(ctx, id) {
+        const resultantJSON = await ctx.stub.getState("RM_"+id);
+        return resultantJSON && resultantJSON.length > 0;
     }
 
+    async assetExistsByName(ctx, assetName) {
+        const iterator = await ctx.stub.getStateByPartialCompositeKey('product', []);
+      
+        while (true) {
+          const response = await iterator.next();
+            
+          if (response.value && response.value.key) {
+            const splitKey = ctx.stub.splitCompositeKey(response.value.key);
+            const objectType = splitKey.objectType;
+            const attributes = splitKey.attributes;
+      
+            if (objectType === 'Product' && attributes.length > 0 && attributes[0] === assetName) {
+              await iterator.close();
+              return true; // Product with the given name exists
+            }
+          }
+      
+          if (response.done) {
+            await iterator.close();
+            break;
+          }
+        }
+      
+        return false; // Product with the given name does not exist
+    }
+      
+      
+      
     // GetAllRawMaterials returns all raw materials found in the world state.
     async GetAllRawMaterials(ctx) {
         const query = {
@@ -180,85 +210,3 @@ class RawMaterialTransfer extends Contract {
 }
 
 module.exports = RawMaterialTransfer;
- // // ShipRawMaterial from Grower to Manufacturer 
-    // async ShipRawMaterial(ctx, rawId) {
-    //     const mspId = ctx.clientIdentity.getMSPID();
-    //     if (mspId !== 'Org1MSP') {
-    //         throw new Error('Unauthorized. Only users belonging to the Grower organization can ship raw materials.');
-    //     }
-
-    //     const rawMaterial  = JSON.parse(ctx.GetRawMaterialById(rawId));
-    //     if (rawMaterial.rawMaterialOwner !== ctx.clientIdentity.getID()) {
-    //         throw new Error(`Unauthorized. Only the owner of raw materials with ID ${rawId} can ship it.`);
-    //     }
-
-    //     const shippedRawMaterial = {
-    //         rawID: rawMaterial.rawID,
-    //         rawMaterialName: rawMaterial.rawMaterialName,
-    //         rawMaterialCategory: rawMaterial.rawMaterialCategory,
-    //         rawMaterialLocation: rawMaterial.rawMaterialLocation,
-    //         rawMaterialQuantity: rawMaterial.rawMaterialQuantity,
-    //         rawMaterialPrice: rawMaterial.rawMaterialPrice,
-    //         rawMaterialType: rawMaterial.rawMaterialType,
-    //         rawMaterialDescription: rawMaterial.rawMaterialDescription,
-    //         rawMaterialProductionDate: rawMaterial.rawMaterialProductionDate,
-    //         rawMaterialExpiryDate: rawMaterial.rawMaterialExpiryDate,
-    //         rawMaterialSpecifications: rawMaterial.rawMaterialSpecifications,
-    //         rawMaterialCultivationMethod: rawMaterial.rawMaterialCultivationMethod,
-    //         rawMaterialFertilizers: rawMaterial.rawMaterialFertilizers,
-    //         rawMaterialStatus: 'Shipped',
-    //         rawMaterialImage: rawMaterial.rawMaterialImage,
-    //         rawMaterialOwner: ctx.clientIdentity.getID()
-    //     }
-
-    //     // const shippedRawMaterialKey = ctx.stub.createCompositeKey('supplychain.rawMaterial.shipped', [shippedRawMaterial.rawID]);
-    //     await ctx.stub.putState(shippedRawMaterial.rawID, Buffer.from(JSON.stringify(shippedRawMaterial)));
-    // }
-
-    // // ReceiveRawMaterial from Grower to Manufacturer
-    // async ReceiveRawMaterial(ctx, rawID) {
-    //     const mspId = ctx.clientIdentity.getMSPID();
-    //     if (mspId !== 'Org2MSP') {
-    //         throw new Error('Unauthorized. Only users belonging to the Manufacturer organization can receive raw materials.');
-    //     }
-
-    //     const rawMaterial  = JSON.parse(ctx.GetRawMaterialById(rawID));
-
-    //     const receivedRawMaterial = {
-    //         rawID: rawMaterial.rawID,
-    //         rawMaterialName: rawMaterial.rawMaterialName,
-    //         rawMaterialCategory: rawMaterial.rawMaterialCategory,
-    //         rawMaterialLocation: rawMaterial.rawMaterialLocation,
-    //         rawMaterialQuantity: rawMaterial.rawMaterialQuantity,
-    //         rawMaterialPrice: rawMaterial.rawMaterialPrice,
-    //         rawMaterialType: rawMaterial.rawMaterialType,
-    //         rawMaterialDescription: rawMaterial.rawMaterialDescription,
-    //         rawMaterialProductionDate: rawMaterial.rawMaterialProductionDate,
-    //         rawMaterialExpiryDate: rawMaterial.rawMaterialExpiryDate,
-    //         rawMaterialSpecifications: rawMaterial.rawMaterialSpecifications,
-    //         rawMaterialCultivationMethod: rawMaterial.rawMaterialCultivationMethod,
-    //         rawMaterialFertilizers: rawMaterial.rawMaterialFertilizers,
-    //         rawMaterialStatus: 'Raw Material Received to manufacturer',
-    //         rawMaterialImage: rawMaterial.rawMaterialImage,
-    //         rawMaterialOwner: ctx.clientIdentity.getID()
-    //     }
-
-    //     await ctx.stub.putState(receivedRawMaterial.rawID, Buffer.from(JSON.stringify(receivedRawMaterial)));
-    // }
-
-    // async checkRawMaterialAvailabilty(ctx, searchRawMaterial, rawMaterialQuantity) {
-    //     const allRawMaterials = await this.GetAllRawMaterials(ctx);
-    //     const data = JSON.parse(allRawMaterials);
-    //     const result = data.filter((item)=> item.rawMaterialName === searchRawMaterial);
-    //     if(result.length !== 0){
-    //         if(rawMaterialQuantity <= result[0].rawMaterialQuantity){
-    //             return "Raw material is available in required quantity : "+ JSON.stringify(result);
-    //         }
-    //         else{
-    //             return "Raw material is not available in required quantity";
-    //         }
-    //     }
-    //     else{
-    //         return "Raw material is not available"; 
-    //     }
-    // }

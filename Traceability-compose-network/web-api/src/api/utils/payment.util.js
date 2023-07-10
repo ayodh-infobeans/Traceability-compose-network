@@ -1,11 +1,9 @@
-import paypal from 'paypal-rest-sdk';
+// import paypal from 'paypal-rest-sdk';
 
 
-// const generateUniqueIdentity = (username) =>{
-//   const hash = crypto.createHash('sha256');
-//   const uniqueIdentity = hash.update(username).digest('hex');
-//   return uniqueIdentity;
-// }
+import paypal from './../../config/paypalConfig.js';
+
+
 
 const payStatus = async (amount) =>{
     let PayStatus="Due";

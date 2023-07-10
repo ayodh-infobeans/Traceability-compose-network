@@ -13,9 +13,10 @@ const configPath = path.resolve(__dirname, 'nextblock.txt');
 const configPathi = path.resolve(__dirname, 'config.json');
 const configData = fs.readFileSync(configPathi, 'utf-8');
 const config = JSON.parse(configData);
+
 const keyToDbname = config.keyToDbname;
 const orgMSPToMongoDB = config.orgMSPToMongoDB;
-  
+
 export default async function processBlockEvent(channelname, block, use_mongodb) {
 
     return new Promise((async (resolve, reject) => {
@@ -125,6 +126,8 @@ export default async function processBlockEvent(channelname, block, use_mongodb)
 
     }));
 }
+
+            
 
 async function writeValuesToMongoDBP(channelname, writeObject) {
 

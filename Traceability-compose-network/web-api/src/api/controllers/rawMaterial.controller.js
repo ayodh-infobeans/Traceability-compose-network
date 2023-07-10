@@ -4,8 +4,10 @@ import offchainUtil from '../utils/offchain.util.js';
 import RawModel from '../../models/rawmodel.js';
 
 const { connectToFabricNetwork, connectToMongoDB } = Connections;
-const { generateResponsePayload } = commonUtils;
+const { generateResponsePayload, getOrgNameFromMSP } = commonUtils;
 const { setOrgChannel,runOffchainScript,stopOffchainScript } = offchainUtil;
+import {v4 as uuidv4} from 'uuid';
+
 
 const GetAllRawMaterial = async(req, res) =>{
     try{
@@ -13,21 +15,21 @@ const GetAllRawMaterial = async(req, res) =>{
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
         
         if(!networkAccess?.status){
-            const responsePayload = generateResponsePayload(null, error?.name, error?.message);
+            const responsePayload = generateResponsePayload(error?.message, "error",500, null);
             return res.send(responsePayload);
         }
 
         let result = await networkAccess?.contract?.evaluateTransaction("RawMaterialTransfer:GetAllRawMaterials");
         if(result) {
-            const responsePayload = generateResponsePayload(result?.toString(), null, null);
+            const responsePayload = generateResponsePayload("Raw Materials","Success", 200 ,result?.toString());
             await networkAccess?.gateway?.disconnect();
             return res.send(responsePayload);
         }
 
-        const responsePayload = generateResponsePayload(null, "Oops!", "Something went wrong. Please try again.");
+        const responsePayload = generateResponsePayload("Something went wrong. Please try again.", "false", 500, null);
         return res.send(responsePayload);
     } catch (error){
-        const responsePayload = generateResponsePayload(null, error?.name, error?.message);
+        const responsePayload = generateResponsePayload(error?.message, "error",500, null);
         return res.send(responsePayload);
     }
 
@@ -40,19 +42,21 @@ const CreateRawMaterial = async(req, res) =>{
         let options = setOrgChannel(networkAccess?.org, channelName);
 
         if(!networkAccess?.status){
-            const response_payload = generateResponsePayload(null, error?.name, error?.message);
+            const response_payload = generateResponsePayload(error?.message, "error",500, null);
             return res.send(response_payload);
         }
-        let result = await networkAccess?.contract?.submitTransaction("RawMaterialTransfer:CreateRawMaterial", data?.rawID, data?.rawMaterialName, data?.rawMaterialCategory, data?.rawMaterialLocation, data?.rawMaterialQuantity, data?.rawMaterialPrice, data?.rawMaterialDescription, data?.rawMaterialProductionDate, data?.rawMaterialExpiryDate, data?.rawMaterialSpecifications, data?.rawMaterialCultivationMethod, data?.rawMaterialFertilizers, data?.rawMaterialImage);
+        let id = uuidv4();
+        let result = await networkAccess?.contract?.submitTransaction("RawMaterialTransfer:CreateRawMaterial", id, data?.name, data?.category, data?.location, data?.quantity, data?.price, data?.description, data?.productionDate, data?.expiryDate, data?.specifications, data?.cultivationMethod, data?.fertilizers, data?.image);
         
         await runOffchainScript("node",options);
         await connectToMongoDB(networkAccess?.org);
 
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        const obj = await RawModel.findOne({rawID:data?.rawID});
-        if (obj.toString()) {
+        await new Promise(resolve => setTimeout(resolve, 6000));
+        const obj = await RawModel.findOne({id:id});
+        console.log("obj output check =",obj.length);
+        if (obj) {
             
-            obj.rawMaterialStatus=data?.rawMaterialStatus;
+            obj.status=data?.status;
 
             obj.orgMSP= orgMSP;
             obj.userName= userName;
@@ -70,16 +74,17 @@ const CreateRawMaterial = async(req, res) =>{
         await stopOffchainScript();
 
         if(result) {
-            const responsePayload = generateResponsePayload(result?.toString(), null, null);
+            const responsePayload = generateResponsePayload("Raw Material created successfully", "success", 200, null);
             await networkAccess?.gateway?.disconnect();
             return res.send(responsePayload);
         }
 
-        const responsePayload = generateResponsePayload(null, "Oops!", "Something went wrong. Please try again.");
+        const responsePayload = generateResponsePayload("Something went wrong. Please try again.", "false", 500, null);
         return res.send(responsePayload);
     }
     catch (error){
-        const response_payload = generateResponsePayload(null, error?.name, error?.message);
+        console.log("================================================",res.status);
+        const response_payload = generateResponsePayload(error?.message, "error",500, null);
         return res.send(response_payload)
     }
 }
@@ -90,15 +95,15 @@ const UpdateRawMaterial = async(req, res) =>{
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
         let options = setOrgChannel(networkAccess?.org, channelName);
         if(!networkAccess?.status){
-            const response_payload = generateResponsePayload(null, error?.name, error?.message);
+            const response_payload = generateResponsePayload(error?.message, "error",500, null);
             return res.send(response_payload);
         }
-        let result = await networkAccess?.contract.submitTransaction('RawMaterialTransfer:UpdateRawMaterial', data?.rawID, data?.rawMaterialName, data?.rawMaterialCategory, data?.rawMaterialLocation, data?.rawMaterialQuantity, data?.rawMaterialPrice, data?.rawMaterialDescription, data?.rawMaterialProductionDate, data?.rawMaterialExpiryDate, data?.rawMaterialSpecifications, data?.rawMaterialCultivationMethod, data?.rawMaterialFertilizers,  data?.rawMaterialImage);
+        let result = await networkAccess?.contract.submitTransaction('RawMaterialTransfer:UpdateRawMaterial', data?.id, data?.name, data?.category, data?.location, data?.quantity, data?.price, data?.description, data?.productionDate, data?.expiryDate, data?.specifications, data?.cultivationMethod, data?.fertilizers,  data?.image);
         await runOffchainScript("node",options);
         await connectToMongoDB(networkAccess?.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
-        const obj = await RawModel.findOne({rawID:data?.rawID});
-        if (obj.toString()) {
+        const obj = await RawModel.findOne({id:data?.id});
+        if (obj) {
 
             obj.orgMSP= orgMSP;
             obj.userName= userName;
@@ -106,7 +111,7 @@ const UpdateRawMaterial = async(req, res) =>{
             obj.channelName= channelName;
             obj.chaincodeName= chaincodeName;
 
-            obj.rawMaterialStatus=data?.rawMaterialStatus;
+            obj.status=data?.status;
             // Save the modified document back to the database
             await obj.save();
             console.log('Document updated successfully.');
@@ -116,16 +121,16 @@ const UpdateRawMaterial = async(req, res) =>{
         }
         await stopOffchainScript();
         if(result) {
-            const responsePayload = generateResponsePayload(result?.toString(), null, null);
+            const responsePayload = generateResponsePayload("Raw Material Updated Successfully","Success",200, null);
             await networkAccess?.gateway?.disconnect();
             return res.send(responsePayload);
         }
 
-        const responsePayload = generateResponsePayload(null, "Oops!", "Something went wrong. Please try again.");
+        const responsePayload = generateResponsePayload("Something went wrong. Please try again.", "false", 500, null);
         return res.send(responsePayload);
     }
     catch (error){
-        const response_payload = generateResponsePayload(null, error?.name, error?.message);
+        const response_payload = generateResponsePayload(error?.message, "error",500, null);
         return res.send(response_payload)
     }
 }
@@ -135,21 +140,21 @@ const GetRawMaterialById = async(req, res) => {
         const {userName, orgMSP ,channelName, chaincodeName, data} = req?.body;
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
         if(!networkAccess.status){
-            const response_payload = generateResponsePayload(null, error?.name, error?.message);
+            const response_payload = generateResponsePayload(error?.message, "error",500, null);
             return res.send(response_payload);
         }
-        let result = await networkAccess?.contract?.evaluateTransaction("RawMaterialTransfer:GetRawMaterialById", data?.rawID);
+        let result = await networkAccess?.contract?.evaluateTransaction("RawMaterialTransfer:GetRawMaterialById", data?.id);
         if(result) {
-            const responsePayload = generateResponsePayload(result?.toString(), null, null);
+            const responsePayload = generateResponsePayload(`Raw Material is available with given ${data?.id}.`,"Success", 200,result?.toString());
             await networkAccess?.gateway?.disconnect();
             return res.send(responsePayload);
         }
 
-        const responsePayload = generateResponsePayload(null, "Oops!", "Something went wrong. Please try again.");
+        const responsePayload = generateResponsePayload("Something went wrong. Please try again.", "false", 500, null);
         return res.send(responsePayload);
     }
     catch (error){
-        const response_payload = generateResponsePayload(null, error?.name, error?.message);
+        const response_payload = generateResponsePayload(error?.message, "error",500, null);
         return res.send(response_payload)
     }
 }
@@ -160,25 +165,25 @@ const DeleteRawMaterial = async(req, res) =>{
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
         let options = setOrgChannel(networkAccess?.org, channelName);
         if(!networkAccess?.status){
-            const response_payload = generateResponsePayload(null, error?.name, error?.message);
+            const response_payload = generateResponsePayload(error?.message, "error",500, null);
             return res.send(response_payload);
         }
-        let result = await networkAccess?.contract?.submitTransaction("RawMaterialTransfer:DeleteRawMaterial", data?.rawID);
+        let result = await networkAccess?.contract?.submitTransaction("RawMaterialTransfer:DeleteRawMaterial", data?.id);
         await runOffchainScript("node",options);
         await new Promise(resolve => setTimeout(resolve, 3000));
         await stopOffchainScript();
         if(result) {
-            const responsePayload = generateResponsePayload(result?.toString(), null, null);
+            const responsePayload = generateResponsePayload("Raw Material Deleted Successfully", "Success", 200, result?.toString());
             await networkAccess?.gateway?.disconnect();
             return res.send(responsePayload);
         }
         
-        const responsePayload = generateResponsePayload(null, "Oops!", "Something went wrong. Please try again.");
+        const responsePayload = generateResponsePayload("Something went wrong. Please try again.", "false", 500, null);
         return res.send(responsePayload);
     }
 
     catch (error){
-        const response_payload = generateResponsePayload(null, error?.name, error?.message);
+        const response_payload = generateResponsePayload(error?.message, "error",500, null);
         return res.send(response_payload);
     }
 }
@@ -187,35 +192,36 @@ const DeleteRawMaterial = async(req, res) =>{
 const CheckRawMaterialAvailability = async(req, res)=>{
     try{
         const {data} = req?.body;
+        let org = getOrgNameFromMSP(req?.body?.orgMSP);
+        await connectToMongoDB(org);
+        const rawObj = await RawModel.find({name: data?.name});
         
-        const rawObj = await RawModel.find({rawMaterialName: data?.rawMaterialName});
-
-        if(rawObj.toString()){
-            const obj=await RawModel.find({ $and: [{rawMaterialName: data?.rawMaterialName},{rawMaterialQuantity: {$gte:data?.rawMaterialQuantity}}]});                
-            if(obj.toString()){
-                    // return "Raw material is available in required quantity : "+ JSON.stringify(result);
+        if(rawObj.length > 0){
+            const obj=await RawModel.find({ $and: [{name: data?.name},{quantity: {$gte:data?.quantity}}]});                
+            
+            if(obj.length > 0 ){
                 return res.status(200).json({
                     status: true,
-                    result: "This "+ JSON.stringify(rawObj) + "raw material is available in required quantity"
+                    result: "Raw material is available in required quantity"
                 });
             }
             else{
                 return res.status(500).json({
                     status: false,
                     message: "Raw material is not available in required quantity"
-                })
+                });
             }
         }
         else{
             return res.status(500).json({
                 status: false,
                 message: "Raw material is not available"
-            })
+            });
         }
         
     }
     catch (error){
-        const response_payload = generateResponsePayload(null, error?.name, error?.message);
+        const response_payload = generateResponsePayload(error?.message, "error",500, null);
         return res.send(response_payload);
     }
 }
@@ -223,26 +229,28 @@ const CheckRawMaterialAvailability = async(req, res)=>{
 
 const ConfirmRawMaterialAvailability = async(req, res)=>{
     try{
-        const {data} = req?.body;
+        const {orgMSP, data} = req?.body;
+        let org = getOrgNameFromMSP(req?.body?.orgMSP);
+        await connectToMongoDB(org);
         if (orgMSP != "Org1MSP"){
             
             return res.status(400).json({ message: `Caller with MSP ID ${orgMSP} is not authorized to confirm raw material availability` });
         }
 
-        const rawObj = await RawModel.find({rawMaterialName: data?.rawMaterialName});
-        if(rawObj.toString()){
-            const obj=await RawModel.find({ $and: [{rawMaterialName: data?.rawMaterialName},{rawMaterialQuantity: {$gte:data?.rawMaterialQuantity}},{rawMaterialPrice: { $eq: data?.rawMaterialPrice }}]});                
-            if(obj.toString()){
-                    // return "Raw material is available in required quantity : "+ JSON.stringify(result);
-                return res.status(500).json({
-                    status: false,
+        const rawObj = await RawModel.find({name: data?.name});
+        if(rawObj.length > 0){
+            const obj=await RawModel.find({ $and: [{name: data?.name},{quantity: {$gte:data?.quantity}},{price: { $eq: data?.price }}]});                
+        
+            if(obj.length > 0){
+                return res.status(200).json({
+                    status: true,
                     message: "Confirmed Raw material is  available in this required quantity and price."
                 })                  
             }
             else{
-                return res.status(200).json({
-                    status: true,
-                    result: "Please"+ JSON.stringify(rawObj) + " provide  this raw material detail with availabile quantity and its mentioned price. "
+                return res.status(500).json({
+                    status: false,
+                    result: "Raw Material is not available with required quantity & price"
                 });
             }
         }
@@ -251,15 +259,10 @@ const ConfirmRawMaterialAvailability = async(req, res)=>{
                 status: false,
                 message: "Raw material is not available."
             })
-        }
-        // rawMaterialName: data.rawMaterialName;
-        // rawMaterialQuantity: data.rawMaterialQuantity;
-        // rawMaterialUnitPrice: data.rawMaterialUnitPrice;
-        // shippingDateTime: data.shippingDateTime;
-        // estDeliveryDateTime: data.estDeliveryDateTime        
+        } 
     }
     catch (error){
-        const response_payload = generateResponsePayload(null, error?.name, error?.message);
+        const response_payload = generateResponsePayload(error?.message, "error",500, null);
         return res.send(response_payload);
     }
 }
@@ -277,48 +280,3 @@ export default{
 
 
 }
-
-
-// await new Promise(resolve => setTimeout(resolve, 5000));
-//         const obj = await RawModel.findOne({rawID:data.rawID});
-//         console.log(obj);
-//         if (obj.toString()) {
-//             obj.org= req.body.org;
-//             obj.userName= req.body.userName;
-//             obj.userType= req.body.userType;
-//             obj.channelName= req.body.channelName;
-//             obj.chaincodeName= req.body.chaincodeName;
-//             // Save the modified document back to the database
-//             await obj.save();
-//             console.log('Document updated successfully.');
-//           } else {
-//             console.log('Document not found.');
-//           }
-
-
-
-
-// const rawObj = await RawModel.find({rawMaterialName: data.rawMaterialName});
-
-//             if(rawObj.toString()){
-//                 const obj=await RawModel.find({ $and: [{rawMaterialName: data.rawMaterialName},{rawMaterialQuantity: {$gte:data.rawMaterialQuantity}}]});                
-//                 if(obj.toString()){
-//                     // return "Raw material is available in required quantity : "+ JSON.stringify(result);
-//                     res.status(200).json({
-//                         status: true,
-//                         result: "This "+ JSON.stringify(rawObj) + "raw material is available in required quantity"
-//                     });
-//                 }
-//                 else{
-//                     res.status(500).json({
-//                         status: false,
-//                         message: "Raw material is not available in required quantity"
-//                     })
-//                 }
-//             }
-//             else{
-//                 res.status(500).json({
-//                     status: false,
-//                     message: "Raw material is not available"
-//                 })
-//             }

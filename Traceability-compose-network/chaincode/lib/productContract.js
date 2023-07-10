@@ -18,158 +18,160 @@ class ProductContract extends Contract {
         if (mspid !== 'Org2MSP') {
             throw new Error(`Caller with MSP ID ${mspid} is not authorized to initialize products`);
         }
-    
 
         const products = [
             {
                 orgMSP:mspid,
-                productId : "prod1",
+                id : 'test',
                 manufacturerId: "Man1",
-                productBatchNo: 2,
-                productBatchManufacturingDate: "2023-04-25",
-                productBatchExpiryDate: "2023-07-28",
+                batchNo: 2,
+                batchManufacturingDate: "2023-04-25",
+                batchExpiryDate: "2023-07-28",
                 rawMaterialIds: ["raw1", "raw2"],
-                productName: "chips",
-                productDescription: "chips",
-                productCategory: "Food",
-                productManufacturingLocation: "Indore",
-                productQuantity: "50",
-                productManufacturingPrice: "1000",
-                productManufacturingDate: "2023-04-25",
-                productExpiryDate: "2023-08-22",
-                productIngredients: "awaited Data",
+                name: "chips",
+                description: "chips",
+                category: "Food",
+                manufacturingLocation: "Indore",
+                quantity: "50",
+                manufacturingPrice: "1000",
+                manufacturingDate: "2023-04-25",
+                expiryDate: "2023-08-22",
+                ingredients: "awaited Data",
+                temprature:"27",
                 type: "product",
-                productSKU: "uniqueXYZ",
-                productGTIN: "GTINXYZ",
-                productImage: "chips" 
+                SKU: "uniqueXYZ",
+                GTIN: "GTINXYZ",
+                image: "chips" 
             },
         ];
 
         for (const product of products) {
             product.docType = 'product';
-            await ctx.stub.putState("prod_"+product.productId, Buffer.from(stringify(sortKeysRecursive(product))));
-            console.info(`Product ${product.productId} initialized`);
+            await ctx.stub.putState("prod_"+product.id, Buffer.from(stringify(sortKeysRecursive(product))));
+            console.info(`Product ${product.id} initialized`);
         }
     }
 
     // CreateProduct issues a new product to the world state with given details.
-    async CreateProduct(ctx, productId,rawMaterialIds, productName, productDescription, productCategory, productManufacturingLocation, productQuantity, productManufacturingPrice, productManufacturingDate, productExpiryDate, productIngredients, productSKU, productGTIN, productImage) {
+    async CreateProduct(ctx, id, rawMaterialIds, name, description, category, manufacturingLocation, quantity, manufacturingPrice, manufacturingDate, expiryDate, ingredients,temprature, SKU, GTIN, image) {
         // Only Manufacturer Organization can create new product
         const mspid = ctx.clientIdentity.getMSPID();
         if (mspid !== 'Org2MSP') {
             throw new Error(`Caller with MSP ID ${mspid} is not authorized to create product`);
         }
         // check for already existing products
-        const exists = await this.ProductExists(ctx, productId);
+        const exists = await this.ProductExists(ctx, id);
         if (exists) {
-            throw new Error(`This product ${productId} already exists`);
+            throw new Error(`This product ${id} already exists`);
         }
-
-        // for (const rawMaterialId of rawMaterialIds) {
-            
-        //     const exists = await this.RawMaterialExists(ctx, rawMaterialId);
-        //     if (!exists) {
-        //         throw new Error(`This Raw Material ${rawId} not exists in the network`);
-        //     }
-            
-        //     rawMaterial.docType = 'rawMaterial';
-        //     // example of how to write to world state deterministically
-        //     // use convetion of alphabetic order
-        //     // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
-        //     // when retrieving data, in any lang, the order of data will be the same and consequently also the corresonding hash
-        //     await ctx.stub.putState("RM"+rawMaterial.rawID, Buffer.from(stringify(sortKeysRecursive(rawMaterial))));
-        //     console.info(`RawMaterial ${rawMaterial.rawID} initialized`);
-        // }
         
+        // const assetExists = await this.assetExistsByName(ctx, "product" ,name);
+        // console.log("=========================3",assetExists);
+        // if(assetExists){
+        //     throw new Error(`This Product ${id} already exists`);
+        // }
+
         const product = {
             orgMSP:mspid,
-            productId : productId,
+            id : id,
             manufacturerId: ctx.clientIdentity.getID(),
             rawMaterialIds: rawMaterialIds,
-            productName: productName,
-            productDescription: productDescription,
-            productCategory: productCategory,
-            productManufacturingLocation: productManufacturingLocation,
-            productQuantity: productQuantity,
-            productManufacturingPrice: productManufacturingPrice,
-            productManufacturingDate: productManufacturingDate,
-            productExpiryDate: productExpiryDate,
-            productIngredients: productIngredients,
+            name: name,
+            description: description,
+            category: category,
+            manufacturingLocation: manufacturingLocation,
+            quantity: quantity,
+            manufacturingPrice: manufacturingPrice,
+            manufacturingDate: manufacturingDate,
+            expiryDate: expiryDate,
+            ingredients: ingredients,
+            temprature: temprature,
             type: "product",
-            productSKU: productSKU,
-            productGTIN: productGTIN,
-            productImage: productImage
+            SKU: SKU,
+            GTIN: GTIN,
+            image: image
         };
         
         // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
-        await ctx.stub.putState("prod_"+productId, Buffer.from(stringify(sortKeysRecursive(product))));
-        return JSON.stringify(product);
+        let result = await ctx.stub.putState("prod_"+id, Buffer.from(stringify(sortKeysRecursive(product))));
+        return JSON.stringify(result);
     }
 
-    async UpdateProduct(ctx, productId,rawMaterialIds, productName, productDescription, productCategory, productManufacturingLocation, productQuantity, productManufacturingPrice, productManufacturingDate,productExpiryDate, productIngredients, productSKU, productGTIN,productImage){
+    async UpdateProduct(ctx, id, rawMaterialIds, name, description, category, manufacturingLocation, quantity, manufacturingPrice, manufacturingDate, expiryDate, ingredients,temprature, SKU, GTIN, image){
         // Only Manufacturer Organization can update product
         const mspid = ctx.clientIdentity.getMSPID();
         if (mspid !== 'Org2MSP') {
             throw new Error(`Caller with MSP ID ${mspid} is not authorized to update product`);
         }
 
-        const exists = await this.ProductExists(ctx, productId);
+        const exists = await this.ProductExists(ctx, id);
         if (!exists) {
-            throw new Error(`This product ${productId} does not exist`);
+            throw new Error(`This product ${id} does not exist`);
         }
         
         const updateProduct = {
             orgMSP:mspid,
-            productId : productId,
+            id : id,
             manufacturerId: ctx.clientIdentity.getID(),
             rawMaterialIds: rawMaterialIds,
-            productName: productName,
-            productDescription: productDescription,
-            productCategory: productCategory,
-            productManufacturingLocation: productManufacturingLocation,
-            productQuantity: productQuantity,
-            productManufacturingPrice: productManufacturingPrice,
-            productManufacturingDate: productManufacturingDate,
-            productExpiryDate: productExpiryDate,
-            productIngredients: productIngredients,
+            name: name,
+            description: description,
+            category: category,
+            manufacturingLocation: manufacturingLocation,
+            quantity: quantity,
+            manufacturingPrice: manufacturingPrice,
+            manufacturingDate: manufacturingDate,
+            expiryDate: expiryDate,
+            ingredients: ingredients,
+            temprature: temprature,
             type: "product",
-            productSKU: productSKU,
-            productGTIN: productGTIN,
-            productImage: productImage
+            SKU: SKU,
+            GTIN: GTIN,
+            image: image
         };
         // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
-        return ctx.stub.putState("prod_"+productId, Buffer.from(stringify(sortKeysRecursive(updateProduct))));
+        let result = ctx.stub.putState("prod_"+id, Buffer.from(stringify(sortKeysRecursive(updateProduct))));
+        return JSON.stringify(result);
     }
 
     // GetProductById returns the product stored in the world state with given id.
-    async GetProductById(ctx, productId) {
-        const productJSON = await ctx.stub.getState("prod_"+productId); // get the product from chaincode state
-        if (!productJSON || productJSON.length === 0) {
-            throw new Error(`The product ${productId} does not exist`);
+    async GetProductById(ctx, id) {
+        const resultJSON = await ctx.stub.getState("prod_"+id); // get the product from chaincode state
+        if (!resultJSON || resultJSON.length === 0) {
+            throw new Error(`The product ${id} does not exist`);
         }
-        return productJSON.toString();
+        return resultJSON.toString();
     }
 
     // DeleteProduct deletes a given product from the world state.
-    async DeleteProduct(ctx, productId) {
+    async DeleteProduct(ctx, id) {
         
         const mspid = ctx.clientIdentity.getMSPID();
         if (mspid !== 'Org2MSP') {
             throw new Error(`Caller with MSP ID ${mspid} is not authorized to delete product`);
         }
         
-        const exists = await this.ProductExists(ctx, productId);
+        const exists = await this.ProductExists(ctx, id);
         if (!exists) {
-            throw new Error(`The product ${productId} does not exist`);
+            throw new Error(`The product ${id} does not exist`);
         }
-        return ctx.stub.deleteState("prod_"+productId);
+        return ctx.stub.deleteState("prod_"+id);
     }
 
     // RawMaterialExists returns true when raw material with given ID exists in world state.
-    async ProductExists(ctx, productId) {
-        const productJSON = await ctx.stub.getState("prod_"+productId);
-        return productJSON && productJSON.length > 0;
+    async ProductExists(ctx, id) {
+        const resultJSON = await ctx.stub.getState("prod_"+id);
+        return resultJSON && resultJSON.length > 0;
     }    
+
+    async assetExistsByName(ctx, type, name) {
+        const assetNameKey = ctx.stub.createCompositeKey(type, [name]);
+        console.log("=========================1",assetNameKey);
+        const assetData = await ctx.stub.getState(assetNameKey);
+        console.log("=========================2",assetData.toString());
+      
+        return assetData && assetData.length > 0;
+    }
 
     // GetAllProducts returns all products found in the world state.
     async GetAllProducts(ctx) {
@@ -196,21 +198,3 @@ class ProductContract extends Contract {
    
 }
 module.exports = ProductContract;
-
-
-// async checkProductAvailability(ctx, searchProduct, productQuantity) {
-//     const allProducts = await this.GetAllProducts(ctx);
-//     const data = JSON.parse(allProducts);
-//     const result = data.filter((item)=> item.productName === searchProduct);
-//     if(result.length !== 0){
-//         if(productQuantity <= result[0].productQuantity){
-//             return "Product is available in required quantity : "+ JSON.stringify(result);
-//         }
-//         else{
-//             return "Product is not available in required quantity";
-//         }
-//     }
-//     else{
-//         return "Product is not available"; 
-//     }
-// }

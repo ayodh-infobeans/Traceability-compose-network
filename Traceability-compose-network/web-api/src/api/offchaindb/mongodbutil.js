@@ -13,6 +13,7 @@ import BatchModel from './../../models/batchmodel.js';
 import OrderShipmentModel from './../../models/ordershipmentmodel.js';
 import PaymentModel from './../../models/paymentmodel.js';
 
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const configPathi = path.resolve(__dirname, 'config.json');
@@ -33,6 +34,7 @@ const modelToModel = {
 
 }
 
+
 export default {
   writeToMongoDB: async function(uri, modelStr, key, value) {
     try {
@@ -50,16 +52,11 @@ export default {
       
       let ID = modelToID[modelStr];
       let model =  modelToModel[modelStr]
-      console.log("ID ==",ID);
-      console.log("key ==",key);
-      console.log("model ==",model);
-
+  
       const existingRecord = await model.findOne({[ID]: key });
-      console.log("existingRecord ==",existingRecord);
      
       if (existingRecord) {
           // await RaBatchModelwModel.replaceOne({rawID: key }, value);
-          console.log("at update product");
           await model.updateOne({[ID]: key }, value)
             .then(result => {
               console.log('Document updated:', result);

@@ -48,27 +48,27 @@ const registerUser = async (req, res) => {
                 logger.debug('Successfully registered the username %s for organization %s', userName, orgMSP);
                 obj.save()
                     .then(async () => {
-                        response.token = token;
+                        // response.token = token;
                         let subject = 'User Registration Successful';
                         let msg_body = 'Hi ' + userName + ' ' + orgMSP + ',<br />';
                             msg_body += `Registration Successful !! Please same your user Id & token for future login & assistance<br />`;
                             msg_body += '<br /><br /> User Id' + response?.userId + '<br />';
                         // await sendEmailByNodemailer(userEmail, subject, msg_body);
-                        return res.send(generateResponsePayload(response)); 
+                        return res.send(generateResponsePayload("User Registration Successfull", "Success", 200, response)); 
                     })
                     .catch((error) => {
-                        return res.send(generateResponsePayload(null, error?.message, "An error occurred while saving user details"));
+                        return res.send(generateResponsePayload(error?.message, "error",500, null));
                     });
                     return;
             } else {
                 logger.debug('Failed to register the username %s for organization %s with::%s', userName, orgMSP ,response);
-                return res.send(generateResponsePayload(null, response));
+                return res.send(generateResponsePayload("Something went wrong. Please try again.", "false", 500, response));
             }
         }
-        return res.send(generateResponsePayload(null, "Something went wrong Please try again", "OOP's"));
+        return res.send(generateResponsePayload("Something went wrong. Please try again.", "false", 500, null));
     }
     catch(error){
-        return res.send(generateResponsePayload(null, error?.message, error?.name));
+        return res.send(generateResponsePayload(error?.message, "error",500, null));
     }
 }   
 
@@ -86,16 +86,16 @@ const loginUser = async (req, res) => {
             let wallet = await buildWallet(Wallets, walletPath);
             const userIdentityExist = await userExist(wallet,userName);
             if(userIdentityExist){
-                return res.json(generateResponsePayload(token));
+                return res.json(generateResponsePayload("Login Successful", "Success", 200, token));
             }
             else{
-                return res.json(generateResponsePayload(null, `User with username ${userName} is not registered with ${orgMSP}, Please register first.`));
+                return res.json(generateResponsePayload(`User with username ${userName} is not registered with ${orgMSP}, Please register first.`, "false", 500, null));
             }
         }
-        return res.send(generateResponsePayload(null, "Something went wrong Please try again", "OOP's"));
+        return res.send(generateResponsePayload("Something went wrong. Please try again.", "false", 500, null));
     }
     catch(error){
-        return res.send(generateResponsePayload(null, error?.message, error?.name));
+        return res.send(generateResponsePayload(error?.message, "error",500, null));
     }
     
 }

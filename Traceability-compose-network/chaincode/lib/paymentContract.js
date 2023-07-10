@@ -6,40 +6,22 @@
 
 'use strict';
 
-// Deterministic JSON.stringify()
-const stringify  = require('json-stringify-deterministic');
-const sortKeysRecursive  = require('sort-keys-recursive');
 const { Contract } = require('fabric-contract-api');
 
-
 class Payment extends Contract {
-    // async PaymentIDExists(ctx, rawID) {
-    //     const rawMaterialJSON = await ctx.stub.getState(rawID);
-    //     return rawMaterialJSON && rawMaterialJSON.length > 0;
-    // }
-    
 
     async makePayment(ctx, poNumber, paymentRefrenceNumber, vendorName, invoiceNumber, invoiceDate, invoiceAmount, paymentAmount,paymentDate,paymentMethod ,description,paymentStatus,notes) {
-        // get the Purchase Order from the world state
-
+        
         const purchaseOrderBytes = await ctx.stub.getState(poNumber);
         if (!purchaseOrderBytes || purchaseOrderBytes.length === 0) {
             throw new Error(`Purchase Order ${poNumber} does not exist`);
         }
 
-        // const exists = await this.PaymentIDExists(ctx, paymentRefrenceNumber);
-        // if (exists) {
-        //     throw new Error(`This Raw Material ${rawId} already exists`);
-        // }
-
         const payment ={
-
             paymentRefrenceNumber: paymentRefrenceNumber,
             vendorName: vendorName,
             invoiceNumber: invoiceNumber,
             invoiceDate: invoiceDate,
-            // paymentDueDate: paymentDueDate,
-            //  paymentReciept
             type:"transaction",
             invoiceAmount: invoiceAmount,
             paymentAmount:  paymentAmount,
@@ -48,20 +30,19 @@ class Payment extends Contract {
             description: description,
             paymentStatus: paymentStatus,
             notes: notes
-
         };
-        
+        let result;
         // update the Purchase Order status to 'Paid'
         if (paymentStatus == 'Paid')
         {
-            await ctx.stub.putState(paymentRefrenceNumber, Buffer.from(JSON.stringify(payment)));
+            result = await ctx.stub.putState(paymentRefrenceNumber, Buffer.from(JSON.stringify(payment)));
         }
         else{
             throw new Error(`Please Do Complete Payment for ${poNumber} `);
         }
         
         // return the updated Purchase Order object
-        return JSON.stringify(payment);
+        return JSON.stringify(result);
     }
 
 

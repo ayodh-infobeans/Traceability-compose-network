@@ -44,6 +44,8 @@ async function main() {
          // initialize the next block to be 0
         let nextBlock = 0;
         const { walletSegments, pathSegments } = segment[process.argv[2]];
+ 
+    
         // check to see if there is a next block already defined
         if (fs.existsSync(configPath)) {
             // read file containing the next block to read

@@ -7,10 +7,10 @@ const workingDirectory = `./src/api/offchaindb`;
 const scriptPath = path.join(workingDirectory, 'blockEventListener.js');
 
 
-const setOrgChannel = (org, channelName, network) =>{
+const setOrgChannel = (org, channelName) =>{
 
     let additionalArgs = [org, channelName];
-    let options = [scriptPath, ...additionalArgs, network];
+    let options = [scriptPath, ...additionalArgs];
 
     return options;
     

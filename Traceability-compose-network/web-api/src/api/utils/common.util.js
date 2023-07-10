@@ -13,11 +13,12 @@ const generateUniqueIdentity = (username) =>{
   return uniqueIdentity;
 }
 
-const generateResponsePayload = (result = null, errorName = null, errorData = null) =>{
+const generateResponsePayload = (message = null, status = null, code = null, data = null) =>{
   return {
-    result: result,
-    error: errorName,
-    errorData: errorData
+    message: message,
+    status: status,
+    code: code,
+    data: data
   }
 }
 
