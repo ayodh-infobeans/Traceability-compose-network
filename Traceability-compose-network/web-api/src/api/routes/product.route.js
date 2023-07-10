@@ -1,11 +1,12 @@
 import express from 'express';
 import productController from '../controllers/product.controller.js';
 import { verifyToken } from '../middleware/jwtAuthent.js';
+import upload from '../storage/multerIndex.js';
 const router = express.Router();
 
-router.get('/',verifyToken,productController.GetAllProducts);
-router.route('/create').post(verifyToken,productController.CreateProduct);
-router.route('/update').post(verifyToken,productController.UpdateProduct);
+router.get('/',verifyToken, productController.GetAllProducts);
+router.route('/create').post(verifyToken, upload.single('data[productImage]'), productController.CreateProduct);
+router.route('/update').post(verifyToken,upload.single('data[productImage]'),productController.UpdateProduct);
 router.route('/viewProduct').get(verifyToken,productController.GetProductById);
 router.route('/remove').post(verifyToken,productController.DeleteProduct);
 router.route('/checkAvailability').get(verifyToken,productController.CheckProductAvailability);
@@ -19,6 +20,8 @@ router.get('/status', (req, res) => {
 		URL: req.originalUrl,
 	});
 });
+
+
 
 export default router;
 

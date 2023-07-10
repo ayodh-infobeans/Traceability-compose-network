@@ -2,7 +2,9 @@ import Connections from '../utils/connections.util.js';
 import commonUtils from '../utils/common.util.js';
 import offchainUtil from '../utils/offchain.util.js';
 import RawModel from '../../models/rawmodel.js';
+import pinata from './../storage/pinataIndex.js';
 
+const { uploadToPinata } = pinata;
 const { connectToFabricNetwork, connectToMongoDB } = Connections;
 const { generateResponsePayload } = commonUtils;
 const {setOrgChannel,runOffchainScript,stopOffchainScript } = offchainUtil;
@@ -38,12 +40,13 @@ const CreateRawMaterial = async(req, res) =>{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req?.body;
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
         let options = setOrgChannel(networkAccess?.org, channelName);
+        const imgPath =  await uploadToPinata(req?.file?.path);
 
         if(!networkAccess?.status){
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
-        let result = await networkAccess?.contract.submitTransaction("RawMaterialTransfer:CreateRawMaterial", data?.rawID, data?.rawMaterialName, data?.rawMaterialCategory, data?.rawMaterialLocation, data?.rawMaterialQuantity, data?.rawMaterialPrice, data?.rawMaterialDescription, data?.rawMaterialProductionDate, data?.rawMaterialExpiryDate, data?.rawMaterialSpecifications, data?.rawMaterialCultivationMethod, data?.rawMaterialFertilizers, data?.rawMaterialImage);
+        let result = await networkAccess?.contract.submitTransaction("RawMaterialTransfer:CreateRawMaterial", data?.rawID, data?.rawMaterialName, data?.rawMaterialCategory, data?.rawMaterialLocation, data?.rawMaterialQuantity, data?.rawMaterialPrice, data?.rawMaterialDescription, data?.rawMaterialProductionDate, data?.rawMaterialExpiryDate, data?.rawMaterialSpecifications, data?.rawMaterialCultivationMethod, data?.rawMaterialFertilizers, imgPath);
         
         await runOffchainScript("node",options);
 
@@ -91,11 +94,13 @@ const UpdateRawMaterial = async(req, res) =>{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req?.body;
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
         let options = setOrgChannel(networkAccess?.org, channelName);
+        const imgPath =  await uploadToPinata(req?.file?.path);
+
         if(!networkAccess?.status){
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
-        let result = await networkAccess?.contract.submitTransaction('RawMaterialTransfer:UpdateRawMaterial', data?.rawID, data?.rawMaterialName, data?.rawMaterialCategory, data?.rawMaterialLocation, data?.rawMaterialQuantity, data?.rawMaterialPrice, data?.rawMaterialDescription, data?.rawMaterialProductionDate, data?.rawMaterialExpiryDate, data?.rawMaterialSpecifications, data?.rawMaterialCultivationMethod, data?.rawMaterialFertilizers,  data?.rawMaterialImage);
+        let result = await networkAccess?.contract.submitTransaction('RawMaterialTransfer:UpdateRawMaterial', data?.rawID, data?.rawMaterialName, data?.rawMaterialCategory, data?.rawMaterialLocation, data?.rawMaterialQuantity, data?.rawMaterialPrice, data?.rawMaterialDescription, data?.rawMaterialProductionDate, data?.rawMaterialExpiryDate, data?.rawMaterialSpecifications, data?.rawMaterialCultivationMethod, data?.rawMaterialFertilizers,  imgPath);
         await runOffchainScript("node",options);
         await connectToMongoDB(networkAccess?.org);
         await new Promise(resolve => setTimeout(resolve, 5000));

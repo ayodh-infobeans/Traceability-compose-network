@@ -17,6 +17,7 @@ router.route('/orderShipment').post(verifyToken,orderController.OrderShipment);
 router.route('/purchaseOrderInspection').post(verifyToken,orderController.PurchaseOrderInspection);
 router.route('/confirmDeliverOrder').post(verifyToken,orderController.ConfirmDeliveredOrder);
 router.route('/getkeyhistory').get(verifyToken,orderController.getKeyHistory);
+router.route('/getSummary').get(verifyToken,orderController.getSummary);
 
 router.get('/status', (req, res) => {
 	res.json({

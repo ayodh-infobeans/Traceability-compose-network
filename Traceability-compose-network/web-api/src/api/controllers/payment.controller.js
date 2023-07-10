@@ -24,13 +24,19 @@ const makePayment = async(req, res) =>{
         paymentUtils.payStatus(data?.paymentAmount).then((status) => {
             payStatus="Paid";
             payID=JSON.parse(status).id;
+            console.log("payStatus 23 123 ==", payStatus);
           })
           .catch((error) => {
             console.error(error);
           });
-          
+
+        
+        // payStatus="Paid";
+        // payID="45";
+        console.log("payStatus 123 ==",payStatus);
         await new Promise(resolve => setTimeout(resolve, 5000));
         let result = await networkAccess?.contract.submitTransaction("Payment:makePayment", data?.poNumber, payID, data?.vendorName,data?.invoiceNumber,data?.invoiceDate,data?.invoiceAmount,data?.paymentAmount,data?.paymentDate,data?.paymentMethod ,data?.description,payStatus,data?.notes);
+        console.log("Result 123 ==",result);
         await runOffchainScript("node",options);
         await stopOffchainScript();
         if(result) {

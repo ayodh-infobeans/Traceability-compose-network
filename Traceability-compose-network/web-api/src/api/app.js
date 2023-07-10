@@ -6,7 +6,6 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import bearerToken from 'express-bearer-token';
 import {errorHandler,notFound} from './middleware/index.js'
-
 const app = express();
 dotenv.config();
 const PORT = process.env.PORT || 4001;
@@ -15,7 +14,6 @@ app.use(morgan('combined'));
 app.use(cors());
 app.use(bodyparser.json());
 app.use(bearerToken());
-
 apiRoute(app);
 
 /*======================================================

@@ -2,6 +2,9 @@ import Connections from '../utils/connections.util.js';
 import commonUtils from '../utils/common.util.js';
 import ProductModel from '../../models/productmodel.js';
 import offchainUtil from '../utils/offchain.util.js';
+import pinata from './../storage/pinataIndex.js';
+
+const { uploadToPinata } = pinata;
 
 const { connectToFabricNetwork, connectToMongoDB} = Connections;
 const { generateResponsePayload } = commonUtils;
@@ -10,11 +13,13 @@ const {setOrgChannel,runOffchainScript,stopOffchainScript } = offchainUtil;
 const GetAllProducts = async(req, res) =>{
     try{
         const {userName, orgMSP ,channelName, chaincodeName} = req?.body;
+        
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
         if(!networkAccess?.status){
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
+        
         let result = await networkAccess?.contract.evaluateTransaction("ProductContract:GetAllProducts");
         if(result) {
             const responsePayload = generateResponsePayload(result.toString(), null, null);
@@ -33,19 +38,21 @@ const GetAllProducts = async(req, res) =>{
 }
 
 const CreateProduct = async(req, res) =>{
+    
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req?.body;
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
         let options = setOrgChannel(networkAccess?.org, channelName);
+        const imgPath =  await uploadToPinata(req?.file?.path);
+
         if(!networkAccess?.status){
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
-        let result = await networkAccess?.contract.submitTransaction('ProductContract:CreateProduct', data?.productId, data?.rawMaterialIds, data?.productName, data?.productDescription, data?.productCategory, data?.productManufacturingLocation, data?.productQuantity, data?.productManufacturingPrice, data?.productManufacturingDate, data?.productExpiryDate, data?.productIngredients, data?.productTemprature, data?.productSKU, data?.productGTIN,  data?.productImage);
-        
+
+        let result = await networkAccess?.contract.submitTransaction('ProductContract:CreateProduct', data?.productId, data?.rawMaterialIds, data?.productName, data?.productDescription, data?.productCategory, data?.productManufacturingLocation, data?.productQuantity, data?.productManufacturingPrice, data?.productManufacturingDate, data?.productExpiryDate, data?.productIngredients, data?.productTemprature, data?.productSKU, data?.productGTIN,  imgPath);
         
         await runOffchainScript("node",options);
-
         await Connections.connectToMongoDB(networkAccess?.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const obj = await ProductModel.findOne({productId:data?.productId});
@@ -69,7 +76,9 @@ const CreateProduct = async(req, res) =>{
         }
         
         await stopOffchainScript();
+
         if(result) {
+            
             const responsePayload = generateResponsePayload(result.toString(), null, null);
             await networkAccess?.gateway.disconnect();
             return res.send(responsePayload);
@@ -79,6 +88,7 @@ const CreateProduct = async(req, res) =>{
         return res.send(responsePayload);
     }
     catch (error){
+        console.log('######', error)
         const response_payload = generateResponsePayload(null, error?.name, error?.message);
         return res.send(response_payload)
     }
@@ -87,13 +97,19 @@ const CreateProduct = async(req, res) =>{
 const UpdateProduct = async(req, res) =>{
     try{
         const {userName, orgMSP, userType,channelName, chaincodeName, data} = req?.body;
+        const Jdata = JSON.parse(data);
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
         let options = setOrgChannel(networkAccess?.org, channelName);
+        const imgPath =  await uploadToPinata(req?.file?.path);
+
+        // console.log(Jdata?.productId);
+        console.log(networkAccess?.status);
         if(!networkAccess?.status){
             const response_payload = generateResponsePayload(null, error?.name, error?.message);
             return res.send(response_payload);
         }
-        let result = await networkAccess?.contract.submitTransaction('ProductContract:UpdateProduct', data?.productId,  data?.rawMaterialIds, data?.productName, data?.productDescription, data?.productCategory, data?.productManufacturingLocation, data?.productQuantity, data?.productManufacturingPrice, data?.productManufacturingDate, data?.productExpiryDate, data?.productIngredients,data?.productTemprature, data?.productSKU, data?.productGTIN, data?.productImage);
+        let result = await networkAccess?.contract.submitTransaction('ProductContract:UpdateProduct', Jdata?.productId,  Jdata?.rawMaterialIds, Jdata?.Name, Jdata?.Description, Jdata?.Category, Jdata?.ManufacturingLocation, Jdata?.Quantity, Jdata?.ManufacturingPrice, Jdata?.ManufacturingDate, Jdata?.ExpiryDate, Jdata?.Ingredients,Jdata?.Temprature, Jdata?.SKU, Jdata?.GTIN, imgPath);
+        console.log("result==",result);
         await runOffchainScript("node",options);
         await connectToMongoDB(networkAccess?.org);
         await new Promise(resolve => setTimeout(resolve, 5000));
