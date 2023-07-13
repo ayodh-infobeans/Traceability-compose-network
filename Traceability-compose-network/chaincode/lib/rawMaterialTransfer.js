@@ -10,6 +10,7 @@
 const stringify  = require('json-stringify-deterministic');
 const sortKeysRecursive  = require('sort-keys-recursive');
 const { Contract } = require('fabric-contract-api');
+const { createCustomeError } = require('./error/customError');
 
 class RawMaterialTransfer extends Contract {
 
@@ -17,7 +18,7 @@ class RawMaterialTransfer extends Contract {
 
         const mspid = ctx.clientIdentity.getMSPID();
         if (mspid !== 'Org1MSP') {
-            throw new Error(`Caller with MSP ID ${mspid} is not authorized to initialize raw materials`);
+            throw createCustomeError(`Caller with MSP ID ${mspid} is not authorized to initialize raw materials`);
         }
 
         const rawMaterials = [
@@ -54,19 +55,20 @@ class RawMaterialTransfer extends Contract {
         // Only Grower Organization can create new raw material
         const mspid = ctx.clientIdentity.getMSPID();
         if (mspid !== 'Org1MSP') {
-            throw new Error(`Caller with MSP ID ${mspid} is not authorized to create raw materials`);
+            throw createCustomeError(`Caller with MSP ID ${mspid} is not authorized to create raw materials`);
         }
         // check for already existing raw materials
         // const id = uuidv4();
         const exists = await this.RawMaterialExists(ctx, id);
         if (exists) {
-            throw new Error(`This Raw Material ${id} already exists`);
+            throw createCustomeError(`This Raw Material ${id} already exists`);
         }
         
-        // const assetExists = await this.assetExistsByName(ctx, "rawMaterial" ,name);
-        // if(assetExists){
-        //     throw new Error(`This Raw Material ${id} already exists`);
-        // }
+        const assetExists = await this.assetExistsByName(ctx, name);
+        if(assetExists.status){
+            throw createCustomeError(`This Raw Material ${name} already exists`);
+        }
+
         const rawMaterial = {
             orgMSP:mspid,
             id: id,
@@ -89,6 +91,10 @@ class RawMaterialTransfer extends Contract {
         };
         // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
         let result = await ctx.stub.putState("RM_"+rawMaterial.id, Buffer.from(stringify(sortKeysRecursive(rawMaterial))));
+        const nameIndexKey = "nameIndex";
+        assetExists.nameIndex[name] = "RM_"+id;
+        const updatedNameIndexBuffer = Buffer.from(JSON.stringify(assetExists.nameIndex));
+        await ctx.stub.putState(nameIndexKey, updatedNameIndexBuffer);
         return JSON.stringify(result);
     }
 
@@ -96,7 +102,7 @@ class RawMaterialTransfer extends Contract {
     async GetRawMaterialById(ctx, id) {
         const resultantJSON = await ctx.stub.getState("RM_"+id); // get the asset from chaincode state
         if (!resultantJSON || resultantJSON.length === 0) {
-            throw new Error(`The raw material ${id} does not exist`);
+            throw createCustomeError(`The raw material ${id} does not exist`);
         }
         return resultantJSON.toString();
     }
@@ -106,14 +112,24 @@ class RawMaterialTransfer extends Contract {
         // Only Grower organizations are allowed to update raw materials
         const mspid = ctx.clientIdentity.getMSPID();
         if (mspid !== 'Org1MSP') {
-        throw new Error(`Caller with MSP ID ${mspid} is not authorized to update raw materials`);
+        throw createCustomeError(`Caller with MSP ID ${mspid} is not authorized to update raw materials`);
         }
         
         const exists = await this.RawMaterialExists(ctx, id);
         if (!exists) {
-            throw new Error(`This raw material ${id} does not exist`);
+            throw createCustomeError(`This raw material ${id} does not exist`);
         }
 
+        const assetBuffer = await ctx.stub.getState("RM_"+id);
+        const asset = JSON.parse(assetBuffer.toString());
+        let assetExists;
+
+        if(asset.name !== name){
+            assetExists = await this.assetExistsByName(ctx, name);
+            if(assetExists?.status && assetExists?.nameIndex){
+                throw createCustomeError(`This Raw Material ${name} already exists`);
+            } 
+        }
         // overwriting original raw material with new raw material
         const updatedRawMaterial = {
             orgMSP:mspid,
@@ -136,6 +152,12 @@ class RawMaterialTransfer extends Contract {
         };
         // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
         let result= ctx.stub.putState("RM_"+id, Buffer.from(stringify(sortKeysRecursive(updatedRawMaterial))));
+        if(asset.name !== name){
+            const nameIndexKey = "nameIndex";
+            assetExists.nameIndex[name] = "RM_"+id;
+            const updatedNameIndexBuffer = Buffer.from(JSON.stringify(assetExists.nameIndex));
+            await ctx.stub.putState(nameIndexKey, updatedNameIndexBuffer);
+        }
         return JSON.stringify(result);
     }
 
@@ -144,12 +166,12 @@ class RawMaterialTransfer extends Contract {
         
         const mspid = ctx.clientIdentity.getMSPID();
         if (mspid !== 'Org1MSP') {
-            throw new Error(`Caller with MSP ID ${mspid} is not authorized to delete raw material`);
+            throw createCustomeError(`Caller with MSP ID ${mspid} is not authorized to delete raw material`);
         }
         
         const exists = await this.RawMaterialExists(ctx,id);
         if (!exists) {
-            throw new Error(`The raw material ${id} does not exist`);
+            throw createCustomeError(`The raw material ${id} does not exist`);
         }
         return ctx.stub.deleteState("RM_"+id);
     }
@@ -160,30 +182,29 @@ class RawMaterialTransfer extends Contract {
         return resultantJSON && resultantJSON.length > 0;
     }
 
-    async assetExistsByName(ctx, assetName) {
-        const iterator = await ctx.stub.getStateByPartialCompositeKey('product', []);
-      
-        while (true) {
-          const response = await iterator.next();
-            
-          if (response.value && response.value.key) {
-            const splitKey = ctx.stub.splitCompositeKey(response.value.key);
-            const objectType = splitKey.objectType;
-            const attributes = splitKey.attributes;
-      
-            if (objectType === 'Product' && attributes.length > 0 && attributes[0] === assetName) {
-              await iterator.close();
-              return true; // Product with the given name exists
+    async assetExistsByName(ctx, name) {
+        // Get the name index from the world state
+        const nameIndexKey = 'nameIndex'; // Key for the name index
+        const nameIndexBuffer = await ctx.stub.getState(nameIndexKey);
+
+        let nameIndex = {};
+        if (nameIndexBuffer && nameIndexBuffer.length !== 0) {
+            nameIndex = JSON.parse(nameIndexBuffer.toString());
+        }
+        console.log("=====================", nameIndex);
+        // Check if the product name already exists in the name index
+        if (name in nameIndex) {
+            const existingProductKey = nameIndex[name];
+            const existingProductBuffer = await ctx.stub.getState(existingProductKey);
+            const existingProduct = JSON.parse(existingProductBuffer.toString());
+
+            // Exclude raw material objects from duplicate name check
+            if (existingProduct.type !== 'product') {
+                return {status: true, nameIndex: nameIndex};
             }
-          }
-      
-          if (response.done) {
-            await iterator.close();
-            break;
-          }
         }
       
-        return false; // Product with the given name does not exist
+        return {status: false, nameIndex: nameIndex}; // Product with the given name does not exist
     }
       
       

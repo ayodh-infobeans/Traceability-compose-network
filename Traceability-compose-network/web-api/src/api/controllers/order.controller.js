@@ -25,7 +25,7 @@ const CreatePurchaseOrder = async(req, res) =>{
         let options = setOrgChannel(networkAccess?.org, channelName);
         const timestamp = moment().format('YYYY-MM-DD HH:mm:ss');
         if(!networkAccess?.status){
-            const response_payload = generateResponsePayload(error?.message, "error",500, null);
+            const response_payload = generateResponsePayload(error, "error",500, null);
             return res.send(response_payload);
         }
         if(data?.sellerID === orgMSP ){ 
@@ -72,7 +72,7 @@ const CreatePurchaseOrder = async(req, res) =>{
         return res.send(responsePayload);
     }
     catch (error){
-        const response_payload = generateResponsePayload(error?.message, "error",500, null);
+        const response_payload = generateResponsePayload(error, "error",500, null);
         return res.send(response_payload);
     }
 }
@@ -85,7 +85,7 @@ const InsertPackageDetail = async(req, res) =>{
         const timestamp = moment().format('YYYY-MM-DD HH:mm:ss');
         if(!networkAccess?.status){
             
-            const response_payload = generateResponsePayload(error?.message, "error",500, null);
+            const response_payload = generateResponsePayload(error, "error",500, null);
             return res.send(response_payload);
 
         }
@@ -146,7 +146,7 @@ const InsertPackageDetail = async(req, res) =>{
         return res.send(responsePayload);
     }
     catch (error){
-        const response_payload = generateResponsePayload(error?.message, "error",500, null);
+        const response_payload = generateResponsePayload(error, "error",500, null);
         return res.send(response_payload);
     }
 }
@@ -158,7 +158,7 @@ const CreateBatch = async(req, res) =>{
         let options = setOrgChannel(networkAccess?.org, channelName);
         const timestamp = moment().format('YYYY-MM-DD HH:mm:ss');
         if(!networkAccess?.status){
-            const response_payload = generateResponsePayload(error?.message, "error",500, null);
+            const response_payload = generateResponsePayload(error, "error",500, null);
             return res.send(response_payload);
         }
         let result = await networkAccess?.contract?.submitTransaction('OrderContract:CreateBatch', data?.batchId, data?.assetId, data?.packageInBatch, data?.poNumber, data?.startLocation, data?.endLocation,timestamp,timestamp);
@@ -199,7 +199,8 @@ const CreateBatch = async(req, res) =>{
         return res.send(responsePayload);
     }
     catch (error){
-        const response_payload = generateResponsePayload(error?.message, "error",500, null);
+        const response_payload = generateResponsePayload(error, "error",500, null);
+    
         return res.send(response_payload);
 
     }
@@ -223,7 +224,7 @@ const OrderShipment = async(req, res) =>{
         }
         
         if(!networkAccess?.status){
-            const response_payload = generateResponsePayload(error?.message, "error",500, null);
+            const response_payload = generateResponsePayload(error, "error",500, null);
             return res.send(response_payload);
         }
         let result = await networkAccess?.contract?.submitTransaction('OrderContract:OrderShipment', data?.purchaseOrderId, data?.senderId, data.batchIds, data.packageUnitPrice, data.shipStartLocation, data.shipEndLocation, data.estDeliveryDateTime, data.gpsCoordinates, data.notes, uploadedFiles["data[weighbridgeSlipImage]"][0].hash, data.weighbridgeSlipNumber, data.weighbridgeDate,uploadedFiles["data[tbwImage]"][0].hash, timestamp,timestamp);
@@ -265,8 +266,7 @@ const OrderShipment = async(req, res) =>{
         return res.send(responsePayload);
     }
     catch (error){
-        
-        const response_payload = generateResponsePayload(error?.message, "error",500, null);
+        const response_payload = generateResponsePayload(error, "error",500, null);
         return res.send(response_payload);
     }
 }
@@ -298,7 +298,7 @@ const PurchaseOrderInspection = async(req, res) =>{
         console.log("result 2", result2);
     }
     catch (error){
-        const response_payload = generateResponsePayload(error?.message, "error",500, null);
+        const response_payload = generateResponsePayload(error, "error",500, null);
         return res.send(response_payload);
     }
 }
@@ -325,7 +325,7 @@ const ConfirmDeliveredOrder = async(req, res) =>{
         }
     }
     catch (error){
-        const response_payload = generateResponsePayload(error?.message, "error",500, null);
+        const response_payload = generateResponsePayload(error, "error",500, null);
         return res.send(response_payload);
     }
 }
@@ -337,7 +337,7 @@ const getKeyHistory = async(req, res) =>{
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
        
         if(!networkAccess?.status){
-            const response_payload = generateResponsePayload(error?.message, "error",500, null);
+            const response_payload = generateResponsePayload(error, "error",500, null);
             return res.send(response_payload);
         }
     
@@ -355,7 +355,7 @@ const getKeyHistory = async(req, res) =>{
         return res.send(responsePayload);
     }
     catch (error){
-        const response_payload = generateResponsePayload(error?.message, "error",500, null);
+        const response_payload = generateResponsePayload(error, "error",500, null);
         return res.send(response_payload);
     }
 }

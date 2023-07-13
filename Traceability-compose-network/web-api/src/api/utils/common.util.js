@@ -13,13 +13,23 @@ const generateUniqueIdentity = (username) =>{
   return uniqueIdentity;
 }
 
-const generateResponsePayload = (message = null, status = null, code = null, data = null) =>{
+const generateResponsePayload = (error = null, status = null, code = null, data = null) =>{
+  
+  let errMessage;
+  if(typeof error === 'string'){
+    errMessage = error;
+  }
+  else{
+    errMessage = error?.responses[0]?.response?.message;
+  }
+  
   return {
-    message: message,
+    message: errMessage,
     status: status,
     code: code,
     data: data
   }
+    
 }
 
 export default {

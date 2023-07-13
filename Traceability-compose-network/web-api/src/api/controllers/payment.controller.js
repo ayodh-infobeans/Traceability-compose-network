@@ -18,7 +18,7 @@ const makePayment = async(req, res) =>{
         let options = setOrgChannel(networkAccess?.org, channelName);
         const timestamp = moment().format('YYYY-MM-DD HH:mm:ss');
         if(!networkAccess?.status){
-            const response_payload = generateResponsePayload(error?.message, "error",500, null);
+            const response_payload = generateResponsePayload(error, "error",500, null);
             return res.send(response_payload);
         }
         
@@ -49,7 +49,7 @@ const makePayment = async(req, res) =>{
     }
 
     catch (error){
-        const response_payload = generateResponsePayload(error?.message, "error",500, null);
+        const response_payload = generateResponsePayload(error, "error",500, null);
         return res.send(response_payload);
     }
 }
@@ -59,7 +59,7 @@ const GetTransactionById = async(req, res) => {
         const {userName, orgMSP,channelName, chaincodeName, data} = req?.body;
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
         if(!networkAccess?.status){
-            const response_payload = generateResponsePayload(error?.message, "error",500, null);
+            const response_payload = generateResponsePayload(error, "error",500, null);
             return res.send(response_payload);
         }
         let result = await networkAccess?.contract?.evaluateTransaction("Payment:GetTransactionById", data?.paymentRefrenceNumber);
@@ -73,7 +73,7 @@ const GetTransactionById = async(req, res) => {
         return res.send(responsePayload);
     }
     catch (error){
-        const response_payload = generateResponsePayload(error?.message, "error",500, null);
+        const response_payload = generateResponsePayload(error, "error",500, null);
         return res.send(response_payload);
     }
 }
