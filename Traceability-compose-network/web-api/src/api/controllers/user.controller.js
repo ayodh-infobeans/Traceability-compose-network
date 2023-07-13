@@ -57,7 +57,7 @@ const registerUser = async (req, res) => {
                         return res.send(generateResponsePayload("User Registration Successfull", "Success", 200, response)); 
                     })
                     .catch((error) => {
-                        return res.send(generateResponsePayload(error?.message, "error",500, null));
+                        return res.send(generateResponsePayload(error, "error",500, null));
                     });
                     return;
             } else {
@@ -68,7 +68,7 @@ const registerUser = async (req, res) => {
         return res.send(generateResponsePayload("Something went wrong. Please try again.", "false", 500, null));
     }
     catch(error){
-        return res.send(generateResponsePayload(error?.message, "error",500, null));
+        return res.send(generateResponsePayload(error, "error",500, null));
     }
 }   
 
@@ -95,7 +95,7 @@ const loginUser = async (req, res) => {
         return res.send(generateResponsePayload("Something went wrong. Please try again.", "false", 500, null));
     }
     catch(error){
-        return res.send(generateResponsePayload(error?.message, "error",500, null));
+        return res.send(generateResponsePayload(error, "error",500, null));
     }
     
 }

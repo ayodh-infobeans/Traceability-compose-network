@@ -4,6 +4,8 @@
 const stringify  = require('json-stringify-deterministic');
 const sortKeysRecursive  = require('sort-keys-recursive');
 const { Contract } = require('fabric-contract-api'); 
+const { createCustomeError } = require('./error/customError');
+
 class OrderContract extends Contract {
 
     async createPurchaseOrder(ctx, poNumber,sellerID,fromCountry,fromState,fromCity,toCountry,toState,toCity,poDateTime,productName,productQuantity,unitProductCost,expDeliveryDateTime) {
@@ -44,7 +46,7 @@ class OrderContract extends Contract {
             return JSON.stringify(result);
         }
         catch(error){
-            return error;
+            throw createCustomeError("Something went wrong. Please try again");
         }
     }
 
@@ -75,7 +77,7 @@ class OrderContract extends Contract {
             return JSON.stringify(result);
         }
         catch(error){
-            return error;
+            throw createCustomeError("Something went wrong. Please try again");
         }
 
     }
@@ -89,7 +91,7 @@ class OrderContract extends Contract {
             const purchaseOrderBytes = await ctx.stub.getState("poNumber_"+poNumber);
 
             if (!purchaseOrderBytes || purchaseOrderBytes.length === 0) {
-                throw new Error(`Purchase Order ${poNumber} does not exist, Let Purchase Order arrive First.`);
+                throw createCustomeError(`Purchase Order ${poNumber} does not exist, Let Purchase Order arrive First.`);
             }
             
             const batch = {
@@ -114,7 +116,7 @@ class OrderContract extends Contract {
             return JSON.stringify(result);
         }
         catch(error){
-            return error;
+            throw createCustomeError("Something went wrong. Please try again");
         }
 
     }
@@ -153,7 +155,7 @@ class OrderContract extends Contract {
             return JSON.stringify(result);
         }
         catch(error){
-            return error;
+            throw createCustomeError("Something went wrong. Please try again");
         }
     }
 

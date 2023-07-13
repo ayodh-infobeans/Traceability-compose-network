@@ -29,7 +29,7 @@
     },
     {
         "invoke":"ProductContract:CreateProduct",
-        "args":["Prod4",["raw1"],"Sprite","Sprite","5","Food","Mumbai",100,"30","2023-05-22","2023-08-22", "awaited", "awaited", "created", "Sprite"]
+        "args":["Prod11",["raw1"],"ite","Sprite","5","Food","Mumbai",100,"30","2023-05-22","2023-08-22", "awaited", "awaited", "created", "Sprite"]
     },
     {
         "invoke":"ProductContract:UpdateProduct",
@@ -61,5 +61,9 @@
     },
     {
         "query":"Payment:GetAllPayments"
+    },
+    {
+        "query":"RawMaterialTransfer:DeleteRawMaterial",
+        "args":["CTX999"]
     }
 ]

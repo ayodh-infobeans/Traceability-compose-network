@@ -15,7 +15,7 @@ const GetAllRawMaterial = async(req, res) =>{
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
         
         if(!networkAccess?.status){
-            const responsePayload = generateResponsePayload(error?.message, "error",500, null);
+            const responsePayload = generateResponsePayload(error, "error",500, null);
             return res.send(responsePayload);
         }
 
@@ -29,7 +29,7 @@ const GetAllRawMaterial = async(req, res) =>{
         const responsePayload = generateResponsePayload("Something went wrong. Please try again.", "false", 500, null);
         return res.send(responsePayload);
     } catch (error){
-        const responsePayload = generateResponsePayload(error?.message, "error",500, null);
+        const responsePayload = generateResponsePayload(error, "error",500, null);
         return res.send(responsePayload);
     }
 
@@ -42,7 +42,7 @@ const CreateRawMaterial = async(req, res) =>{
         let options = setOrgChannel(networkAccess?.org, channelName);
 
         if(!networkAccess?.status){
-            const response_payload = generateResponsePayload(error?.message, "error",500, null);
+            const response_payload = generateResponsePayload(error, "error",500, null);
             return res.send(response_payload);
         }
         let id = uuidv4();
@@ -83,8 +83,7 @@ const CreateRawMaterial = async(req, res) =>{
         return res.send(responsePayload);
     }
     catch (error){
-        console.log("================================================",res.status);
-        const response_payload = generateResponsePayload(error?.message, "error",500, null);
+        const response_payload = generateResponsePayload(error, "error",500, null);
         return res.send(response_payload)
     }
 }
@@ -95,7 +94,7 @@ const UpdateRawMaterial = async(req, res) =>{
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
         let options = setOrgChannel(networkAccess?.org, channelName);
         if(!networkAccess?.status){
-            const response_payload = generateResponsePayload(error?.message, "error",500, null);
+            const response_payload = generateResponsePayload(error, "error",500, null);
             return res.send(response_payload);
         }
         let result = await networkAccess?.contract.submitTransaction('RawMaterialTransfer:UpdateRawMaterial', data?.id, data?.name, data?.category, data?.location, data?.quantity, data?.price, data?.description, data?.productionDate, data?.expiryDate, data?.specifications, data?.cultivationMethod, data?.fertilizers,  data?.image);
@@ -130,7 +129,7 @@ const UpdateRawMaterial = async(req, res) =>{
         return res.send(responsePayload);
     }
     catch (error){
-        const response_payload = generateResponsePayload(error?.message, "error",500, null);
+        const response_payload = generateResponsePayload(error, "error",500, null);
         return res.send(response_payload)
     }
 }
@@ -140,7 +139,7 @@ const GetRawMaterialById = async(req, res) => {
         const {userName, orgMSP ,channelName, chaincodeName, data} = req?.body;
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
         if(!networkAccess.status){
-            const response_payload = generateResponsePayload(error?.message, "error",500, null);
+            const response_payload = generateResponsePayload(error, "error",500, null);
             return res.send(response_payload);
         }
         let result = await networkAccess?.contract?.evaluateTransaction("RawMaterialTransfer:GetRawMaterialById", data?.id);
@@ -154,7 +153,7 @@ const GetRawMaterialById = async(req, res) => {
         return res.send(responsePayload);
     }
     catch (error){
-        const response_payload = generateResponsePayload(error?.message, "error",500, null);
+        const response_payload = generateResponsePayload(error, "error",500, null);
         return res.send(response_payload)
     }
 }
@@ -165,7 +164,7 @@ const DeleteRawMaterial = async(req, res) =>{
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
         let options = setOrgChannel(networkAccess?.org, channelName);
         if(!networkAccess?.status){
-            const response_payload = generateResponsePayload(error?.message, "error",500, null);
+            const response_payload = generateResponsePayload(error, "error",500, null);
             return res.send(response_payload);
         }
         let result = await networkAccess?.contract?.submitTransaction("RawMaterialTransfer:DeleteRawMaterial", data?.id);
@@ -183,7 +182,8 @@ const DeleteRawMaterial = async(req, res) =>{
     }
 
     catch (error){
-        const response_payload = generateResponsePayload(error?.message, "error",500, null);
+        console.log(error);
+        const response_payload = generateResponsePayload(error, "error",500, null);
         return res.send(response_payload);
     }
 }
@@ -221,7 +221,7 @@ const CheckRawMaterialAvailability = async(req, res)=>{
         
     }
     catch (error){
-        const response_payload = generateResponsePayload(error?.message, "error",500, null);
+        const response_payload = generateResponsePayload(error, "error",500, null);
         return res.send(response_payload);
     }
 }
@@ -262,7 +262,7 @@ const ConfirmRawMaterialAvailability = async(req, res)=>{
         } 
     }
     catch (error){
-        const response_payload = generateResponsePayload(error?.message, "error",500, null);
+        const response_payload = generateResponsePayload(error, "error",500, null);
         return res.send(response_payload);
     }
 }

@@ -13,7 +13,7 @@ const GetAllProducts = async(req, res) =>{
         const {userName, orgMSP ,channelName, chaincodeName} = req?.body;
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
         if(!networkAccess?.status){
-            const response_payload = generateResponsePayload(error?.message, "error",500, null);
+            const response_payload = generateResponsePayload(error, "error",500, null);
             return res.send(response_payload);
         }
         let result = await networkAccess?.contract?.evaluateTransaction("ProductContract:GetAllProducts");
@@ -28,7 +28,7 @@ const GetAllProducts = async(req, res) =>{
         
     }
     catch (error){
-        const response_payload = generateResponsePayload(error?.message, "error",500, null);
+        const response_payload = generateResponsePayload(error, "error",500, null);
         res.send(response_payload)
     }
 }
@@ -39,7 +39,7 @@ const CreateProduct = async(req, res) =>{
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
         let options = setOrgChannel(networkAccess?.org, channelName);
         if(!networkAccess?.status){
-            const response_payload = generateResponsePayload(error?.message, "error",500, null);
+            const response_payload = generateResponsePayload(error, "error",500, null);
             return res.send(response_payload);
         }
         let id = uuidv4();
@@ -81,7 +81,7 @@ const CreateProduct = async(req, res) =>{
         return res.send(responsePayload);
     }
     catch (error){
-        const response_payload = generateResponsePayload(error?.message, "error",500, null);
+        const response_payload = generateResponsePayload(error, "error",500, null);
         return res.send(response_payload)
     }
 }
@@ -92,7 +92,7 @@ const UpdateProduct = async(req, res) =>{
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
         let options = setOrgChannel(networkAccess?.org, channelName);
         if(!networkAccess?.status){
-            const response_payload = generateResponsePayload(error?.message, "error",500, null);
+            const response_payload = generateResponsePayload(error, "error",500, null);
             return res.send(response_payload);
         }
         let result = await networkAccess?.contract?.submitTransaction('ProductContract:UpdateProduct', data?.id, data?.rawMaterialIds, data?.name, data?.description, data?.category, data?.manufacturingLocation, data?.quantity, data?.manufacturingPrice, data?.manufacturingDate, data?.expiryDate, data?.ingredients, data?.temprature,data?.SKU, data?.GTIN,  data?.image);
@@ -129,7 +129,7 @@ const UpdateProduct = async(req, res) =>{
         return res.send(responsePayload);
     }
     catch (error){
-        const response_payload = generateResponsePayload(error?.message, "error",500, null);
+        const response_payload = generateResponsePayload(error, "error",500, null);
         return res.send(response_payload);
     }
 }
@@ -139,7 +139,7 @@ const GetProductById = async(req, res) => {
         const {userName, orgMSP ,channelName, chaincodeName, data} = req?.body;
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
         if(!networkAccess?.status){
-            const response_payload = generateResponsePayload(error?.message, "error",500, null);
+            const response_payload = generateResponsePayload(error, "error",500, null);
             return res.send(response_payload);
         }
         let result = await networkAccess?.contract?.evaluateTransaction("ProductContract:GetProductById", data?.id);
@@ -153,7 +153,7 @@ const GetProductById = async(req, res) => {
         return res.send(responsePayload);
     }
     catch (error){
-        const response_payload = generateResponsePayload(error?.message, "error",500, null);
+        const response_payload = generateResponsePayload(error, "error",500, null);
         return res.send(response_payload);
     }
 }
@@ -164,7 +164,7 @@ const DeleteProduct = async(req, res) =>{
         const networkAccess =  await connectToFabricNetwork(userName, orgMSP ,channelName, chaincodeName);
         let options = setOrgChannel(networkAccess?.org, channelName);
         if(!networkAccess?.status){
-            const response_payload = generateResponsePayload(error?.message, "error",500, null);
+            const response_payload = generateResponsePayload(error, "error",500, null);
             return res.send(response_payload);
         }
         let result = await networkAccess?.contract?.submitTransaction("ProductContract:DeleteProduct", data?.id);
@@ -181,7 +181,7 @@ const DeleteProduct = async(req, res) =>{
         return res.send(responsePayload);
     }
     catch (error){
-        const response_payload = generateResponsePayload(error?.message, "error",500, null);
+        const response_payload = generateResponsePayload(error, "error",500, null);
         return res.send(response_payload);
     }
 }
@@ -217,7 +217,7 @@ const CheckProductAvailability = async(req, res)=>{
         }
     }
     catch (error){
-        const response_payload = generateResponsePayload(error?.message, "error",500, null);
+        const response_payload = generateResponsePayload(error, "error",500, null);
         return res.send(response_payload);
     }
 }
@@ -257,7 +257,7 @@ const ConfirmProductAvailability = async(req, res)=>{
         } 
     }
     catch (error){
-        const response_payload = generateResponsePayload(error?.message, "error",500, null);
+        const response_payload = generateResponsePayload(error, "error",500, null);
         return res.send(response_payload);
     }
 }

@@ -10,13 +10,14 @@
 const stringify  = require('json-stringify-deterministic');
 const sortKeysRecursive  = require('sort-keys-recursive');
 const { Contract } = require('fabric-contract-api');
+const { createCustomeError } = require('./error/customError');
 
 class ProductContract extends Contract {
     async InitProducts(ctx) {
 
         const mspid = ctx.clientIdentity.getMSPID();
         if (mspid !== 'Org2MSP') {
-            throw new Error(`Caller with MSP ID ${mspid} is not authorized to initialize products`);
+            throw createCustomeError(`Caller with MSP ID ${mspid} is not authorized to initialize products`);
         }
 
         const products = [
@@ -57,19 +58,18 @@ class ProductContract extends Contract {
         // Only Manufacturer Organization can create new product
         const mspid = ctx.clientIdentity.getMSPID();
         if (mspid !== 'Org2MSP') {
-            throw new Error(`Caller with MSP ID ${mspid} is not authorized to create product`);
+            throw createCustomeError(`Caller with MSP ID ${mspid} is not authorized to create product`);
         }
         // check for already existing products
         const exists = await this.ProductExists(ctx, id);
         if (exists) {
-            throw new Error(`This product ${id} already exists`);
+            throw createCustomeError(`This product ${id} already exists`);
         }
         
-        // const assetExists = await this.assetExistsByName(ctx, "product" ,name);
-        // console.log("=========================3",assetExists);
-        // if(assetExists){
-        //     throw new Error(`This Product ${id} already exists`);
-        // }
+        const assetExists = await this.assetExistsByName(ctx, name);
+        if(assetExists.status){
+            throw createCustomeError(`This Product ${name} already exists`);
+        }
 
         const product = {
             orgMSP:mspid,
@@ -94,6 +94,10 @@ class ProductContract extends Contract {
         
         // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
         let result = await ctx.stub.putState("prod_"+id, Buffer.from(stringify(sortKeysRecursive(product))));
+        const nameIndexKey = "nameIndex";
+        assetExists.nameIndex[name] = "prod_"+id;
+        const updatedNameIndexBuffer = Buffer.from(JSON.stringify(assetExists.nameIndex));
+        await ctx.stub.putState(nameIndexKey, updatedNameIndexBuffer);
         return JSON.stringify(result);
     }
 
@@ -101,14 +105,24 @@ class ProductContract extends Contract {
         // Only Manufacturer Organization can update product
         const mspid = ctx.clientIdentity.getMSPID();
         if (mspid !== 'Org2MSP') {
-            throw new Error(`Caller with MSP ID ${mspid} is not authorized to update product`);
+            throw createCustomeError(`Caller with MSP ID ${mspid} is not authorized to update product`);
         }
 
         const exists = await this.ProductExists(ctx, id);
         if (!exists) {
-            throw new Error(`This product ${id} does not exist`);
+            throw createCustomeError(`This product ${id} does not exist`);
         }
-        
+
+        const assetBuffer = await ctx.stub.getState("prod_"+id);
+        const asset = JSON.parse(assetBuffer.toString());
+        let assetExists;
+        if(asset.name !== name){
+            assetExists = await this.assetExistsByName(ctx, name);
+            if(assetExists.status){
+                throw createCustomeError(`This Product ${name} already exists`);
+            }
+        }
+
         const updateProduct = {
             orgMSP:mspid,
             id : id,
@@ -131,6 +145,12 @@ class ProductContract extends Contract {
         };
         // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
         let result = ctx.stub.putState("prod_"+id, Buffer.from(stringify(sortKeysRecursive(updateProduct))));
+        if(asset.name !== name){
+            const nameIndexKey = "nameIndex";
+            assetExists.nameIndex[name] = "prod_"+id;
+            const updatedNameIndexBuffer = Buffer.from(JSON.stringify(assetExists.nameIndex));
+            await ctx.stub.putState(nameIndexKey, updatedNameIndexBuffer);
+        }
         return JSON.stringify(result);
     }
 
@@ -138,7 +158,7 @@ class ProductContract extends Contract {
     async GetProductById(ctx, id) {
         const resultJSON = await ctx.stub.getState("prod_"+id); // get the product from chaincode state
         if (!resultJSON || resultJSON.length === 0) {
-            throw new Error(`The product ${id} does not exist`);
+            throw createCustomeError(`The product ${id} does not exist`);
         }
         return resultJSON.toString();
     }
@@ -148,12 +168,12 @@ class ProductContract extends Contract {
         
         const mspid = ctx.clientIdentity.getMSPID();
         if (mspid !== 'Org2MSP') {
-            throw new Error(`Caller with MSP ID ${mspid} is not authorized to delete product`);
+            throw createCustomeError(`Caller with MSP ID ${mspid} is not authorized to delete product`);
         }
         
         const exists = await this.ProductExists(ctx, id);
         if (!exists) {
-            throw new Error(`The product ${id} does not exist`);
+            throw createCustomeError(`The product ${id} does not exist`);
         }
         return ctx.stub.deleteState("prod_"+id);
     }
@@ -164,13 +184,27 @@ class ProductContract extends Contract {
         return resultJSON && resultJSON.length > 0;
     }    
 
-    async assetExistsByName(ctx, type, name) {
-        const assetNameKey = ctx.stub.createCompositeKey(type, [name]);
-        console.log("=========================1",assetNameKey);
-        const assetData = await ctx.stub.getState(assetNameKey);
-        console.log("=========================2",assetData.toString());
+    async assetExistsByName(ctx, name) {
+        // Get the name index from the world state
+        const nameIndexKey = 'nameIndex'; // Key for the name index
+        const nameIndexBuffer = await ctx.stub.getState(nameIndexKey);
+
+        let nameIndex = {};
+        if (nameIndexBuffer && nameIndexBuffer.length !== 0) {
+            nameIndex = JSON.parse(nameIndexBuffer.toString());
+        }
+        if (name in nameIndex) {
+            const existingProductKey = nameIndex[name];
+            const existingProductBuffer = await ctx.stub.getState(existingProductKey);
+            const existingProduct = JSON.parse(existingProductBuffer.toString());
+
+            // Exclude raw material objects from duplicate name check
+            if (existingProduct.type !== 'rawMaterial') {
+                return {status: true, nameIndex: nameIndex};
+            }
+        }
       
-        return assetData && assetData.length > 0;
+        return {status: false, nameIndex: nameIndex}; // Product with the given name does not exist
     }
 
     // GetAllProducts returns all products found in the world state.

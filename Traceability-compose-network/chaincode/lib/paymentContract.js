@@ -7,14 +7,15 @@
 'use strict';
 
 const { Contract } = require('fabric-contract-api');
+const { createCustomeError } = require('./error/customError');
 
 class Payment extends Contract {
 
     async makePayment(ctx, poNumber, paymentRefrenceNumber, vendorName, invoiceNumber, invoiceDate, invoiceAmount, paymentAmount,paymentDate,paymentMethod ,description,paymentStatus,notes) {
         
-        const purchaseOrderBytes = await ctx.stub.getState(poNumber);
+        const purchaseOrderBytes = await ctx.stub.getState("poNumber_"+poNumber);
         if (!purchaseOrderBytes || purchaseOrderBytes.length === 0) {
-            throw new Error(`Purchase Order ${poNumber} does not exist`);
+            throw createCustomeError(`Purchase Order ${poNumber} does not exist`);
         }
 
         const payment ={
@@ -38,7 +39,7 @@ class Payment extends Contract {
             result = await ctx.stub.putState(paymentRefrenceNumber, Buffer.from(JSON.stringify(payment)));
         }
         else{
-            throw new Error(`Please Do Complete Payment for ${poNumber} `);
+            throw createCustomeError(`Please Do Complete Payment for ${poNumber} `);
         }
         
         // return the updated Purchase Order object
@@ -49,7 +50,7 @@ class Payment extends Contract {
     async GetTransactionById(ctx, paymentRefrenceNumber) {
         const transactionJSON = await ctx.stub.getState(paymentRefrenceNumber); 
         if (!transactionJSON || transactionJSON.length === 0) {
-            throw new Error(`The payment data for  ${paymentRefrenceNumber} does not exist`);
+            throw createCustomeError(`The payment data for  ${paymentRefrenceNumber} does not exist`);
         }
         return transactionJSON.toString();
     }
