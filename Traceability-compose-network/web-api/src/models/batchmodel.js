@@ -30,7 +30,17 @@ const BatchSchema = new mongoose.Schema({
     },
     endLocation: {
       type: String
-    }
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+      required: true,
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
+      required: true,
+    },
   });
   
   const BatchModel = mongoose.model('mychannel_basic_batch', BatchSchema);

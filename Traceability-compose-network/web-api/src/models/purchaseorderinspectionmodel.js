@@ -66,7 +66,17 @@ const PurchaseOrderInspectionSchema = new mongoose.Schema({
     },
     supplierContactNumber: {
       type: String
-    }
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+      required: true,
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
+      required: true,
+    },
   });
   
   const OrderInspectionModel = mongoose.model('mychannel_basic_po_inspection', PurchaseOrderInspectionSchema);

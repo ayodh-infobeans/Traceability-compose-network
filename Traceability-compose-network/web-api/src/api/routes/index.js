@@ -9,11 +9,11 @@ import paymentRoutes from './payment.route.js'
 
 export const apiRoute = (app) => { 
 
-    app.use('/rawMaterials', rawMaterialRoutes);
-    app.use('/user', userRoutes);
-    app.use('/product', productRoutes);
-    app.use('/products', productRoutes);
-    app.use('/order',orderRoutes);
-    app.use('/payment',paymentRoutes);
+    app.use('/api/v1/rawMaterial', rawMaterialRoutes);
+    app.use('/api/v1/user', userRoutes);
+    app.use('/api/v1/product', productRoutes);
+    // app.use('/api/v1/products', productRoutes);
+    app.use('/api/v1/order',orderRoutes);
+    app.use('/api/v1/payment',paymentRoutes);
     
 };

@@ -2,27 +2,27 @@ import mongoose from 'mongoose';
 
 const RawSchema = new mongoose.Schema({
   // Define your schema fields here
-  rawID: {
+  id: {
     type: String,
     required: true
   },
-  rawMaterialName: {
+  name: {
     type: String,
     required: true
   },
-  rawMaterialCategory: {
+  category: {
     type: String,
     required: true
   },
-  rawMaterialLocation: {
+  location: {
     type: String,
     required: true
   },
-  rawMaterialQuantity: {
+  quantity: {
     type: Number,
     required: true
   },
-  rawMaterialPrice: {
+  price: {
     type: Number,
     required: true
   },
@@ -30,37 +30,47 @@ const RawSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  rawMaterialDescription: {
+  description: {
     type: String
   },
-  rawMaterialProductionDate: {
+  productionDate: {
     type: Date,
     required: true
   },
-  rawMaterialExpiryDate: {
+  expiryDate: {
     type: Date,
     required: true
   },
-  rawMaterialSpecifications: {
+  specifications: {
     type: String,
     required: true
   },
-  rawMaterialCultivationMethod: {
+  cultivationMethod: {
     type: String,
     required: true
   },
-  rawMaterialFertilizers: {
+  fertilizers: {
     type: String,
     required: true
   },
-  rawMaterialStatus: {
+  status: {
     type: String
   },
-  rawMaterialImage: {
+  image: {
     type: String,
-    required: true
+    required: false
   },
-  rawMaterialOwner: {
+  createdAt: {
+    type: Date,
+    default: Date.now,
+    required: true,
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+    required: true,
+  },
+  owner: {
     type: String,
     required: true
   },

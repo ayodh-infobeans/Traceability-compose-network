@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const ProductSchema = new mongoose.Schema({
   // Define your schema fields here
-  productId: {
+  id: {
     type: String,
     required: true
   },
@@ -14,63 +14,89 @@ const ProductSchema = new mongoose.Schema({
     type: [String], 
     required: true
   },
-  productName: {
+  name: {
     type: String,
     required: true
   },
-  productDescription: {
+  description: {
     type: String
   },
-  productCategory: {
+  category: {
     type: String,
     required: true
   },
-  productManufacturingLocation: {
+  manufacturingLocation: {
     type: String,
     required: true
   },
-  productQuantity: {
+  quantity: {
     type: Number,
     required: true
   },
-  productManufacturingPrice: {
+  manufacturingPrice: {
     type: Number,
     required: true
   },
-  productManufacturingDate: {
+  manufacturingDate: {
     type: Date,
     required: true
   },
-  productExpiryDate: {
+  expiryDate: {
     type: Date,
     required: true
   },
-  productIngredients: {
+  ingredients: {
     type: String,
     required: true
   },
-  productTemprature:{
+  temprature:{
     type: String,
     required: true
+  },
+  humidity: {
+    type: String,
+
+  },
+  transportTemperature: {
+    type: String,
+
+  },
+  minTemperature: {
+    type: String,
+
+  },
+  
+  maxTemperature: {
+    type: String,
   },
   type: {
     type: String,
     required: true
-  },
-  productSKU: {
+  },          
+  SKU: {
     type: String
   },
-  productGTIN: {
+  GTIN: {
     type: String
   },
-  productNotes: {
+  notes: {
     type: String
   },
-  productStatus: {
+  status: {
     type: String
   },
-  productImage: {
+  image: {
     type: String
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+    required: true,
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+    required: true,
   },
   org: {
     type: String

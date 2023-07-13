@@ -38,7 +38,7 @@ const modelToModel = {
 export default {
   writeToMongoDB: async function(uri, modelStr, key, value) {
     try {
-
+      console.log("abhi abhi to aaye ho",key,"value =",value);
       await mongoose.connect(uri, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
@@ -50,7 +50,7 @@ export default {
         .catch((error) => {
           console.error('Connection error:', error);
         });
-      
+     
       let ID = modelToID[modelStr];
       let model =  modelToModel[modelStr]
   

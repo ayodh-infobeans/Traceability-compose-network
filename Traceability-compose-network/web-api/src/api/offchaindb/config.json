@@ -33,8 +33,8 @@
     },
     "modelToID":{
             
-        "RawModel": "rawID",
-        "ProductModel": "productId",
+        "RawModel": "id",
+        "ProductModel": "id",
         "PurchaseOrderModel": "poNumber",
         "PackageDetailModel": "packageId",
         "BatchModel": "batchId",

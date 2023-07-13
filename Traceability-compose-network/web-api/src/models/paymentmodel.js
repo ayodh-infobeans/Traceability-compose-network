@@ -49,7 +49,17 @@ const PaymentSchema = new mongoose.Schema({
   notes: {
     type: String,
     required: true
-  }
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+    required: true,
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+    required: true,
+  },
 });
 
 const PaymentModel = mongoose.model('mychannel_basic_Payment', PaymentSchema);

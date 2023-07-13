@@ -6,9 +6,9 @@ const sortKeysRecursive  = require('sort-keys-recursive');
 const { Contract } = require('fabric-contract-api'); 
 class OrderContract extends Contract {
 
-    async createPurchaseOrder(ctx, poNumber,sellerID,fromCountry,fromState,fromCity,toCountry,toState,toCity,poDateTime,productName,productQuantity,unitProductCost,expDeliveryDateTime) {
+    async createPurchaseOrder(ctx, poNumber,sellerID,fromCountry,fromState,fromCity,toCountry,toState,toCity,poDateTime,productName,productQuantity,unitProductCost,expDeliveryDateTime, createdAt, updatedAt) {
         
-        try{
+        try{ 
             const mspid = ctx.clientIdentity.getMSPID();
             // create a new Purchase Order object
             const purchaseOrder = {
@@ -31,7 +31,9 @@ class OrderContract extends Contract {
                 productName: productName,
                 productQuantity: productQuantity,
                 unitProductCost: unitProductCost,
-                expDeliveryDateTime: expDeliveryDateTime
+                expDeliveryDateTime: expDeliveryDateTime,
+                createdAt:createdAt,
+                updatedAt:updatedAt,
 
                 // contactPersonName: contactPersonName,
                 // contactPhoneNumber: contactPhoneNumber,
@@ -74,7 +76,7 @@ class OrderContract extends Contract {
         }
     }
 
-    async InsertPackagingDetails(ctx, packageId,assetId, barCode) {
+    async InsertPackagingDetails(ctx, packageId,assetId, barCode, createdAt, updatedAt) {
         
     // create a new Package object
         try{
@@ -91,7 +93,9 @@ class OrderContract extends Contract {
                 // productId: productId,
                 // productFragility: productFragility,
             
-                barCode: barCode
+                barCode: barCode,
+                createdAt:createdAt,
+                updatedAt:updatedAt,
 
             };
 
@@ -106,13 +110,13 @@ class OrderContract extends Contract {
 
     }
 
-    async CreateBatch(ctx, batchId,assetId, packageInBatch,poNumber,startLocation,endLocation) {
+    async CreateBatch(ctx, batchId,assetId, packageInBatch,poNumber,startLocation,endLocation, createdAt, updatedAt) {
     
         // create a new Batch object
         try{
 
             const mspid = ctx.clientIdentity.getMSPID();
-            const purchaseOrderBytes = await ctx.stub.getState(`poNumber_${poNumber}`);
+            const purchaseOrderBytes = await ctx.stub.getState("poNumber_"+poNumber);
 
             if (!purchaseOrderBytes || purchaseOrderBytes.length === 0) {
                 throw new Error(`Purchase Order ${poNumber} does not exist, Let Purchase Order arrive First.`);
@@ -129,7 +133,9 @@ class OrderContract extends Contract {
                 // transportMode: transportMode,
                 // rawProductId: rawProductId,
                 startLocation: startLocation,
-                endLocation: endLocation
+                endLocation: endLocation,
+                createdAt:createdAt,
+                updatedAt:updatedAt,
 
             };
 
@@ -145,7 +151,7 @@ class OrderContract extends Contract {
 
     }
 
-    async OrderShipment(ctx, purchaseOrderId,senderId,batchIds,packageUnitPrice,shipStartLocation,shipEndLocation,estDeliveryDateTime,gpsCoordinates,notes,weighbridgeSlipImage,weighbridgeSlipNumber,weighbridgeDate,tbwImage) {
+    async OrderShipment(ctx, purchaseOrderId,senderId,batchIds,packageUnitPrice,shipStartLocation,shipEndLocation,estDeliveryDateTime,gpsCoordinates,notes,weighbridgeSlipImage,weighbridgeSlipNumber,weighbridgeDate,tbwImage, createdAt, updatedAt) {
        // create a new Shipment
         
        try{
@@ -166,7 +172,9 @@ class OrderContract extends Contract {
                 weighbridgeSlipImage: weighbridgeSlipImage,
                 weighbridgeSlipNumber: weighbridgeSlipNumber,
                 weighbridgeDate: weighbridgeDate,
-                tbwImage: tbwImage
+                tbwImage: tbwImage,
+                createdAt:createdAt,
+                updatedAt:updatedAt,
                 
                 // vehicleType: vehicleType,
                 // vehicleNumber: vehicleNumber,
@@ -239,233 +247,3 @@ class OrderContract extends Contract {
 }
 
 module.exports = OrderContract;
-
-// async checkRawMaterialAvailabilty(ctx, searchRawMaterial, rawMaterialQuantity) {
-        
-//     const mspid = ctx.clientIdentity.getMSPID();
-
-//     const allRawMaterials = await this.GetAllRawMaterials(ctx);
-//     const data = JSON.parse(allRawMaterials);
-//     const result = data.filter((item)=> item.rawMaterialName === searchRawMaterial);
-    
-//     if(result.length !== 0){
-//         if(rawMaterialQuantity <= result[0].rawMaterialQuantity){
-//             return "Raw material is available in required quantity : "+ JSON.stringify(result);
-//         }
-//         else{
-//             return "Raw material is not available in required quantity";
-//         }
-//     }
-//     else{
-//         return "Raw material is not available"; 
-//     }
-
-// }
-
-
-
-// async ConfirmAvailabilityOfRawMaterial(ctx, rawProductName,rawProductQuantity,rawProductUnitPrice,shippingDateTime,estDeliveryDateTime) {
-   
-//     const mspid = ctx.clientIdentity.getMSPID();
-    
-//     if (mspid !== 'GrowerMSP') {
-//         throw new Error(`Caller with MSP ID ${mspid} is not authorized to confirm rawMaterial Availability`);
-//     }
-
-    
-
-//    const confirmAvailability = {
-        
-//         rawProductName: rawProductName,
-//         rawProductQuantity: rawProductQuantity,
-//         rawProductUnitPrice: rawProductUnitPrice,
-//         shippingDateTime: shippingDateTime,
-//         estDeliveryDateTime: estDeliveryDateTime
-//    };
-
-//     // // add the Purchase Order to the world state
-//     await ctx.stub.putState(rawProductName, Buffer.from(JSON.stringify(confirmAvailability)));
-
-//     // return the Purchase Order object
-//     return JSON.stringify(confirmAvailability);
-
-// }
-
-
-// async checkProductlAvailabilty(ctx, searchProduct, productQuantity) {
-    
-//     const mspid = ctx.clientIdentity.getMSPID();
-
-//     const allProducts = await this.GetAllProducts(ctx);
-//     const data = JSON.parse(allProducts);
-//     const result = data.filter((item)=> item.productName === searchProduct);
-    
-//     if(result.length !== 0){
-//         if(productQuantity <= result[0].productQuantity){
-//             return "Product  available in required quantity : "+ JSON.stringify(result);
-//         }
-//         else{
-//             return "Product is not available in required quantity";
-//         }
-//     }
-//     else{
-//         return "Product  is not available"; 
-//     }
-
-// }
-
-
-
-
-// async ConfirmAvailabilityOfProduct(ctx, productName,productQuantity,productUnitPrice,shippingDateTime,estDeliveryDateTime) {
-   
-//     const mspid = ctx.clientIdentity.getMSPID();
-//     if (mspid !== 'ManufacturerMSP') {
-//         throw new Error(`Caller with MSP ID ${mspid} is not authorized to confirm rawMaterial Availability`);
-//     }
-
-//    const confirmAvailability = {
-        
-//         productName: productName,
-//         productQuantity: productQuantity,
-//         productUnitPrice: productUnitPrice,
-//         shippingDateTime: shippingDateTime,
-//         estDeliveryDateTime: estDeliveryDateTime
-//    };
-
-//     // // add the Purchase Order to the world state
-//     await ctx.stub.putState(productName, Buffer.from(JSON.stringify(confirmAvailability)));
-
-//     // return the Purchase Order object
-//     return JSON.stringify(confirmAvailability);
-
-// }
-
-    //     const purchaseOrderBytes = await ctx.stub.getState('PO_' + purchaseOrderId);
-    //     if (!purchaseOrderBytes || purchaseOrderBytes.length === 0) {
-    //         throw new Error(`Purchase Order ${purchaseOrderId} does not exist`);
-    //     }
-
-    //     const payment ={
-    //         purchaseOrderId: purchaseOrderId,
-    //         vendorName: vendorName,
-    //         invoiceNumber: invoiceNumber,
-    //         invoiceDate: invoiceDate,
-    //         paymentDueDate: paymentDueDate,
-    //         purchaseOrder: purchaseOrder,
-    //         invoiceAmount: invoiceAmount,
-    //         paymentAmount:  paymentAmount,
-    //         paymentDate: paymentDate,
-    //         paymentMethod: paymentMethod,
-    //         description: description,
-    //         paymentStatus: paymentStatus, //
-    //         paymentRefrenceNumber: // async PurchaseOrderInspection(ctx, batchID,serialNumber,estDeliveryDateTime,productIdentificationNumber,description,totalQuantity,damageQuantity,defectQuantity,goodQuantity,packageSize,packageColor,packageName,rate,amount,deliveryDateTime,compliance,pwImage,remark,supplierName,supplierAddress,supplierContactNumber) {
-       
-    //     const transientData = {
-    //         batchID: batchID,
-    //         serialNumber: serialNumber,
-    //         estDeliveryDateTime: estDeliveryDateTime,
-    //         productIdentificationNumber: productIdentificationNumber,
-    //         description: description,
-    //         totalQuantity: totalQuantity,
-    //         damageQuantity: damageQuantity,
-    //         defectQuantity: defectQuantity,
-    //         goodQuantity: goodQuantity,
-    //         packageSize: packageSize,
-    //         packageColor: packageColor,
-    //         packageName: packageName,
-    //         rate: rate,
-    //         amount: amount,
-    //         deliveryDateTime: deliveryDateTime,
-    //         compliance: compliance,
-    //         pwImage: pwImage,
-    //         remark: remark,
-    //         supplierName: supplierName,
-    //         supplierAddress: supplierAddress,
-    //         supplierContactNumber: supplierContactNumber
-    //     };
-
-    //     await ctx.stub.putPrivateData('OrderInspectionData',  Buffer.from(JSON.stringify(transientData)));
-
-    //     // return the orderInspection
-    //     return JSON.stringify(transientData);
-
-    // }
-
-    // async makePayment(ctx, purchaseOrderId, vendorName,invoiceNumber,invoiceDate,paymentDueDate,purchaseOrder,invoiceAmount,paymentAmount, paymentDate,paymentMethod,description,paymentStatus,paymentRefrenceNumber,notes) {
-    //     // get the Purchase Order from the world statepaymentRefrenceNumber,
-    //         notes: notes
-    //     };
-
-    //     // update the Purchase Order status to 'Paid'
-    //     const purchaseOrder = JSON.parse(purchaseOrderBytes.toString());
-    //     purchaseOrder.status = 'Paid';
-    //     payment.paymentStatus= 'Paid';
-    //     await ctx.stub.putState('PO_' + purchaseOrderId, Buffer.from(JSON.stringify(payment)));
-
-    //     // return the updated Purchase Order object
-    //     return JSON.stringify(payment);
-
-    // }
-
-    // async CreateQRCode(ctx,productId, batchNumber, batchExpiryDate,batchManufacturingDate,rawMaterialIds,productName,productDescription,productCategory,manufacturingLocation,quantity,manufacturingPrice,manufacturingDate,ingredients,fnfType,productImages,qrSize,qrFormat){
-
-    //     const qrCode ={
-    //         productId: productId,
-    //         batchNumber: batchNumber,
-    //         batchExpiryDate: batchExpiryDate,
-    //         batchManufacturingDate: batchManufacturingDate,
-    //         rawMaterialIds: rawMaterialIds,
-    //         productName: productName,
-    //         productDescription: productDescription,
-    //         productCategory: productCategory,
-    //         manufacturingLocation: manufacturingLocation,
-
-    //         quantity: quantity,
-    //         manufacturingPrice: manufacturingPrice,
-    //         manufacturingDate: manufacturingDate,
-    //         ingredients: ingredients,
-    //         fnfType: fnfType,
-    //         productImages: productImages,
-    //         qrSize: qrSize,
-    //         qrFormat: qrFormat
-    //     };
-
-
-    //     // add the QRCODE to the world state
-    //     await ctx.stub.putState(productId, Buffer.from(JSON.stringify(qrCode)));
-
-    //     // return the QRCODE
-    //     return JSON.stringify(qrCode);
-
-    // }
-
-
-    // async updatePurchaseOrder(ctx, poNumber, updatedAttributes) {
-    //     try {
-    //       // Retrieve the existing purchase order from the world state
-    //       const existingOrderBuffer = await ctx.stub.getState("poNumber_" + poNumber);
-    //       if (!existingOrderBuffer || existingOrderBuffer.length === 0) {
-    //         throw new Error(`Purchase order ${poNumber} does not exist.`);
-    //       }
-      
-    //       // Parse the existing purchase order
-    //       const existingOrder = JSON.parse(existingOrderBuffer.toString());
-      
-    //       // Update the specified attributes
-    //       for (const attr in updatedAttributes) {
-    //         if (Object.prototype.hasOwnProperty.call(updatedAttributes, attr)) {
-    //           existingOrder[attr] = updatedAttributes[attr];
-    //         }
-    //       }
-      
-    //       // Update the purchase order in the world state
-    //       await ctx.stub.putState("poNumber_" + poNumber, Buffer.from(JSON.stringify(existingOrder)));
-      
-    //       // Return the updated purchase order object
-    //       return JSON.stringify(existingOrder);
-    //     } catch (error) {
-    //       return error;
-    //     }
-    //   }
-      

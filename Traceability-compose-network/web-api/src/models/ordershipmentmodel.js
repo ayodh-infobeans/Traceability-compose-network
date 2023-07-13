@@ -60,7 +60,17 @@ const OrderShipmentSchema = new mongoose.Schema({
   },
   vehicleColor: {
     type: String
-  }
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+    required: true,
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+    required: true,
+  },
 });
 
   

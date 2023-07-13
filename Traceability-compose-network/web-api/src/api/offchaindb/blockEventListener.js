@@ -37,7 +37,7 @@ class BlockMap {
     }
 }
 
-let ProcessingMap = new BlockMap()
+const ProcessingMap = new BlockMap()
 
 async function main() {
     try {
@@ -140,16 +140,10 @@ async function processPendingBlocks(ProcessingMap) {
 
         } while (true);
 
-        processPendingBlocks(ProcessingMap);
+        return processPendingBlocks(ProcessingMap);
 
     }, 250);
 
 }
 
 main();
-
-
-
-
-
-

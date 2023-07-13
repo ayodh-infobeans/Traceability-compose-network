@@ -26,7 +26,17 @@ const PackageDetailSchema = new mongoose.Schema({
     },
     barCode: {
       type: String
-    }
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+      required: true,
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
+      required: true,
+    },
   });
   
   const PackageDetailModel = mongoose.model('mychannel_basic_package_detail', PackageDetailSchema);

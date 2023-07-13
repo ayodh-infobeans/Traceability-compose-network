@@ -4,11 +4,11 @@ import { verifyToken } from '../middleware/jwtAuthent.js';
 import upload from '../storage/multerIndex.js';
 const router = express.Router();
 
-router.get('/',verifyToken, productController.GetAllProducts);
-router.route('/create').post(verifyToken, upload.single('data[productImage]'), productController.CreateProduct);
-router.route('/update').post(verifyToken,upload.single('data[productImage]'),productController.UpdateProduct);
-router.route('/viewProduct').get(verifyToken,productController.GetProductById);
-router.route('/remove').post(verifyToken,productController.DeleteProduct);
+router.get('/list',verifyToken, productController.GetAllProducts);
+router.route('/create').post(verifyToken, upload.single('data[image]'), productController.CreateProduct);
+router.route('/update').post(verifyToken,upload.single('data[image]'),productController.UpdateProduct);
+router.route('/view').get(verifyToken,productController.GetProductById);
+router.route('/delete').post(verifyToken,productController.DeleteProduct);
 router.route('/checkAvailability').get(verifyToken,productController.CheckProductAvailability);
 router.route('/confirmAvailability').post(verifyToken,productController.ConfirmProductAvailability);
 

@@ -8,7 +8,6 @@ import { createCustomeError } from "./../error/CustomeError.js";
 
 const SECRET_TOKEN = process.env.SECRET_TOKEN;
 const logger = log4js.getLogger('TraceabilityNetwork');
-
 export const verifyToken = (req, res, next) => {
     
     const token = req.token;

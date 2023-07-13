@@ -71,7 +71,17 @@ const PurchaseOrderSchema = new mongoose.Schema({
       contactEmail: {
         type: String
         
-      }
+      },
+      createdAt: {
+        type: Date,
+        default: Date.now,
+        required: true,
+      },
+      updatedAt: {
+        type: Date,
+        default: Date.now,
+        required: true,
+      },
   });
 
       

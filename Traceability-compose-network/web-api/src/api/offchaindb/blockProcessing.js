@@ -10,7 +10,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const configPath = path.resolve(__dirname, 'nextblock.txt');
 
-
 const configPathi = path.resolve(__dirname, 'config.json');
 const configData = fs.readFileSync(configPathi, 'utf-8');
 const config = JSON.parse(configData);
@@ -99,7 +98,7 @@ export default async function processBlockEvent(channelname, block, use_mongodb)
 
                         console.log(`Transaction Timestamp: ${writeObject.timestamp}`);
                         console.log(`ChaincodeID: ${writeObject.chaincodeid}`);
-                         console.log(writeObject.values);
+                        console.log(writeObject.values);
 
                         const logfilePath = path.resolve(__dirname, 'nextblock.txt');
 
@@ -127,11 +126,6 @@ export default async function processBlockEvent(channelname, block, use_mongodb)
 
     }));
 }
-    // define the database for saving block events by key - this emulates world state
-            // const dbname = channelname + '_' + writeObject.chaincodeid +'s';
-            // // define the database for saving all block events - this emulates history
-            // const historydbname = channelname + '_' + writeObject.chaincodeid + '_history';
-            // set values to the array of values received
 
             
 
@@ -246,8 +240,6 @@ function isJSON(value) {
     }
     return true;
 }
-
-// export default blockProcessing;
 
 
 
